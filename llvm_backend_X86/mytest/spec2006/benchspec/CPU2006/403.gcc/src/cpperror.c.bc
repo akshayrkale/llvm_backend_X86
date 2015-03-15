@@ -1,0 +1,581 @@
+; ModuleID = 'cpperror.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct._IO_FILE = type opaque
+%struct.cpp_reader = type { %struct.cpp_buffer*, %struct.lexer_state, %struct.line_maps, %struct.line_map*, i32, i32, %struct._cpp_buff*, %struct._cpp_buff*, %struct._cpp_buff*, %struct.cpp_context, %struct.cpp_context*, %struct.directive*, %struct.cpp_hashnode*, %struct.cpp_hashnode*, i8, %struct.cpp_token*, %struct.tokenrun, %struct.tokenrun*, i32, i32, i32, i32, i32, i8*, i32, %struct.splay_tree_s*, i32, %struct.cpp_token, %struct.cpp_token, %struct.cpp_token, %struct.cpp_token, %struct.deps*, %struct.obstack, %struct.obstack, %struct.pragma_entry*, %struct.cpp_callbacks, %struct.ht*, %struct.cpp_options, %struct.spec_nodes, i8, i8 }
+%struct.cpp_buffer = type { i8*, i8*, i8*, i8*, %struct.cpp_buffer*, i8*, %struct.include_file*, %struct.if_stack*, i32, i8, i8*, i8, i8, i8, i8, %struct.search_path }
+%struct.include_file = type opaque
+%struct.if_stack = type opaque
+%struct.search_path = type { %struct.search_path*, i8*, i32, i64, i64, i32, %struct.file_name_map* }
+%struct.file_name_map = type opaque
+%struct.lexer_state = type { i8, i8, i8, i8, i8, i8, i8, i8, i8 }
+%struct.line_maps = type { %struct.line_map*, i32, i32, i32, i32, i8 }
+%struct.line_map = type { i8*, i32, i32, i32, i8, i8 }
+%struct._cpp_buff = type { %struct._cpp_buff*, i8*, i8*, i8* }
+%struct.cpp_context = type { %struct.cpp_context*, %struct.cpp_context*, %union.utoken, %union.utoken, %struct._cpp_buff*, %struct.cpp_hashnode*, i8 }
+%union.utoken = type { %struct.cpp_token* }
+%struct.directive = type opaque
+%struct.cpp_hashnode = type { %struct.ht_identifier, i16, i8, i8, i8, i8, %union.anon.0 }
+%struct.ht_identifier = type { i32, i8* }
+%union.anon.0 = type { %struct.cpp_macro* }
+%struct.cpp_macro = type opaque
+%struct.tokenrun = type { %struct.tokenrun*, %struct.tokenrun*, %struct.cpp_token*, %struct.cpp_token* }
+%struct.splay_tree_s = type opaque
+%struct.cpp_token = type { i32, i16, i8, i8, %union.anon }
+%union.anon = type { %struct.cpp_string }
+%struct.cpp_string = type { i32, i8* }
+%struct.deps = type opaque
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+%struct.pragma_entry = type opaque
+%struct.cpp_callbacks = type { void (%struct.cpp_reader*, %struct.cpp_token*, i32)*, void (%struct.cpp_reader*, %struct.line_map*)*, void (%struct.cpp_reader*, i32, i8*, %struct.cpp_token*)*, void (%struct.cpp_reader*, i32, %struct.cpp_hashnode*)*, void (%struct.cpp_reader*, i32, %struct.cpp_hashnode*)*, void (%struct.cpp_reader*, i32, %struct.cpp_string*)*, void (%struct.cpp_reader*, i32)* }
+%struct.ht = type { %struct.obstack, %struct.ht_identifier**, %struct.ht_identifier* (%struct.ht*)*, i32, i32, %struct.cpp_reader*, i32, i32 }
+%struct.cpp_options = type { i8*, i8*, i32, %struct.cpp_pending*, i8*, %struct.search_path*, %struct.search_path*, %struct.file_name_map_list*, i8*, i32, i8*, i32, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8 }
+%struct.cpp_pending = type opaque
+%struct.file_name_map_list = type opaque
+%struct.spec_nodes = type { %struct.cpp_hashnode*, %struct.cpp_hashnode*, %struct.cpp_hashnode*, %struct.cpp_hashnode*, %struct.cpp_hashnode* }
+%struct.__va_list_tag = type { i32, i32, i8*, i8* }
+
+@stderr = external constant %struct._IO_FILE*
+@.str = private unnamed_addr constant [17 x i8] c"internal error: \00", align 1
+@.str1 = private unnamed_addr constant [10 x i8] c"warning: \00", align 1
+@.str2 = private unnamed_addr constant [7 x i8] c"%s: %s\00", align 1
+@.str3 = private unnamed_addr constant [7 x i8] c"stdout\00", align 1
+@.str4 = private unnamed_addr constant [5 x i8] c"%s: \00", align 1
+@progname = external global i8*
+@.str5 = private unnamed_addr constant [4 x i8] c"%s:\00", align 1
+@.str6 = private unnamed_addr constant [7 x i8] c"%s:%u:\00", align 1
+@.str7 = private unnamed_addr constant [10 x i8] c"%s:%u:%u:\00", align 1
+
+; Function Attrs: nounwind uwtable
+define i32 @_cpp_begin_message(%struct.cpp_reader* %pfile, i32 %code, i32 %line, i32 %column) #0 {
+entry:
+  switch i32 %code, label %if.end49.critedge [
+    i32 2, label %sw.bb
+    i32 0, label %sw.bb
+    i32 1, label %sw.bb5
+    i32 3, label %sw.bb29
+    i32 4, label %sw.bb42
+    i32 5, label %sw.bb44
+  ]
+
+sw.bb:                                            ; preds = %entry, %entry
+  %map = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 3
+  %0 = load %struct.line_map** %map, align 8, !tbaa !1
+  %tobool = icmp eq %struct.line_map* %0, null
+  br i1 %tobool, label %sw.bb5, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %sw.bb
+  %sysp = getelementptr inbounds %struct.line_map* %0, i64 0, i32 5
+  %1 = load i8* %sysp, align 1, !tbaa !19
+  %tobool2 = icmp eq i8 %1, 0
+  br i1 %tobool2, label %sw.bb5, label %land.lhs.true3
+
+land.lhs.true3:                                   ; preds = %land.lhs.true
+  %warn_system_headers = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 28
+  %2 = load i8* %warn_system_headers, align 1, !tbaa !21
+  %tobool4 = icmp eq i8 %2, 0
+  br i1 %tobool4, label %return, label %sw.bb5
+
+sw.bb5:                                           ; preds = %land.lhs.true3, %land.lhs.true, %sw.bb, %entry
+  %warnings_are_errors = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 34
+  %3 = load i8* %warnings_are_errors, align 1, !tbaa !22
+  %tobool8 = icmp eq i8 %3, 0
+  br i1 %tobool8, label %lor.lhs.false, label %if.then14
+
+lor.lhs.false:                                    ; preds = %sw.bb5
+  %cmp = icmp eq i32 %code, 2
+  br i1 %cmp, label %land.lhs.true10, label %if.else
+
+land.lhs.true10:                                  ; preds = %lor.lhs.false
+  %pedantic_errors = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 26
+  %4 = load i8* %pedantic_errors, align 1, !tbaa !23
+  %tobool13 = icmp eq i8 %4, 0
+  br i1 %tobool13, label %if.else, label %if.then14
+
+if.then14:                                        ; preds = %land.lhs.true10, %sw.bb5
+  %inhibit_errors = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 29
+  %5 = load i8* %inhibit_errors, align 1, !tbaa !24
+  %tobool16 = icmp eq i8 %5, 0
+  br i1 %tobool16, label %if.end18, label %return
+
+if.end18:                                         ; preds = %if.then14
+  %errors = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  %6 = load i32* %errors, align 4, !tbaa !25
+  %cmp19 = icmp ult i32 %6, 1000
+  br i1 %cmp19, label %if.then21, label %if.end49.critedge70
+
+if.then21:                                        ; preds = %if.end18
+  %inc = add i32 %6, 1
+  store i32 %inc, i32* %errors, align 4, !tbaa !25
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+if.else:                                          ; preds = %land.lhs.true10, %lor.lhs.false
+  %inhibit_warnings = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 27
+  %7 = load i8* %inhibit_warnings, align 1, !tbaa !26
+  %tobool25 = icmp eq i8 %7, 0
+  br i1 %tobool25, label %sw.epilog, label %return
+
+sw.bb29:                                          ; preds = %entry
+  %inhibit_errors31 = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 29
+  %8 = load i8* %inhibit_errors31, align 1, !tbaa !24
+  %tobool32 = icmp eq i8 %8, 0
+  br i1 %tobool32, label %if.end34, label %return
+
+if.end34:                                         ; preds = %sw.bb29
+  %errors35 = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  %9 = load i32* %errors35, align 4, !tbaa !25
+  %cmp36 = icmp ult i32 %9, 1000
+  br i1 %cmp36, label %if.then38, label %if.end49.critedge68
+
+if.then38:                                        ; preds = %if.end34
+  %inc40 = add i32 %9, 1
+  store i32 %inc40, i32* %errors35, align 4, !tbaa !25
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+sw.bb42:                                          ; preds = %entry
+  %errors43 = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  store i32 1000, i32* %errors43, align 4, !tbaa !25
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+sw.bb44:                                          ; preds = %entry
+  %10 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %11 = tail call i64 @fwrite(i8* getelementptr inbounds ([17 x i8]* @.str, i64 0, i64 0), i64 16, i64 1, %struct._IO_FILE* %10) #5
+  %errors45 = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  store i32 1000, i32* %errors45, align 4, !tbaa !25
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+sw.epilog:                                        ; preds = %if.else
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  %12 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %13 = tail call i64 @fwrite(i8* getelementptr inbounds ([10 x i8]* @.str1, i64 0, i64 0), i64 9, i64 1, %struct._IO_FILE* %12) #5
+  br label %return
+
+if.end49.critedge:                                ; preds = %entry
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+if.end49.critedge68:                              ; preds = %if.end34
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+if.end49.critedge70:                              ; preds = %if.end18
+  tail call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column)
+  br label %return
+
+return:                                           ; preds = %sw.epilog, %if.end49.critedge, %sw.bb44, %sw.bb42, %if.then38, %if.end49.critedge68, %if.then21, %if.end49.critedge70, %sw.bb29, %if.else, %if.then14, %land.lhs.true3
+  %retval.0 = phi i32 [ 0, %land.lhs.true3 ], [ 0, %if.then14 ], [ 0, %if.else ], [ 0, %sw.bb29 ], [ 1, %if.end49.critedge70 ], [ 1, %if.then21 ], [ 1, %if.end49.critedge68 ], [ 1, %if.then38 ], [ 1, %sw.bb42 ], [ 1, %sw.bb44 ], [ 1, %if.end49.critedge ], [ 1, %sw.epilog ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #1
+
+; Function Attrs: nounwind uwtable
+define internal fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %col) #0 {
+entry:
+  %buffer1 = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 0
+  %0 = load %struct.cpp_buffer** %buffer1, align 8, !tbaa !28
+  %tobool = icmp eq %struct.cpp_buffer* %0, null
+  br i1 %tobool, label %if.then, label %if.else
+
+if.then:                                          ; preds = %entry
+  %1 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %2 = load i8** @progname, align 8, !tbaa !27
+  %call = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %1, i8* getelementptr inbounds ([5 x i8]* @.str4, i64 0, i64 0), i8* %2) #6
+  br label %if.end30
+
+if.else:                                          ; preds = %entry
+  %cmp = icmp eq i32 %line, 0
+  br i1 %cmp, label %if.then2, label %if.end
+
+if.then2:                                         ; preds = %if.else
+  %cur_token = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 15
+  %3 = load %struct.cpp_token** %cur_token, align 8, !tbaa !29
+  %line3 = getelementptr inbounds %struct.cpp_token* %3, i64 -1, i32 0
+  %4 = load i32* %line3, align 4, !tbaa !30
+  %col6 = getelementptr inbounds %struct.cpp_token* %3, i64 -1, i32 1
+  %5 = load i16* %col6, align 2, !tbaa !31
+  %conv = zext i16 %5 to i32
+  br label %if.end
+
+if.end:                                           ; preds = %if.then2, %if.else
+  %col.addr.0 = phi i32 [ %conv, %if.then2 ], [ %col, %if.else ]
+  %line.addr.0 = phi i32 [ %4, %if.then2 ], [ %line, %if.else ]
+  %line_maps = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 2
+  %call7 = tail call %struct.line_map* @lookup_line(%struct.line_maps* %line_maps, i32 %line.addr.0) #2
+  tail call void @print_containing_files(%struct.line_maps* %line_maps, %struct.line_map* %call7) #2
+  %to_line = getelementptr inbounds %struct.line_map* %call7, i64 0, i32 1
+  %6 = load i32* %to_line, align 4, !tbaa !32
+  %add = add i32 %6, %line.addr.0
+  %from_line = getelementptr inbounds %struct.line_map* %call7, i64 0, i32 2
+  %7 = load i32* %from_line, align 4, !tbaa !33
+  %sub = sub i32 %add, %7
+  %cmp9 = icmp eq i32 %col.addr.0, 0
+  %.col.addr.0 = select i1 %cmp9, i32 1, i32 %col.addr.0
+  %cmp13 = icmp eq i32 %add, %7
+  br i1 %cmp13, label %if.then15, label %if.else17
+
+if.then15:                                        ; preds = %if.end
+  %8 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %to_file = getelementptr inbounds %struct.line_map* %call7, i64 0, i32 0
+  %9 = load i8** %to_file, align 8, !tbaa !34
+  %call16 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %8, i8* getelementptr inbounds ([4 x i8]* @.str5, i64 0, i64 0), i8* %9) #6
+  br label %if.end28
+
+if.else17:                                        ; preds = %if.end
+  %show_column = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 48
+  %10 = load i8* %show_column, align 1, !tbaa !35
+  %cmp19 = icmp eq i8 %10, 0
+  %11 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %to_file22 = getelementptr inbounds %struct.line_map* %call7, i64 0, i32 0
+  %12 = load i8** %to_file22, align 8, !tbaa !34
+  br i1 %cmp19, label %if.then21, label %if.else24
+
+if.then21:                                        ; preds = %if.else17
+  %call23 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %11, i8* getelementptr inbounds ([7 x i8]* @.str6, i64 0, i64 0), i8* %12, i32 %sub) #6
+  br label %if.end28
+
+if.else24:                                        ; preds = %if.else17
+  %call26 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %11, i8* getelementptr inbounds ([10 x i8]* @.str7, i64 0, i64 0), i8* %12, i32 %sub, i32 %.col.addr.0) #6
+  br label %if.end28
+
+if.end28:                                         ; preds = %if.then21, %if.else24, %if.then15
+  %13 = phi %struct._IO_FILE* [ %11, %if.then21 ], [ %11, %if.else24 ], [ %8, %if.then15 ]
+  %call29 = tail call i32 @fputc(i32 32, %struct._IO_FILE* %13) #6
+  br label %if.end30
+
+if.end30:                                         ; preds = %if.end28, %if.then
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_ice(%struct.cpp_reader* %pfile, i8* nocapture readonly %msgid, ...) #0 {
+if.end:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %1 = call i64 @fwrite(i8* getelementptr inbounds ([17 x i8]* @.str, i64 0, i64 0), i64 16, i64 1, %struct._IO_FILE* %0) #6
+  %errors45.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  store i32 1000, i32* %errors45.i, align 4, !tbaa !25
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 0, i32 0) #2
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @llvm.va_start(i8*) #2
+
+; Function Attrs: nounwind
+declare i32 @vfprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, %struct.__va_list_tag*) #1
+
+; Function Attrs: nounwind
+declare i32 @putc(i32, %struct._IO_FILE* nocapture) #1
+
+; Function Attrs: nounwind
+declare void @llvm.va_end(i8*) #2
+
+; Function Attrs: nounwind uwtable
+define void @cpp_fatal(%struct.cpp_reader* %pfile, i8* nocapture readonly %msgid, ...) #0 {
+if.end:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %errors43.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  store i32 1000, i32* %errors43.i, align 4, !tbaa !25
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 0, i32 0) #2
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_error(%struct.cpp_reader* %pfile, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %inhibit_errors31.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 29
+  %0 = load i8* %inhibit_errors31.i, align 1, !tbaa !24
+  %tobool32.i = icmp eq i8 %0, 0
+  br i1 %tobool32.i, label %if.end34.i, label %if.end
+
+if.end34.i:                                       ; preds = %entry
+  %errors35.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  %1 = load i32* %errors35.i, align 4, !tbaa !25
+  %cmp36.i = icmp ult i32 %1, 1000
+  br i1 %cmp36.i, label %if.then38.i, label %if.end49.critedge68.i
+
+if.then38.i:                                      ; preds = %if.end34.i
+  %inc40.i = add i32 %1, 1
+  store i32 %inc40.i, i32* %errors35.i, align 4, !tbaa !25
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 0, i32 0) #2
+  br label %do.body
+
+if.end49.critedge68.i:                            ; preds = %if.end34.i
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 0, i32 0) #2
+  br label %do.body
+
+do.body:                                          ; preds = %if.end49.critedge68.i, %if.then38.i
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %2 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %2, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %2) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_error_with_line(%struct.cpp_reader* %pfile, i32 %line, i32 %column, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %inhibit_errors31.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 37, i32 29
+  %0 = load i8* %inhibit_errors31.i, align 1, !tbaa !24
+  %tobool32.i = icmp eq i8 %0, 0
+  br i1 %tobool32.i, label %if.end34.i, label %if.end
+
+if.end34.i:                                       ; preds = %entry
+  %errors35.i = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  %1 = load i32* %errors35.i, align 4, !tbaa !25
+  %cmp36.i = icmp ult i32 %1, 1000
+  br i1 %cmp36.i, label %if.then38.i, label %if.end49.critedge68.i
+
+if.then38.i:                                      ; preds = %if.end34.i
+  %inc40.i = add i32 %1, 1
+  store i32 %inc40.i, i32* %errors35.i, align 4, !tbaa !25
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column) #2
+  br label %do.body
+
+if.end49.critedge68.i:                            ; preds = %if.end34.i
+  call fastcc void @print_location(%struct.cpp_reader* %pfile, i32 %line, i32 %column) #2
+  br label %do.body
+
+do.body:                                          ; preds = %if.end49.critedge68.i, %if.then38.i
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %2 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %2, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %2) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_error_from_errno(%struct.cpp_reader* %pfile, i8* %name) #0 {
+entry:
+  %call = tail call i32* @__errno_location() #7
+  %0 = load i32* %call, align 4, !tbaa !36
+  %call1 = tail call i8* @xstrerror(i32 %0) #2
+  tail call void (%struct.cpp_reader*, i8*, ...)* @cpp_error(%struct.cpp_reader* %pfile, i8* getelementptr inbounds ([7 x i8]* @.str2, i64 0, i64 0), i8* %name, i8* %call1)
+  ret void
+}
+
+declare i8* @xstrerror(i32) #3
+
+; Function Attrs: nounwind readnone
+declare i32* @__errno_location() #4
+
+; Function Attrs: nounwind uwtable
+define void @cpp_warning(%struct.cpp_reader* %pfile, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %call = call i32 @_cpp_begin_message(%struct.cpp_reader* %pfile, i32 0, i32 0, i32 0)
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %if.end, label %do.body
+
+do.body:                                          ; preds = %entry
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_warning_with_line(%struct.cpp_reader* %pfile, i32 %line, i32 %column, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %call = call i32 @_cpp_begin_message(%struct.cpp_reader* %pfile, i32 0, i32 %line, i32 %column)
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %if.end, label %do.body
+
+do.body:                                          ; preds = %entry
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_pedwarn(%struct.cpp_reader* %pfile, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %call = call i32 @_cpp_begin_message(%struct.cpp_reader* %pfile, i32 2, i32 0, i32 0)
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %if.end, label %do.body
+
+do.body:                                          ; preds = %entry
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_pedwarn_with_line(%struct.cpp_reader* %pfile, i32 %line, i32 %column, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %call = call i32 @_cpp_begin_message(%struct.cpp_reader* %pfile, i32 2, i32 %line, i32 %column)
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %if.end, label %do.body
+
+do.body:                                          ; preds = %entry
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call3 = call i32 @vfprintf(%struct._IO_FILE* %0, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %0) #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %do.body
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_notice(%struct.cpp_reader* nocapture %pfile, i8* nocapture readonly %msgid, ...) #0 {
+entry:
+  %ap = alloca [1 x %struct.__va_list_tag], align 16
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %ap, i64 0, i64 0
+  %arraydecay1 = bitcast [1 x %struct.__va_list_tag]* %ap to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  %errors = getelementptr inbounds %struct.cpp_reader* %pfile, i64 0, i32 20
+  %0 = load i32* %errors, align 4, !tbaa !25
+  %cmp = icmp ult i32 %0, 1000
+  br i1 %cmp, label %if.then, label %do.body
+
+if.then:                                          ; preds = %entry
+  %inc = add i32 %0, 1
+  store i32 %inc, i32* %errors, align 4, !tbaa !25
+  br label %do.body
+
+do.body:                                          ; preds = %entry, %if.then
+  %1 = load %struct._IO_FILE** @stderr, align 8, !tbaa !27
+  %call = call i32 @vfprintf(%struct._IO_FILE* %1, i8* %msgid, %struct.__va_list_tag* %arraydecay) #6
+  %call4 = call i32 @putc(i32 10, %struct._IO_FILE* %1) #2
+  call void @llvm.va_end(i8* %arraydecay1)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @cpp_notice_from_errno(%struct.cpp_reader* nocapture %pfile, i8* %name) #0 {
+entry:
+  %0 = load i8* %name, align 1, !tbaa !37
+  %cmp = icmp eq i8 %0, 0
+  %.name = select i1 %cmp, i8* getelementptr inbounds ([7 x i8]* @.str3, i64 0, i64 0), i8* %name
+  %call = tail call i32* @__errno_location() #7
+  %1 = load i32* %call, align 4, !tbaa !36
+  %call2 = tail call i8* @xstrerror(i32 %1) #2
+  tail call void (%struct.cpp_reader*, i8*, ...)* @cpp_notice(%struct.cpp_reader* %pfile, i8* getelementptr inbounds ([7 x i8]* @.str2, i64 0, i64 0), i8* %.name, i8* %call2)
+  ret void
+}
+
+declare %struct.line_map* @lookup_line(%struct.line_maps*, i32) #3
+
+declare void @print_containing_files(%struct.line_maps*, %struct.line_map*) #3
+
+; Function Attrs: nounwind
+declare i32 @fputc(i32, %struct._IO_FILE* nocapture) #1
+
+; Function Attrs: nounwind
+declare i64 @fwrite(i8* nocapture, i64, i64, %struct._IO_FILE* nocapture) #2
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind readnone "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { cold }
+attributes #6 = { cold nounwind }
+attributes #7 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 56}
+!2 = metadata !{metadata !"cpp_reader", metadata !3, i64 0, metadata !6, i64 8, metadata !7, i64 24, metadata !3, i64 56, metadata !8, i64 64, metadata !8, i64 68, metadata !3, i64 72, metadata !3, i64 80, metadata !3, i64 88, metadata !10, i64 96, metadata !3, i64 152, metadata !3, i64 160, metadata !3, i64 168, metadata !3, i64 176, metadata !9, i64 184, metadata !3, i64 192, metadata !11, i64 200, metadata !3, i64 232, metadata !8, i64 240, metadata !8, i64 244, metadata !8, i64 248, metadata !8, i64 252, metadata !8, i64 256, metadata !3, i64 264, metadata !8, i64 272, metadata !3, i64 280, metadata !8, i64 288, metadata !12, i64 296, metadata !12, i64 320, metadata !12, i64 344, metadata !12, i64 368, metadata !3, i64 392, metadata !14, i64 400, metadata !14, i64 488, metadata !3, i64 576, metadata !16, i64 584, metadata !3, i64 640, metadata !17, i64 648, metadata !18, i64 784, metadata !4, i64 824, metadata !4, i64 825}
+!3 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"lexer_state", metadata !4, i64 0, metadata !4, i64 1, metadata !4, i64 2, metadata !4, i64 3, metadata !4, i64 4, metadata !4, i64 5, metadata !4, i64 6, metadata !4, i64 7, metadata !4, i64 8}
+!7 = metadata !{metadata !"line_maps", metadata !3, i64 0, metadata !8, i64 8, metadata !8, i64 12, metadata !8, i64 16, metadata !8, i64 20, metadata !9, i64 24}
+!8 = metadata !{metadata !"int", metadata !4, i64 0}
+!9 = metadata !{metadata !"_Bool", metadata !4, i64 0}
+!10 = metadata !{metadata !"cpp_context", metadata !3, i64 0, metadata !3, i64 8, metadata !4, i64 16, metadata !4, i64 24, metadata !3, i64 32, metadata !3, i64 40, metadata !9, i64 48}
+!11 = metadata !{metadata !"tokenrun", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24}
+!12 = metadata !{metadata !"cpp_token", metadata !8, i64 0, metadata !13, i64 4, metadata !4, i64 6, metadata !4, i64 7, metadata !4, i64 8}
+!13 = metadata !{metadata !"short", metadata !4, i64 0}
+!14 = metadata !{metadata !"obstack", metadata !15, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !3, i64 32, metadata !15, i64 40, metadata !8, i64 48, metadata !3, i64 56, metadata !3, i64 64, metadata !3, i64 72, metadata !8, i64 80, metadata !8, i64 80, metadata !8, i64 80}
+!15 = metadata !{metadata !"long", metadata !4, i64 0}
+!16 = metadata !{metadata !"cpp_callbacks", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !3, i64 32, metadata !3, i64 40, metadata !3, i64 48}
+!17 = metadata !{metadata !"cpp_options", metadata !3, i64 0, metadata !3, i64 8, metadata !8, i64 16, metadata !3, i64 24, metadata !3, i64 32, metadata !3, i64 40, metadata !3, i64 48, metadata !3, i64 56, metadata !3, i64 64, metadata !8, i64 72, metadata !3, i64 80, metadata !4, i64 88, metadata !4, i64 92, metadata !4, i64 93, metadata !4, i64 94, metadata !4, i64 95, metadata !4, i64 96, metadata !4, i64 97, metadata !4, i64 98, metadata !4, i64 99, metadata !4, i64 100, metadata !4, i64 101, metadata !4, i64 102, metadata !4, i64 103, metadata !4, i64 104, metadata !4, i64 105, metadata !4, i64 106, metadata !4, i64 107, metadata !4, i64 108, metadata !4, i64 109, metadata !4, i64 110, metadata !4, i64 111, metadata !4, i64 112, metadata !4, i64 113, metadata !4, i64 114, metadata !4, i64 115, metadata !4, i64 116, metadata !4, i64 117, metadata !4, i64 118, metadata !4, i64 119, metadata !4, i64 120, metadata !4, i64 121, metadata !4, i64 122, metadata !4, i64 123, metadata !4, i64 124, metadata !4, i64 125, metadata !4, i64 126, metadata !4, i64 127, metadata !4, i64 128, metadata !4, i64 129, metadata !4, i64 130}
+!18 = metadata !{metadata !"spec_nodes", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !3, i64 32}
+!19 = metadata !{metadata !20, metadata !4, i64 21}
+!20 = metadata !{metadata !"line_map", metadata !3, i64 0, metadata !8, i64 8, metadata !8, i64 12, metadata !8, i64 16, metadata !4, i64 20, metadata !4, i64 21}
+!21 = metadata !{metadata !2, metadata !4, i64 756}
+!22 = metadata !{metadata !2, metadata !4, i64 762}
+!23 = metadata !{metadata !2, metadata !4, i64 754}
+!24 = metadata !{metadata !2, metadata !4, i64 757}
+!25 = metadata !{metadata !2, metadata !8, i64 248}
+!26 = metadata !{metadata !2, metadata !4, i64 755}
+!27 = metadata !{metadata !3, metadata !3, i64 0}
+!28 = metadata !{metadata !2, metadata !3, i64 0}
+!29 = metadata !{metadata !2, metadata !3, i64 192}
+!30 = metadata !{metadata !12, metadata !8, i64 0}
+!31 = metadata !{metadata !12, metadata !13, i64 4}
+!32 = metadata !{metadata !20, metadata !8, i64 8}
+!33 = metadata !{metadata !20, metadata !8, i64 12}
+!34 = metadata !{metadata !20, metadata !3, i64 0}
+!35 = metadata !{metadata !2, metadata !4, i64 776}
+!36 = metadata !{metadata !8, metadata !8, i64 0}
+!37 = metadata !{metadata !4, metadata !4, i64 0}

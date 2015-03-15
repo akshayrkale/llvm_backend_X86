@@ -1,0 +1,37 @@
+; ModuleID = 'update_h.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@nflavors = external global i32
+
+; Function Attrs: nounwind uwtable
+define void @update_h(double %eps) #0 {
+entry:
+  tail call void @rephase(i32 0) #2
+  tail call void @imp_gauge_force(double %eps, i32 1840) #2
+  tail call void @rephase(i32 1) #2
+  tail call void @dslash_fn(i32 2336, i32 2336, i32 1) #2
+  %0 = load i32* @nflavors, align 4, !tbaa !1
+  tail call void @eo_fermion_force(double %eps, i32 %0, i32 2336) #2
+  ret void
+}
+
+declare void @rephase(i32) #1
+
+declare void @imp_gauge_force(double, i32) #1
+
+declare void @dslash_fn(i32, i32, i32) #1
+
+declare void @eo_fermion_force(double, i32, i32) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

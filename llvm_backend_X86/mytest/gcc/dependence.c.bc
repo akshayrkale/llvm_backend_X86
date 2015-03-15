@@ -1,0 +1,3174 @@
+; ModuleID = 'dependence.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.varray_head_tag = type { i64, i64, i64, i8*, %union.varray_data_tag }
+%union.varray_data_tag = type { [1 x %struct.const_equiv_data] }
+%struct.const_equiv_data = type { %struct.rtx_def*, i32 }
+%struct.rtx_def = type { i32, [1 x %union.rtunion_def] }
+%union.rtunion_def = type { i64 }
+%union.tree_node = type { %struct.tree_decl }
+%struct.tree_decl = type { %struct.tree_common, i8*, i32, i32, %union.tree_node*, i48, %union.anon, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %struct.rtx_def*, %struct.rtx_def*, %union.anon.1, %union.tree_node*, %union.tree_node*, %union.tree_node*, i64, %struct.lang_decl* }
+%struct.tree_common = type { %union.tree_node*, %union.tree_node*, i32 }
+%union.anon = type { i64 }
+%union.anon.1 = type { %struct.function* }
+%struct.function = type opaque
+%struct.lang_decl = type opaque
+%struct.loop = type { %union.tree_node*, %union.tree_node*, i32, i32, %struct.loop*, %struct.induction* }
+%struct.induction = type { i8*, i32, i32, i32, %struct.induction* }
+%struct.subscript = type { i32, i32, i32, i8*, %struct.subscript* }
+%struct.def_use = type { %union.tree_node*, %union.tree_node*, %union.tree_node*, i8*, i32, i32, %struct.def_use*, %struct.dependence* }
+%struct.dependence = type { %union.tree_node*, %union.tree_node*, i32, [13 x i32], [13 x i32], %struct.dependence* }
+
+@.str = private unnamed_addr constant [14 x i8] c"def_use_chain\00", align 1
+@def_use_chain = internal unnamed_addr global %struct.varray_head_tag* null, align 8
+@.str1 = private unnamed_addr constant [10 x i8] c"dep_chain\00", align 1
+@dep_chain = internal unnamed_addr global %struct.varray_head_tag* null, align 8
+@.str2 = private unnamed_addr constant [11 x i8] c"loop_chain\00", align 1
+@loop_chain = internal unnamed_addr global %struct.varray_head_tag* null, align 8
+@.str3 = private unnamed_addr constant [16 x i8] c"induction_chain\00", align 1
+@induction_chain = internal unnamed_addr global %struct.varray_head_tag* null, align 8
+@dest_to_remember = internal unnamed_addr global %union.tree_node* null, align 8
+@merge_dependencies.direction_merge = internal unnamed_addr constant [8 x [8 x i32]] [[8 x i32] [i32 0, i32 1, i32 1, i32 5, i32 5, i32 0, i32 6, i32 0], [8 x i32] [i32 1, i32 1, i32 1, i32 5, i32 5, i32 1, i32 6, i32 1], [8 x i32] [i32 1, i32 1, i32 2, i32 4, i32 4, i32 2, i32 6, i32 2], [8 x i32] [i32 5, i32 5, i32 4, i32 3, i32 4, i32 3, i32 6, i32 4], [8 x i32] [i32 5, i32 5, i32 4, i32 4, i32 4, i32 4, i32 6, i32 4], [8 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 5], [8 x i32] [i32 6, i32 6, i32 6, i32 6, i32 6, i32 0, i32 0, i32 0], [8 x i32] [i32 6, i32 6, i32 6, i32 0, i32 0, i32 0, i32 0, i32 0]], align 16
+@build_def_use.outer_loop = internal unnamed_addr global %union.tree_node* null, align 8
+@build_def_use.nloop = internal unnamed_addr global i32 0, align 4
+@build_def_use.current_loop = internal unnamed_addr global %union.tree_node* null, align 8
+@build_def_use.du_idx = internal unnamed_addr global i32 0, align 4
+@build_def_use.loop_def = internal unnamed_addr global %struct.loop* null, align 8
+@tree_code_type = external global [256 x i8]
+
+; Function Attrs: nounwind uwtable
+define void @init_dependence_analysis(%union.tree_node* %exp) #0 {
+entry:
+  %iiv_used.i.i.i = alloca [13 x i8*], align 16
+  %oiv_used.i.i.i = alloca [13 x i8*], align 16
+  %ocoeff.i.i.i = alloca [13 x i32], align 16
+  %icoeff.i.i.i = alloca [13 x i32], align 16
+  %icoefficients.i.i = alloca [13 x %struct.subscript], align 16
+  %ocoefficients.i.i = alloca [13 x %struct.subscript], align 16
+  %distance.i.i = alloca [13 x [13 x i32]], align 16
+  %direction.i.i = alloca [13 x [13 x i32]], align 16
+  %complexity.i.i = alloca [13 x i32], align 16
+  %call = call %struct.varray_head_tag* @varray_init(i64 50, i64 8, i8* getelementptr inbounds ([14 x i8]* @.str, i64 0, i64 0)) #4
+  store %struct.varray_head_tag* %call, %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %call1 = call %struct.varray_head_tag* @varray_init(i64 50, i64 8, i8* getelementptr inbounds ([10 x i8]* @.str1, i64 0, i64 0)) #4
+  store %struct.varray_head_tag* %call1, %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %call2 = call %struct.varray_head_tag* @varray_init(i64 50, i64 8, i8* getelementptr inbounds ([11 x i8]* @.str2, i64 0, i64 0)) #4
+  store %struct.varray_head_tag* %call2, %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %call3 = call %struct.varray_head_tag* @varray_init(i64 50, i64 8, i8* getelementptr inbounds ([16 x i8]* @.str3, i64 0, i64 0)) #4
+  store %struct.varray_head_tag* %call3, %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  call fastcc void @build_def_use(%union.tree_node* %exp, i32 2)
+  %0 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %arrayidx4.i = getelementptr inbounds %struct.varray_head_tag* %0, i64 0, i32 4, i32 0, i64 0, i32 1
+  %1 = bitcast i32* %arrayidx4.i to i8**
+  %loop_ptr.0.in28.i = load i8** %1, align 8
+  %tobool30.i = icmp eq i8* %loop_ptr.0.in28.i, null
+  br i1 %tobool30.i, label %link_loops.exit, label %land.rhs.lr.ph.i
+
+land.rhs.lr.ph.i:                                 ; preds = %entry
+  %data.i = getelementptr inbounds %struct.varray_head_tag* %0, i64 0, i32 4
+  %arrayidx.i = bitcast %union.varray_data_tag* %data.i to i8**
+  %2 = load i8** %arrayidx.i, align 8, !tbaa !1
+  %3 = bitcast i8* %2 to %struct.loop*
+  br label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.inc.i, %land.rhs.lr.ph.i
+  %4 = phi %struct.varray_head_tag* [ %0, %land.rhs.lr.ph.i ], [ %11, %for.inc.i ]
+  %loop_ptr.034.in.i = phi i8* [ %loop_ptr.0.in28.i, %land.rhs.lr.ph.i ], [ %loop_ptr.0.in.i, %for.inc.i ]
+  %prev_loop_ptr.032.i = phi %struct.loop* [ %3, %land.rhs.lr.ph.i ], [ %prev_loop_ptr.1.i, %for.inc.i ]
+  %loop_idx.031.i = phi i32 [ 1, %land.rhs.lr.ph.i ], [ %inc14.i, %for.inc.i ]
+  %loop_ptr.034.i = bitcast i8* %loop_ptr.034.in.i to %struct.loop*
+  %conv.i = zext i32 %loop_idx.031.i to i64
+  %num_elements.i = getelementptr inbounds %struct.varray_head_tag* %4, i64 0, i32 0
+  %5 = load i64* %num_elements.i, align 8, !tbaa !5
+  %cmp.i = icmp ult i64 %conv.i, %5
+  br i1 %cmp.i, label %for.body.i, label %link_loops.exit
+
+for.body.i:                                       ; preds = %land.rhs.i
+  %outer_loop.i = getelementptr inbounds %struct.loop* %prev_loop_ptr.032.i, i64 0, i32 0
+  %6 = load %union.tree_node** %outer_loop.i, align 8, !tbaa !8
+  %outer_loop6.i = bitcast i8* %loop_ptr.034.in.i to %union.tree_node**
+  %7 = load %union.tree_node** %outer_loop6.i, align 8, !tbaa !8
+  %cmp7.i = icmp eq %union.tree_node* %6, %7
+  br i1 %cmp7.i, label %if.then.i, label %for.inc.i
+
+if.then.i:                                        ; preds = %for.body.i
+  %depth.i = getelementptr inbounds %struct.loop* %prev_loop_ptr.032.i, i64 0, i32 2
+  %8 = load i32* %depth.i, align 4, !tbaa !11
+  %depth9.i = getelementptr inbounds i8* %loop_ptr.034.in.i, i64 16
+  %9 = bitcast i8* %depth9.i to i32*
+  %10 = load i32* %9, align 4, !tbaa !11
+  %sub.i = add nsw i32 %10, -1
+  %cmp10.i = icmp eq i32 %8, %sub.i
+  br i1 %cmp10.i, label %if.then12.i, label %for.inc.i
+
+if.then12.i:                                      ; preds = %if.then.i
+  %next_nest.i = getelementptr inbounds %struct.loop* %prev_loop_ptr.032.i, i64 0, i32 4
+  store %struct.loop* %loop_ptr.034.i, %struct.loop** %next_nest.i, align 8, !tbaa !12
+  %.pre.i = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  br label %for.inc.i
+
+for.inc.i:                                        ; preds = %if.then12.i, %if.then.i, %for.body.i
+  %11 = phi %struct.varray_head_tag* [ %4, %for.body.i ], [ %.pre.i, %if.then12.i ], [ %4, %if.then.i ]
+  %prev_loop_ptr.1.i = phi %struct.loop* [ %prev_loop_ptr.032.i, %for.body.i ], [ %loop_ptr.034.i, %if.then12.i ], [ %loop_ptr.034.i, %if.then.i ]
+  %inc14.i = add i32 %loop_idx.031.i, 1
+  %idxprom15.i = zext i32 %inc14.i to i64
+  %data16.i = getelementptr inbounds %struct.varray_head_tag* %11, i64 0, i32 4
+  %generic17.i = bitcast %union.varray_data_tag* %data16.i to [1 x i8*]*
+  %arrayidx18.i = getelementptr inbounds [1 x i8*]* %generic17.i, i64 0, i64 %idxprom15.i
+  %loop_ptr.0.in.i = load i8** %arrayidx18.i, align 8
+  %tobool.i = icmp eq i8* %loop_ptr.0.in.i, null
+  br i1 %tobool.i, label %link_loops.exit, label %land.rhs.i
+
+link_loops.exit:                                  ; preds = %land.rhs.i, %for.inc.i, %entry
+  %12 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %data.i21 = getelementptr inbounds %struct.varray_head_tag* %12, i64 0, i32 4
+  %arrayidx.i22 = bitcast %union.varray_data_tag* %data.i21 to i8**
+  %du_ptr.0.in21.i = load i8** %arrayidx.i22, align 8
+  %tobool23.i = icmp eq i8* %du_ptr.0.in21.i, null
+  br i1 %tobool23.i, label %get_node_dependence.exit, label %land.rhs.lr.ph.i24
+
+land.rhs.lr.ph.i24:                               ; preds = %link_loops.exit
+  %13 = bitcast [13 x %struct.subscript]* %icoefficients.i.i to i8*
+  %14 = bitcast [13 x %struct.subscript]* %ocoefficients.i.i to i8*
+  %15 = bitcast [13 x [13 x i32]]* %distance.i.i to i8*
+  %16 = bitcast [13 x [13 x i32]]* %direction.i.i to i8*
+  %17 = bitcast [13 x i32]* %complexity.i.i to i8*
+  %arrayidx1.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 1, i64 0
+  %arrayidx4.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 1, i64 0
+  %arrayidx1.1.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 2, i64 0
+  %arrayidx4.1.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 2, i64 0
+  %arrayidx1.2.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 3, i64 0
+  %arrayidx4.2.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 3, i64 0
+  %arrayidx1.3.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 4, i64 0
+  %arrayidx4.3.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 4, i64 0
+  %arrayidx1.4.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 5, i64 0
+  %arrayidx4.4.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 5, i64 0
+  %arrayidx1.5.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 6, i64 0
+  %arrayidx4.5.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 6, i64 0
+  %arrayidx1.6.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 7, i64 0
+  %arrayidx4.6.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 7, i64 0
+  %arrayidx1.7.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 8, i64 0
+  %arrayidx4.7.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 8, i64 0
+  %arrayidx1.8.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 9, i64 0
+  %arrayidx4.8.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 9, i64 0
+  %arrayidx1.9.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 10, i64 0
+  %arrayidx4.9.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 10, i64 0
+  %arrayidx1.10.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 11, i64 0
+  %arrayidx4.10.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 11, i64 0
+  %arrayidx1.11.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 12, i64 0
+  %arrayidx4.11.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 12, i64 0
+  %18 = bitcast [13 x i8*]* %iiv_used.i.i.i to i8*
+  %19 = bitcast [13 x i8*]* %oiv_used.i.i.i to i8*
+  %20 = bitcast [13 x i32]* %ocoeff.i.i.i to i8*
+  %21 = bitcast [13 x i32]* %icoeff.i.i.i to i8*
+  %position.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 0, i32 0
+  %coefficient.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 0, i32 1
+  %offset.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 0, i32 2
+  %variable.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 0, i32 3
+  %coefficient.i.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 1, i32 1
+  %22 = bitcast i8** %variable.i.i.i to i8*
+  %offset.i.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 1, i32 2
+  %variable.i.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 1, i32 3
+  %coefficient.i.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 2, i32 1
+  %23 = bitcast i8** %variable.i.1.i.i to i8*
+  %offset.i.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 2, i32 2
+  %variable.i.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 2, i32 3
+  %coefficient.i.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 3, i32 1
+  %24 = bitcast i8** %variable.i.2.i.i to i8*
+  %offset.i.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 3, i32 2
+  %variable.i.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 3, i32 3
+  %coefficient.i.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 4, i32 1
+  %25 = bitcast i8** %variable.i.3.i.i to i8*
+  %offset.i.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 4, i32 2
+  %variable.i.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 4, i32 3
+  %coefficient.i.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 5, i32 1
+  %26 = bitcast i8** %variable.i.4.i.i to i8*
+  %offset.i.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 5, i32 2
+  %variable.i.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 5, i32 3
+  %coefficient.i.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 6, i32 1
+  %27 = bitcast i8** %variable.i.5.i.i to i8*
+  %offset.i.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 6, i32 2
+  %variable.i.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 6, i32 3
+  %coefficient.i.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 7, i32 1
+  %28 = bitcast i8** %variable.i.6.i.i to i8*
+  %offset.i.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 7, i32 2
+  %variable.i.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 7, i32 3
+  %coefficient.i.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 8, i32 1
+  %29 = bitcast i8** %variable.i.7.i.i to i8*
+  %offset.i.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 8, i32 2
+  %variable.i.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 8, i32 3
+  %coefficient.i.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 9, i32 1
+  %30 = bitcast i8** %variable.i.8.i.i to i8*
+  %offset.i.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 9, i32 2
+  %variable.i.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 9, i32 3
+  %coefficient.i.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 10, i32 1
+  %31 = bitcast i8** %variable.i.9.i.i to i8*
+  %offset.i.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 10, i32 2
+  %variable.i.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 10, i32 3
+  %coefficient.i.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 11, i32 1
+  %32 = bitcast i8** %variable.i.10.i.i to i8*
+  %offset.i.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 11, i32 2
+  %variable.i.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 11, i32 3
+  %coefficient.i.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 12, i32 1
+  %33 = bitcast i8** %variable.i.11.i.i to i8*
+  %offset.i.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 12, i32 2
+  %variable.i.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 12, i32 3
+  %34 = bitcast i8** %variable.i.12.i.i to i8*
+  %position.i551.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 0, i32 0
+  %coefficient.i552.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 0, i32 1
+  %offset.i553.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 0, i32 2
+  %variable.i554.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 0, i32 3
+  %coefficient.i552.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 1, i32 1
+  %35 = bitcast i8** %variable.i554.i.i to i8*
+  %offset.i553.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 1, i32 2
+  %variable.i554.1.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 1, i32 3
+  %coefficient.i552.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 2, i32 1
+  %36 = bitcast i8** %variable.i554.1.i.i to i8*
+  %offset.i553.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 2, i32 2
+  %variable.i554.2.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 2, i32 3
+  %coefficient.i552.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 3, i32 1
+  %37 = bitcast i8** %variable.i554.2.i.i to i8*
+  %offset.i553.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 3, i32 2
+  %variable.i554.3.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 3, i32 3
+  %coefficient.i552.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 4, i32 1
+  %38 = bitcast i8** %variable.i554.3.i.i to i8*
+  %offset.i553.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 4, i32 2
+  %variable.i554.4.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 4, i32 3
+  %coefficient.i552.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 5, i32 1
+  %39 = bitcast i8** %variable.i554.4.i.i to i8*
+  %offset.i553.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 5, i32 2
+  %variable.i554.5.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 5, i32 3
+  %coefficient.i552.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 6, i32 1
+  %40 = bitcast i8** %variable.i554.5.i.i to i8*
+  %offset.i553.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 6, i32 2
+  %variable.i554.6.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 6, i32 3
+  %coefficient.i552.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 7, i32 1
+  %41 = bitcast i8** %variable.i554.6.i.i to i8*
+  %offset.i553.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 7, i32 2
+  %variable.i554.7.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 7, i32 3
+  %coefficient.i552.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 8, i32 1
+  %42 = bitcast i8** %variable.i554.7.i.i to i8*
+  %offset.i553.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 8, i32 2
+  %variable.i554.8.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 8, i32 3
+  %coefficient.i552.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 9, i32 1
+  %43 = bitcast i8** %variable.i554.8.i.i to i8*
+  %offset.i553.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 9, i32 2
+  %variable.i554.9.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 9, i32 3
+  %coefficient.i552.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 10, i32 1
+  %44 = bitcast i8** %variable.i554.9.i.i to i8*
+  %offset.i553.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 10, i32 2
+  %variable.i554.10.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 10, i32 3
+  %coefficient.i552.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 11, i32 1
+  %45 = bitcast i8** %variable.i554.10.i.i to i8*
+  %offset.i553.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 11, i32 2
+  %variable.i554.11.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 11, i32 3
+  %coefficient.i552.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 12, i32 1
+  %46 = bitcast i8** %variable.i554.11.i.i to i8*
+  %offset.i553.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 12, i32 2
+  %variable.i554.12.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 12, i32 3
+  %47 = bitcast i8** %variable.i554.12.i.i to i8*
+  br label %land.rhs.i28
+
+land.rhs.i28:                                     ; preds = %for.inc.i32, %land.rhs.lr.ph.i24
+  %48 = phi %struct.varray_head_tag* [ %12, %land.rhs.lr.ph.i24 ], [ %229, %for.inc.i32 ]
+  %du_ptr.026.in.i = phi i8* [ %du_ptr.0.in21.i, %land.rhs.lr.ph.i24 ], [ %du_ptr.0.in.i, %for.inc.i32 ]
+  %du_idx.024.i = phi i32 [ 0, %land.rhs.lr.ph.i24 ], [ %inc.i, %for.inc.i32 ]
+  %du_ptr.026.i = bitcast i8* %du_ptr.026.in.i to %struct.def_use*
+  %conv.i25 = zext i32 %du_idx.024.i to i64
+  %num_elements.i26 = getelementptr inbounds %struct.varray_head_tag* %48, i64 0, i32 0
+  %49 = load i64* %num_elements.i26, align 8, !tbaa !5
+  %cmp.i27 = icmp ult i64 %conv.i25, %49
+  br i1 %cmp.i27, label %for.body.i29, label %get_node_dependence.exit.loopexit
+
+for.body.i29:                                     ; preds = %land.rhs.i28
+  %status.i = getelementptr inbounds i8* %du_ptr.026.in.i, i64 36
+  %50 = bitcast i8* %status.i to i32*
+  %51 = load i32* %50, align 4, !tbaa !13
+  %cmp2.i = icmp eq i32 %51, 1
+  br i1 %cmp2.i, label %if.then.i30, label %for.inc.i32
+
+if.then.i30:                                      ; preds = %for.body.i29
+  call void @llvm.lifetime.start(i64 416, i8* %13) #4
+  call void @llvm.lifetime.start(i64 416, i8* %14) #4
+  call void @llvm.lifetime.start(i64 676, i8* %15) #4
+  call void @llvm.lifetime.start(i64 676, i8* %16) #4
+  call void @llvm.lifetime.start(i64 52, i8* %17) #4
+  store i32 7, i32* %arrayidx1.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.1.i.i, align 8, !tbaa !15
+  store i32 0, i32* %arrayidx4.1.i.i, align 8, !tbaa !16
+  store i32 7, i32* %arrayidx1.2.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.2.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.3.i.i, align 16, !tbaa !15
+  store i32 0, i32* %arrayidx4.3.i.i, align 16, !tbaa !16
+  store i32 7, i32* %arrayidx1.4.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.4.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.5.i.i, align 8, !tbaa !15
+  store i32 0, i32* %arrayidx4.5.i.i, align 8, !tbaa !16
+  store i32 7, i32* %arrayidx1.6.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.6.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.7.i.i, align 16, !tbaa !15
+  store i32 0, i32* %arrayidx4.7.i.i, align 16, !tbaa !16
+  store i32 7, i32* %arrayidx1.8.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.8.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.9.i.i, align 8, !tbaa !15
+  store i32 0, i32* %arrayidx4.9.i.i, align 8, !tbaa !16
+  store i32 7, i32* %arrayidx1.10.i.i, align 4, !tbaa !15
+  store i32 0, i32* %arrayidx4.10.i.i, align 4, !tbaa !16
+  store i32 7, i32* %arrayidx1.11.i.i, align 16, !tbaa !15
+  store i32 0, i32* %arrayidx4.11.i.i, align 16, !tbaa !16
+  %tobool649.i.i = icmp eq i8* %du_ptr.026.in.i, null
+  br i1 %tobool649.i.i, label %for.inc.i32, label %for.body6.i.i
+
+for.body6.i.i:                                    ; preds = %if.then.i30, %for.inc298.i.i
+  %def_ptr.0651.i.i = phi %struct.def_use* [ %228, %for.inc298.i.i ], [ %du_ptr.026.i, %if.then.i30 ]
+  %type.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 4
+  %52 = load i32* %type.i.i, align 4, !tbaa !17
+  %cmp7.i.i = icmp eq i32 %52, 0
+  br i1 %cmp7.i.i, label %if.end.i.i, label %for.inc298.i.i
+
+if.end.i.i:                                       ; preds = %for.body6.i.i
+  %expression.i.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 2
+  %array_ref.083.i.i.i = load %union.tree_node** %expression.i.i.i, align 8
+  %code84.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.083.i.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load85.i.i.i = load i32* %code84.i.i.i, align 8
+  %bf.clear86.i.i.i = and i32 %bf.load85.i.i.i, 255
+  %cmp87.i.i.i = icmp eq i32 %bf.clear86.i.i.i, 43
+  br i1 %cmp87.i.i.i, label %for.body.i.i.i, label %for.cond1.preheader.i.i.i
+
+for.cond1.preheader.i.i.i:                        ; preds = %for.body.i.i.i, %if.end.i.i
+  %array_count.0.lcssa.i.i.i = phi i32 [ 0, %if.end.i.i ], [ %add.i.i.i, %for.body.i.i.i ]
+  store i32 0, i32* %position.i.i.i, align 16, !tbaa !18
+  store i32 -2147483648, i32* %coefficient.i.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %22, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.1.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.1.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %23, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.2.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.2.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %24, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.3.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.3.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %25, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.4.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.4.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %26, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.5.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.5.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %27, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.6.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.6.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %28, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.7.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.7.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %29, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.8.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.8.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %30, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.9.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.9.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %31, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.10.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.10.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %32, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.11.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.11.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %33, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i.12.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i.12.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %34, i8 0, i64 16, i32 16, i1 false) #4
+  %array_ref.174.i.i.i = load %union.tree_node** %expression.i.i.i, align 8
+  %code1875.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.174.i.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load1976.i.i.i = load i32* %code1875.i.i.i, align 8
+  %bf.clear2077.i.i.i = and i32 %bf.load1976.i.i.i, 255
+  %cmp2178.i.i.i = icmp eq i32 %bf.clear2077.i.i.i, 43
+  br i1 %cmp2178.i.i.i, label %for.body22.lr.ph.i.i.i, label %get_coefficients.exit.i.i
+
+for.body.i.i.i:                                   ; preds = %if.end.i.i, %for.body.i.i.i
+  %array_ref.089.i.i.i = phi %union.tree_node* [ %array_ref.0.i.i.i, %for.body.i.i.i ], [ %array_ref.083.i.i.i, %if.end.i.i ]
+  %array_count.088.i.i.i = phi i32 [ %add.i.i.i, %for.body.i.i.i ], [ 0, %if.end.i.i ]
+  %add.i.i.i = add nsw i32 %array_count.088.i.i.i, 1
+  %operands.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.089.i.i.i, i64 0, i32 0, i32 2
+  %arrayidx.i.i.i = bitcast i32* %operands.i.i.i to %union.tree_node**
+  %array_ref.0.i.i.i = load %union.tree_node** %arrayidx.i.i.i, align 8
+  %code.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.0.i.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load.i.i.i = load i32* %code.i.i.i, align 8
+  %bf.clear.i.i.i = and i32 %bf.load.i.i.i, 255
+  %cmp.i.i.i = icmp eq i32 %bf.clear.i.i.i, 43
+  br i1 %cmp.i.i.i, label %for.body.i.i.i, label %for.cond1.preheader.i.i.i
+
+for.body22.lr.ph.i.i.i:                           ; preds = %for.cond1.preheader.i.i.i
+  %53 = sext i32 %array_count.0.lcssa.i.i.i to i64
+  br label %for.body22.i.i.i
+
+for.body22.i.i.i:                                 ; preds = %if.end46.i.i.i, %for.body22.lr.ph.i.i.i
+  %indvars.iv.i.i.i = phi i64 [ %53, %for.body22.lr.ph.i.i.i ], [ %indvars.iv.next.i.i.i, %if.end46.i.i.i ]
+  %array_ref.180.i.i.i = phi %union.tree_node* [ %array_ref.174.i.i.i, %for.body22.lr.ph.i.i.i ], [ %array_ref.1.i.i.i, %if.end46.i.i.i ]
+  %operands24.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.180.i.i.i, i64 0, i32 0, i32 2
+  %arrayidx25.i.i.i = getelementptr inbounds i32* %operands24.i.i.i, i64 2
+  %54 = bitcast i32* %arrayidx25.i.i.i to %union.tree_node**
+  %55 = load %union.tree_node** %54, align 8, !tbaa !1
+  %code27.i.i.i = getelementptr inbounds %union.tree_node* %55, i64 0, i32 0, i32 0, i32 2
+  %bf.load28.i.i.i = load i32* %code27.i.i.i, align 8
+  %bf.clear29.i.i.i = and i32 %bf.load28.i.i.i, 255
+  %cmp30.i.i.i = icmp eq i32 %bf.clear29.i.i.i, 25
+  br i1 %cmp30.i.i.i, label %if.then.i.i.i, label %if.else.i.i.i
+
+if.then.i.i.i:                                    ; preds = %for.body22.i.i.i
+  %int_cst34.i.i.i = getelementptr inbounds %union.tree_node* %55, i64 0, i32 0, i32 2
+  %low.i.i.i = bitcast i32* %int_cst34.i.i.i to i64*
+  %56 = load i64* %low.i.i.i, align 8, !tbaa !22
+  %conv.i.i.i = trunc i64 %56 to i32
+  %offset37.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i.i, i32 2
+  store i32 %conv.i.i.i, i32* %offset37.i.i.i, align 8, !tbaa !21
+  br label %if.end46.i.i.i
+
+if.else.i.i.i:                                    ; preds = %for.body22.i.i.i
+  %arrayidx42.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i.i
+  %call.i.i.i = call fastcc i32 @get_one_coefficient(%union.tree_node* %55, %struct.subscript* %arrayidx42.i.i.i, %struct.def_use* %def_ptr.0651.i.i, i32* null) #4
+  %cmp43.i.i.i = icmp slt i32 %call.i.i.i, 0
+  br i1 %cmp43.i.i.i, label %for.inc298.i.i, label %if.end46.i.i.i
+
+if.end46.i.i.i:                                   ; preds = %if.else.i.i.i, %if.then.i.i.i
+  %indvars.iv.next.i.i.i = add nsw i64 %indvars.iv.i.i.i, -1
+  %arrayidx50.i.i.i = bitcast i32* %operands24.i.i.i to %union.tree_node**
+  %array_ref.1.i.i.i = load %union.tree_node** %arrayidx50.i.i.i, align 8
+  %code18.i.i.i = getelementptr inbounds %union.tree_node* %array_ref.1.i.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load19.i.i.i = load i32* %code18.i.i.i, align 8
+  %bf.clear20.i.i.i = and i32 %bf.load19.i.i.i, 255
+  %cmp21.i.i.i = icmp eq i32 %bf.clear20.i.i.i, 43
+  br i1 %cmp21.i.i.i, label %for.body22.i.i.i, label %get_coefficients.exit.i.i
+
+get_coefficients.exit.i.i:                        ; preds = %if.end46.i.i.i, %for.cond1.preheader.i.i.i
+  %cmp8.i.i = icmp slt i32 %array_count.0.lcssa.i.i.i, 0
+  br i1 %cmp8.i.i, label %for.inc298.i.i, label %if.end10.i.i
+
+if.end10.i.i:                                     ; preds = %get_coefficients.exit.i.i
+  %57 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %data.i.i = getelementptr inbounds %struct.varray_head_tag* %57, i64 0, i32 4
+  %arrayidx12.i.i = bitcast %union.varray_data_tag* %data.i.i to i8**
+  %loop_ptr.0.in605.i.i = load i8** %arrayidx12.i.i, align 8
+  %loop_ptr.0606.i.i = bitcast i8* %loop_ptr.0.in605.i.i to %struct.loop*
+  %tobool14607.i.i = icmp eq i8* %loop_ptr.0.in605.i.i, null
+  br i1 %tobool14607.i.i, label %for.cond30.preheader.i.i, label %land.rhs.lr.ph.i.i
+
+land.rhs.lr.ph.i.i:                               ; preds = %if.end10.i.i
+  %num_elements.i.i = getelementptr inbounds %struct.varray_head_tag* %57, i64 0, i32 0
+  %58 = load i64* %num_elements.i.i, align 8, !tbaa !5
+  %outer_loop18.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 0
+  %generic27.i.i = bitcast %union.varray_data_tag* %data.i.i to [1 x i8*]*
+  br label %land.rhs.i.i
+
+land.rhs.i.i:                                     ; preds = %for.inc23.i.i, %land.rhs.lr.ph.i.i
+  %loop_ptr.0610.i.i = phi %struct.loop* [ %loop_ptr.0606.i.i, %land.rhs.lr.ph.i.i ], [ %loop_ptr.0.i.i, %for.inc23.i.i ]
+  %loop_ptr.0.in609.i.i = phi i8* [ %loop_ptr.0.in605.i.i, %land.rhs.lr.ph.i.i ], [ %loop_ptr.0.in.i.i, %for.inc23.i.i ]
+  %loop_idx.0608.i.i = phi i32 [ 0, %land.rhs.lr.ph.i.i ], [ %inc24.i.i, %for.inc23.i.i ]
+  %conv.i.i = zext i32 %loop_idx.0608.i.i to i64
+  %cmp15.i.i = icmp ult i64 %conv.i.i, %58
+  br i1 %cmp15.i.i, label %for.body17.i.i, label %for.cond30.preheader.i.i
+
+for.cond30.preheader.i.i:                         ; preds = %for.inc23.i.i, %for.body17.i.i, %land.rhs.i.i, %if.end10.i.i
+  %loop_ptr.0.lcssa.i.i = phi %struct.loop* [ %loop_ptr.0606.i.i, %if.end10.i.i ], [ %loop_ptr.0.i.i, %for.inc23.i.i ], [ %loop_ptr.0610.i.i, %for.body17.i.i ], [ %loop_ptr.0610.i.i, %land.rhs.i.i ]
+  %loop_ptr.0.in.lcssa.i.i = phi i8* [ null, %if.end10.i.i ], [ null, %for.inc23.i.i ], [ %loop_ptr.0.in609.i.i, %for.body17.i.i ], [ %loop_ptr.0.in609.i.i, %land.rhs.i.i ]
+  %loop_idx.0.lcssa.i.i = phi i32 [ 0, %if.end10.i.i ], [ %inc24.i.i, %for.inc23.i.i ], [ %loop_idx.0608.i.i, %for.body17.i.i ], [ %loop_idx.0608.i.i, %land.rhs.i.i ]
+  %tobool31619.i.i = icmp eq %struct.loop* %loop_ptr.0.lcssa.i.i, null
+  br i1 %tobool31619.i.i, label %if.end56.i.i, label %land.rhs32.lr.ph.i.i
+
+land.rhs32.lr.ph.i.i:                             ; preds = %for.cond30.preheader.i.i
+  %num_elements34.i.i = getelementptr inbounds %struct.varray_head_tag* %57, i64 0, i32 0
+  %59 = load i64* %num_elements34.i.i, align 8, !tbaa !5
+  %outer_loop40.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 0
+  %generic51.i.i = bitcast %union.varray_data_tag* %data.i.i to [1 x i8*]*
+  br label %land.rhs32.i.i
+
+for.body17.i.i:                                   ; preds = %land.rhs.i.i
+  %outer_loop.i.i = bitcast i8* %loop_ptr.0.in609.i.i to %union.tree_node**
+  %60 = load %union.tree_node** %outer_loop.i.i, align 8, !tbaa !8
+  %61 = load %union.tree_node** %outer_loop18.i.i, align 8, !tbaa !27
+  %cmp19.i.i = icmp eq %union.tree_node* %60, %61
+  br i1 %cmp19.i.i, label %for.cond30.preheader.i.i, label %for.inc23.i.i
+
+for.inc23.i.i:                                    ; preds = %for.body17.i.i
+  %inc24.i.i = add i32 %loop_idx.0608.i.i, 1
+  %idxprom25.i.i = zext i32 %inc24.i.i to i64
+  %arrayidx28.i.i = getelementptr inbounds [1 x i8*]* %generic27.i.i, i64 0, i64 %idxprom25.i.i
+  %loop_ptr.0.in.i.i = load i8** %arrayidx28.i.i, align 8
+  %loop_ptr.0.i.i = bitcast i8* %loop_ptr.0.in.i.i to %struct.loop*
+  %tobool14.i.i = icmp eq i8* %loop_ptr.0.in.i.i, null
+  br i1 %tobool14.i.i, label %for.cond30.preheader.i.i, label %land.rhs.i.i
+
+land.rhs32.i.i:                                   ; preds = %for.inc47.i.i, %land.rhs32.lr.ph.i.i
+  %unnormal_loop.0622.i.i = phi i32 [ 0, %land.rhs32.lr.ph.i.i ], [ %unnormal_loop.1.i.i, %for.inc47.i.i ]
+  %loop_idx.1621.i.i = phi i32 [ %loop_idx.0.lcssa.i.i, %land.rhs32.lr.ph.i.i ], [ %inc48.i.i, %for.inc47.i.i ]
+  %ck_loop_ptr.0620.i.i = phi %struct.loop* [ %loop_ptr.0.lcssa.i.i, %land.rhs32.lr.ph.i.i ], [ %66, %for.inc47.i.i ]
+  %conv33.i.i = zext i32 %loop_idx.1621.i.i to i64
+  %cmp35.i.i = icmp ult i64 %conv33.i.i, %59
+  br i1 %cmp35.i.i, label %for.body38.i.i, label %for.end53.i.i
+
+for.body38.i.i:                                   ; preds = %land.rhs32.i.i
+  %outer_loop39.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.0620.i.i, i64 0, i32 0
+  %62 = load %union.tree_node** %outer_loop39.i.i, align 8, !tbaa !8
+  %63 = load %union.tree_node** %outer_loop40.i.i, align 8, !tbaa !27
+  %cmp41.i.i = icmp eq %union.tree_node* %62, %63
+  br i1 %cmp41.i.i, label %land.lhs.true.i.i, label %for.inc47.i.i
+
+land.lhs.true.i.i:                                ; preds = %for.body38.i.i
+  %status.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.0620.i.i, i64 0, i32 3
+  %64 = load i32* %status.i.i, align 4, !tbaa !28
+  %cmp43.i.i = icmp eq i32 %64, 1
+  %.unnormal_loop.0.i.i = select i1 %cmp43.i.i, i32 1, i32 %unnormal_loop.0622.i.i
+  br label %for.inc47.i.i
+
+for.inc47.i.i:                                    ; preds = %land.lhs.true.i.i, %for.body38.i.i
+  %unnormal_loop.1.i.i = phi i32 [ %unnormal_loop.0622.i.i, %for.body38.i.i ], [ %.unnormal_loop.0.i.i, %land.lhs.true.i.i ]
+  %inc48.i.i = add i32 %loop_idx.1621.i.i, 1
+  %idxprom49.i.i = zext i32 %inc48.i.i to i64
+  %arrayidx52.i.i = getelementptr inbounds [1 x i8*]* %generic51.i.i, i64 0, i64 %idxprom49.i.i
+  %65 = load i8** %arrayidx52.i.i, align 8, !tbaa !1
+  %66 = bitcast i8* %65 to %struct.loop*
+  %tobool31.i.i = icmp eq i8* %65, null
+  br i1 %tobool31.i.i, label %for.end53.i.i, label %land.rhs32.i.i
+
+for.end53.i.i:                                    ; preds = %for.inc47.i.i, %land.rhs32.i.i
+  %unnormal_loop.0.lcssa.i.i = phi i32 [ %unnormal_loop.1.i.i, %for.inc47.i.i ], [ %unnormal_loop.0622.i.i, %land.rhs32.i.i ]
+  %tobool54.i.i = icmp eq i32 %unnormal_loop.0.lcssa.i.i, 0
+  br i1 %tobool54.i.i, label %if.end56.i.i, label %for.inc298.i.i
+
+if.end56.i.i:                                     ; preds = %for.end53.i.i, %for.cond30.preheader.i.i
+  %cmp67.i.i.i = icmp slt i32 %array_count.0.lcssa.i.i.i, 1
+  %tobool65.i.i.i = icmp eq i8* %loop_ptr.0.in.lcssa.i.i, null
+  %or.cond.i.i = or i1 %cmp67.i.i.i, %tobool65.i.i.i
+  br i1 %or.cond.i.i, label %for.body60.lr.ph.i.i, label %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i.i.i
+
+for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i.i.i: ; preds = %if.end56.i.i
+  %67 = add i32 %array_count.0.lcssa.i.i.i, 1
+  br label %for.body2.lr.ph.i.i.i
+
+for.body2.lr.ph.i.i.i:                            ; preds = %for.inc37.i.i.i, %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i.i.i
+  %indvars.iv.i401.i.i = phi i64 [ %indvars.iv.next.i408.i.i, %for.inc37.i.i.i ], [ 1, %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i.i.i ]
+  %variable.i402.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i401.i.i, i32 3
+  %coefficient.i404.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i401.i.i, i32 1
+  %offset.i405.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i401.i.i, i32 2
+  br label %for.body2.i.i.i
+
+for.body2.i.i.i:                                  ; preds = %for.inc35.i.i.i, %for.body2.lr.ph.i.i.i
+  %ck_loop_ptr.066.i.i.i = phi %struct.loop* [ %loop_ptr.0.lcssa.i.i, %for.body2.lr.ph.i.i.i ], [ %75, %for.inc35.i.i.i ]
+  %ind.i.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.066.i.i.i, i64 0, i32 5
+  %ind_ptr.062.i.i.i = load %struct.induction** %ind.i.i.i, align 8
+  %tobool463.i.i.i = icmp eq %struct.induction* %ind_ptr.062.i.i.i, null
+  br i1 %tobool463.i.i.i, label %for.inc35.i.i.i, label %for.body5.lr.ph.i.i.i
+
+for.body5.lr.ph.i.i.i:                            ; preds = %for.body2.i.i.i
+  %68 = load i8** %variable.i402.i.i, align 16, !tbaa !29
+  br label %for.body5.i.i.i
+
+for.cond3.i.i.i:                                  ; preds = %for.body5.i.i.i
+  %next.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i.i.i, i64 0, i32 4
+  %ind_ptr.0.i.i.i = load %struct.induction** %next.i.i.i, align 8
+  %tobool4.i.i.i = icmp eq %struct.induction* %ind_ptr.0.i.i.i, null
+  br i1 %tobool4.i.i.i, label %for.inc35.i.i.i, label %for.body5.i.i.i
+
+for.body5.i.i.i:                                  ; preds = %for.cond3.i.i.i, %for.body5.lr.ph.i.i.i
+  %ind_ptr.064.i.i.i = phi %struct.induction* [ %ind_ptr.062.i.i.i, %for.body5.lr.ph.i.i.i ], [ %ind_ptr.0.i.i.i, %for.cond3.i.i.i ]
+  %variable6.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i.i.i, i64 0, i32 0
+  %69 = load i8** %variable6.i.i.i, align 8, !tbaa !30
+  %cmp7.i.i.i = icmp eq i8* %68, %69
+  br i1 %cmp7.i.i.i, label %if.then.i403.i.i, label %for.cond3.i.i.i
+
+if.then.i403.i.i:                                 ; preds = %for.body5.i.i.i
+  %low_bound.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i.i.i, i64 0, i32 2
+  %70 = load i32* %low_bound.i.i.i, align 4, !tbaa !32
+  %high_bound.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i.i.i, i64 0, i32 3
+  %71 = load i32* %high_bound.i.i.i, align 4, !tbaa !33
+  %cmp8.i.i.i = icmp slt i32 %70, %71
+  br i1 %cmp8.i.i.i, label %if.then9.i.i.i, label %if.else.i407.i.i
+
+if.then9.i.i.i:                                   ; preds = %if.then.i403.i.i
+  %72 = load i32* %coefficient.i404.i.i, align 4, !tbaa !20
+  %mul.i.i.i = mul nsw i32 %72, %70
+  %73 = load i32* %offset.i405.i.i, align 8, !tbaa !21
+  %add.i406.i.i = add nsw i32 %73, %mul.i.i.i
+  store i32 %add.i406.i.i, i32* %offset.i405.i.i, align 8, !tbaa !21
+  br label %for.inc35.i.i.i
+
+if.else.i407.i.i:                                 ; preds = %if.then.i403.i.i
+  %cmp16.i.i.i = icmp eq i32 %71, -2147483648
+  br i1 %cmp16.i.i.i, label %for.inc35.i.i.i, label %if.then17.i.i.i
+
+if.then17.i.i.i:                                  ; preds = %if.else.i407.i.i
+  %74 = load i32* %coefficient.i404.i.i, align 4, !tbaa !20
+  %mul22.i.i.i = mul nsw i32 %74, %71
+  store i32 %mul22.i.i.i, i32* %offset.i405.i.i, align 8, !tbaa !21
+  %mul29.i.i.i = sub i32 0, %74
+  store i32 %mul29.i.i.i, i32* %coefficient.i404.i.i, align 4, !tbaa !20
+  br label %for.inc35.i.i.i
+
+for.inc35.i.i.i:                                  ; preds = %for.cond3.i.i.i, %if.then17.i.i.i, %if.else.i407.i.i, %if.then9.i.i.i, %for.body2.i.i.i
+  %next_nest.i.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.066.i.i.i, i64 0, i32 4
+  %75 = load %struct.loop** %next_nest.i.i.i, align 8, !tbaa !12
+  %tobool.i.i.i = icmp eq %struct.loop* %75, null
+  br i1 %tobool.i.i.i, label %for.inc37.i.i.i, label %for.body2.i.i.i
+
+for.inc37.i.i.i:                                  ; preds = %for.inc35.i.i.i
+  %indvars.iv.next.i408.i.i = add nuw nsw i64 %indvars.iv.i401.i.i, 1
+  %lftr.wideiv = trunc i64 %indvars.iv.next.i408.i.i to i32
+  %exitcond = icmp eq i32 %lftr.wideiv, %67
+  br i1 %exitcond, label %for.body60.lr.ph.i.i, label %for.body2.lr.ph.i.i.i
+
+for.body60.lr.ph.i.i:                             ; preds = %for.inc37.i.i.i, %if.end56.i.i
+  %outer_loop63.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 0
+  %status69.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 5
+  %dep.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 7
+  br label %for.body60.i.i
+
+for.body60.i.i:                                   ; preds = %for.inc295.i.i, %for.body60.lr.ph.i.i
+  %use_ptr.0642.i.i = phi %struct.def_use* [ %du_ptr.026.i, %for.body60.lr.ph.i.i ], [ %227, %for.inc295.i.i ]
+  %cmp61.i.i = icmp eq %struct.def_use* %def_ptr.0651.i.i, %use_ptr.0642.i.i
+  br i1 %cmp61.i.i, label %for.inc295.i.i, label %lor.lhs.false.i.i
+
+lor.lhs.false.i.i:                                ; preds = %for.body60.i.i
+  %76 = load %union.tree_node** %outer_loop63.i.i, align 8, !tbaa !27
+  %outer_loop64.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 0
+  %77 = load %union.tree_node** %outer_loop64.i.i, align 8, !tbaa !27
+  %cmp65.i.i = icmp eq %union.tree_node* %76, %77
+  br i1 %cmp65.i.i, label %if.end68.i.i, label %for.inc295.i.i
+
+if.end68.i.i:                                     ; preds = %lor.lhs.false.i.i
+  store i32 0, i32* %status69.i.i, align 4, !tbaa !13
+  %status70.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 5
+  store i32 0, i32* %status70.i.i, align 4, !tbaa !13
+  %expression.i524.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 2
+  %array_ref.083.i525.i.i = load %union.tree_node** %expression.i524.i.i, align 8
+  %code84.i526.i.i = getelementptr inbounds %union.tree_node* %array_ref.083.i525.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load85.i527.i.i = load i32* %code84.i526.i.i, align 8
+  %bf.clear86.i528.i.i = and i32 %bf.load85.i527.i.i, 255
+  %cmp87.i529.i.i = icmp eq i32 %bf.clear86.i528.i.i, 43
+  br i1 %cmp87.i529.i.i, label %for.body.i542.i.i, label %for.cond1.preheader.i531.i.i
+
+for.cond1.preheader.i531.i.i:                     ; preds = %for.body.i542.i.i, %if.end68.i.i
+  %array_count.0.lcssa.i530.i.i = phi i32 [ 0, %if.end68.i.i ], [ %add.i534.i.i, %for.body.i542.i.i ]
+  store i32 0, i32* %position.i551.i.i, align 16, !tbaa !18
+  store i32 -2147483648, i32* %coefficient.i552.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %35, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.1.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.1.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %36, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.2.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.2.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %37, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.3.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.3.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %38, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.4.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.4.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %39, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.5.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.5.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %40, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.6.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.6.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %41, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.7.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.7.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %42, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.8.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.8.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %43, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.9.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.9.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %44, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.10.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.10.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %45, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.11.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.11.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %46, i8 0, i64 20, i32 16, i1 false) #4
+  store i32 -2147483648, i32* %coefficient.i552.12.i.i, align 4, !tbaa !20
+  store i32 -2147483648, i32* %offset.i553.12.i.i, align 8, !tbaa !21
+  call void @llvm.memset.p0i8.i64(i8* %47, i8 0, i64 16, i32 16, i1 false) #4
+  %array_ref.174.i543.i.i = load %union.tree_node** %expression.i524.i.i, align 8
+  %code1875.i544.i.i = getelementptr inbounds %union.tree_node* %array_ref.174.i543.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load1976.i545.i.i = load i32* %code1875.i544.i.i, align 8
+  %bf.clear2077.i546.i.i = and i32 %bf.load1976.i545.i.i, 255
+  %cmp2178.i547.i.i = icmp eq i32 %bf.clear2077.i546.i.i, 43
+  br i1 %cmp2178.i547.i.i, label %for.body22.lr.ph.i549.i.i, label %get_coefficients.exit585.i.i
+
+for.body.i542.i.i:                                ; preds = %if.end68.i.i, %for.body.i542.i.i
+  %array_ref.089.i532.i.i = phi %union.tree_node* [ %array_ref.0.i537.i.i, %for.body.i542.i.i ], [ %array_ref.083.i525.i.i, %if.end68.i.i ]
+  %array_count.088.i533.i.i = phi i32 [ %add.i534.i.i, %for.body.i542.i.i ], [ 0, %if.end68.i.i ]
+  %add.i534.i.i = add nsw i32 %array_count.088.i533.i.i, 1
+  %operands.i535.i.i = getelementptr inbounds %union.tree_node* %array_ref.089.i532.i.i, i64 0, i32 0, i32 2
+  %arrayidx.i536.i.i = bitcast i32* %operands.i535.i.i to %union.tree_node**
+  %array_ref.0.i537.i.i = load %union.tree_node** %arrayidx.i536.i.i, align 8
+  %code.i538.i.i = getelementptr inbounds %union.tree_node* %array_ref.0.i537.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load.i539.i.i = load i32* %code.i538.i.i, align 8
+  %bf.clear.i540.i.i = and i32 %bf.load.i539.i.i, 255
+  %cmp.i541.i.i = icmp eq i32 %bf.clear.i540.i.i, 43
+  br i1 %cmp.i541.i.i, label %for.body.i542.i.i, label %for.cond1.preheader.i531.i.i
+
+for.body22.lr.ph.i549.i.i:                        ; preds = %for.cond1.preheader.i531.i.i
+  %78 = sext i32 %array_count.0.lcssa.i530.i.i to i64
+  br label %for.body22.i566.i.i
+
+for.body22.i566.i.i:                              ; preds = %if.end46.i583.i.i, %for.body22.lr.ph.i549.i.i
+  %indvars.iv.i558.i.i = phi i64 [ %78, %for.body22.lr.ph.i549.i.i ], [ %indvars.iv.next.i576.i.i, %if.end46.i583.i.i ]
+  %array_ref.180.i559.i.i = phi %union.tree_node* [ %array_ref.174.i543.i.i, %for.body22.lr.ph.i549.i.i ], [ %array_ref.1.i578.i.i, %if.end46.i583.i.i ]
+  %operands24.i560.i.i = getelementptr inbounds %union.tree_node* %array_ref.180.i559.i.i, i64 0, i32 0, i32 2
+  %arrayidx25.i561.i.i = getelementptr inbounds i32* %operands24.i560.i.i, i64 2
+  %79 = bitcast i32* %arrayidx25.i561.i.i to %union.tree_node**
+  %80 = load %union.tree_node** %79, align 8, !tbaa !1
+  %code27.i562.i.i = getelementptr inbounds %union.tree_node* %80, i64 0, i32 0, i32 0, i32 2
+  %bf.load28.i563.i.i = load i32* %code27.i562.i.i, align 8
+  %bf.clear29.i564.i.i = and i32 %bf.load28.i563.i.i, 255
+  %cmp30.i565.i.i = icmp eq i32 %bf.clear29.i564.i.i, 25
+  br i1 %cmp30.i565.i.i, label %if.then.i571.i.i, label %if.else.i575.i.i
+
+if.then.i571.i.i:                                 ; preds = %for.body22.i566.i.i
+  %int_cst34.i567.i.i = getelementptr inbounds %union.tree_node* %80, i64 0, i32 0, i32 2
+  %low.i568.i.i = bitcast i32* %int_cst34.i567.i.i to i64*
+  %81 = load i64* %low.i568.i.i, align 8, !tbaa !22
+  %conv.i569.i.i = trunc i64 %81 to i32
+  %offset37.i570.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i558.i.i, i32 2
+  store i32 %conv.i569.i.i, i32* %offset37.i570.i.i, align 8, !tbaa !21
+  br label %if.end46.i583.i.i
+
+if.else.i575.i.i:                                 ; preds = %for.body22.i566.i.i
+  %arrayidx42.i572.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i558.i.i
+  %call.i573.i.i = call fastcc i32 @get_one_coefficient(%union.tree_node* %80, %struct.subscript* %arrayidx42.i572.i.i, %struct.def_use* %use_ptr.0642.i.i, i32* null) #4
+  %cmp43.i574.i.i = icmp slt i32 %call.i573.i.i, 0
+  br i1 %cmp43.i574.i.i, label %normalize_coefficients.exit523.i.i, label %if.end46.i583.i.i
+
+if.end46.i583.i.i:                                ; preds = %if.else.i575.i.i, %if.then.i571.i.i
+  %indvars.iv.next.i576.i.i = add nsw i64 %indvars.iv.i558.i.i, -1
+  %arrayidx50.i577.i.i = bitcast i32* %operands24.i560.i.i to %union.tree_node**
+  %array_ref.1.i578.i.i = load %union.tree_node** %arrayidx50.i577.i.i, align 8
+  %code18.i579.i.i = getelementptr inbounds %union.tree_node* %array_ref.1.i578.i.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load19.i580.i.i = load i32* %code18.i579.i.i, align 8
+  %bf.clear20.i581.i.i = and i32 %bf.load19.i580.i.i, 255
+  %cmp21.i582.i.i = icmp eq i32 %bf.clear20.i581.i.i, 43
+  br i1 %cmp21.i582.i.i, label %for.body22.i566.i.i, label %get_coefficients.exit585.i.i
+
+get_coefficients.exit585.i.i:                     ; preds = %if.end46.i583.i.i, %for.cond1.preheader.i531.i.i
+  %cmp67.i475.i.i = icmp slt i32 %array_count.0.lcssa.i530.i.i, 1
+  %brmerge.i.i = or i1 %cmp67.i475.i.i, %tobool65.i.i.i
+  br i1 %brmerge.i.i, label %normalize_coefficients.exit523.i.i, label %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i478.i.i
+
+for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i478.i.i: ; preds = %get_coefficients.exit585.i.i
+  %82 = add i32 %array_count.0.lcssa.i530.i.i, 1
+  br label %for.body2.lr.ph.i485.i.i
+
+for.body2.lr.ph.i485.i.i:                         ; preds = %for.inc37.i522.i.i, %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i478.i.i
+  %indvars.iv.i483.i.i = phi i64 [ %indvars.iv.next.i519.i.i, %for.inc37.i522.i.i ], [ 1, %for.cond1.preheader.lr.ph.for.cond1.preheader.lr.ph.split_crit_edge.i478.i.i ]
+  %variable.i484.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i483.i.i, i32 3
+  %coefficient.i504.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i483.i.i, i32 1
+  %offset.i506.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i483.i.i, i32 2
+  br label %for.body2.i490.i.i
+
+for.body2.i490.i.i:                               ; preds = %for.inc35.i518.i.i, %for.body2.lr.ph.i485.i.i
+  %ck_loop_ptr.066.i486.i.i = phi %struct.loop* [ %loop_ptr.0.lcssa.i.i, %for.body2.lr.ph.i485.i.i ], [ %90, %for.inc35.i518.i.i ]
+  %ind.i487.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.066.i486.i.i, i64 0, i32 5
+  %ind_ptr.062.i488.i.i = load %struct.induction** %ind.i487.i.i, align 8
+  %tobool463.i489.i.i = icmp eq %struct.induction* %ind_ptr.062.i488.i.i, null
+  br i1 %tobool463.i489.i.i, label %for.inc35.i518.i.i, label %for.body5.lr.ph.i491.i.i
+
+for.body5.lr.ph.i491.i.i:                         ; preds = %for.body2.i490.i.i
+  %83 = load i8** %variable.i484.i.i, align 16, !tbaa !29
+  br label %for.body5.i499.i.i
+
+for.cond3.i495.i.i:                               ; preds = %for.body5.i499.i.i
+  %next.i492.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i496.i.i, i64 0, i32 4
+  %ind_ptr.0.i493.i.i = load %struct.induction** %next.i492.i.i, align 8
+  %tobool4.i494.i.i = icmp eq %struct.induction* %ind_ptr.0.i493.i.i, null
+  br i1 %tobool4.i494.i.i, label %for.inc35.i518.i.i, label %for.body5.i499.i.i
+
+for.body5.i499.i.i:                               ; preds = %for.cond3.i495.i.i, %for.body5.lr.ph.i491.i.i
+  %ind_ptr.064.i496.i.i = phi %struct.induction* [ %ind_ptr.062.i488.i.i, %for.body5.lr.ph.i491.i.i ], [ %ind_ptr.0.i493.i.i, %for.cond3.i495.i.i ]
+  %variable6.i497.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i496.i.i, i64 0, i32 0
+  %84 = load i8** %variable6.i497.i.i, align 8, !tbaa !30
+  %cmp7.i498.i.i = icmp eq i8* %83, %84
+  br i1 %cmp7.i498.i.i, label %if.then.i503.i.i, label %for.cond3.i495.i.i
+
+if.then.i503.i.i:                                 ; preds = %for.body5.i499.i.i
+  %low_bound.i500.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i496.i.i, i64 0, i32 2
+  %85 = load i32* %low_bound.i500.i.i, align 4, !tbaa !32
+  %high_bound.i501.i.i = getelementptr inbounds %struct.induction* %ind_ptr.064.i496.i.i, i64 0, i32 3
+  %86 = load i32* %high_bound.i501.i.i, align 4, !tbaa !33
+  %cmp8.i502.i.i = icmp slt i32 %85, %86
+  br i1 %cmp8.i502.i.i, label %if.then9.i508.i.i, label %if.else.i510.i.i
+
+if.then9.i508.i.i:                                ; preds = %if.then.i503.i.i
+  %87 = load i32* %coefficient.i504.i.i, align 4, !tbaa !20
+  %mul.i505.i.i = mul nsw i32 %87, %85
+  %88 = load i32* %offset.i506.i.i, align 8, !tbaa !21
+  %add.i507.i.i = add nsw i32 %88, %mul.i505.i.i
+  store i32 %add.i507.i.i, i32* %offset.i506.i.i, align 8, !tbaa !21
+  br label %for.inc35.i518.i.i
+
+if.else.i510.i.i:                                 ; preds = %if.then.i503.i.i
+  %cmp16.i509.i.i = icmp eq i32 %86, -2147483648
+  br i1 %cmp16.i509.i.i, label %for.inc35.i518.i.i, label %if.then17.i515.i.i
+
+if.then17.i515.i.i:                               ; preds = %if.else.i510.i.i
+  %89 = load i32* %coefficient.i504.i.i, align 4, !tbaa !20
+  %mul22.i512.i.i = mul nsw i32 %89, %86
+  store i32 %mul22.i512.i.i, i32* %offset.i506.i.i, align 8, !tbaa !21
+  %mul29.i514.i.i = sub i32 0, %89
+  store i32 %mul29.i514.i.i, i32* %coefficient.i504.i.i, align 4, !tbaa !20
+  br label %for.inc35.i518.i.i
+
+for.inc35.i518.i.i:                               ; preds = %for.cond3.i495.i.i, %if.then17.i515.i.i, %if.else.i510.i.i, %if.then9.i508.i.i, %for.body2.i490.i.i
+  %next_nest.i516.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.066.i486.i.i, i64 0, i32 4
+  %90 = load %struct.loop** %next_nest.i516.i.i, align 8, !tbaa !12
+  %tobool.i517.i.i = icmp eq %struct.loop* %90, null
+  br i1 %tobool.i517.i.i, label %for.inc37.i522.i.i, label %for.body2.i490.i.i
+
+for.inc37.i522.i.i:                               ; preds = %for.inc35.i518.i.i
+  %indvars.iv.next.i519.i.i = add nuw nsw i64 %indvars.iv.i483.i.i, 1
+  %lftr.wideiv53 = trunc i64 %indvars.iv.next.i519.i.i to i32
+  %exitcond54 = icmp eq i32 %lftr.wideiv53, %82
+  br i1 %exitcond54, label %normalize_coefficients.exit523.i.i, label %for.body2.lr.ph.i485.i.i
+
+normalize_coefficients.exit523.i.i:               ; preds = %if.else.i575.i.i, %for.inc37.i522.i.i, %get_coefficients.exit585.i.i
+  %cmp67.i475594.i.i = phi i1 [ %cmp67.i475.i.i, %get_coefficients.exit585.i.i ], [ false, %for.inc37.i522.i.i ], [ true, %if.else.i575.i.i ]
+  %retval.0.i584593.i.i = phi i32 [ %array_count.0.lcssa.i530.i.i, %get_coefficients.exit585.i.i ], [ %array_count.0.lcssa.i530.i.i, %for.inc37.i522.i.i ], [ -1, %if.else.i575.i.i ]
+  call void @llvm.lifetime.start(i64 104, i8* %18) #4
+  call void @llvm.lifetime.start(i64 104, i8* %19) #4
+  call void @llvm.lifetime.start(i64 52, i8* %20) #4
+  call void @llvm.lifetime.start(i64 52, i8* %21) #4
+  call void @llvm.memset.p0i8.i64(i8* %18, i8 0, i64 104, i32 16, i1 false) #4
+  call void @llvm.memset.p0i8.i64(i8* %19, i8 0, i64 104, i32 16, i1 false) #4
+  call void @llvm.memset.p0i8.i64(i8* %21, i8 0, i64 52, i32 16, i1 false) #4
+  call void @llvm.memset.p0i8.i64(i8* %20, i8 0, i64 52, i32 16, i1 false) #4
+  br i1 %cmp67.i475594.i.i, label %classify_dependence.exit.i.i, label %for.body.lr.ph.i459.i.i
+
+for.body.lr.ph.i459.i.i:                          ; preds = %normalize_coefficients.exit523.i.i
+  %91 = add i32 %retval.0.i584593.i.i, 1
+  br label %for.body.i461.i.i
+
+for.body.i461.i.i:                                ; preds = %for.inc.i.i.i, %for.body.lr.ph.i459.i.i
+  %indvars.iv188.i.i.i = phi i64 [ %indvars.iv.next189.i.i.i, %for.inc.i.i.i ], [ 1, %for.body.lr.ph.i459.i.i ]
+  %variable.i460.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv188.i.i.i, i32 3
+  %92 = load i8** %variable.i460.i.i, align 16, !tbaa !29
+  %cmp1.i.i.i = icmp eq i8* %92, null
+  br i1 %cmp1.i.i.i, label %if.end14.i.i.i, label %if.then.i463.i.i
+
+if.then.i463.i.i:                                 ; preds = %for.body.i461.i.i
+  %arrayidx3.i.i.i = getelementptr inbounds [13 x i8*]* %iiv_used.i.i.i, i64 0, i64 %indvars.iv188.i.i.i
+  %93 = load i8** %arrayidx3.i.i.i, align 8, !tbaa !1
+  %tobool.i462.i.i = icmp eq i8* %93, null
+  br i1 %tobool.i462.i.i, label %if.then4.i.i.i, label %if.end14.i.i.i
+
+if.then4.i.i.i:                                   ; preds = %if.then.i463.i.i
+  store i8* %92, i8** %arrayidx3.i.i.i, align 8, !tbaa !1
+  %coefficient.i464.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv188.i.i.i, i32 1
+  %94 = load i32* %coefficient.i464.i.i, align 4, !tbaa !20
+  %arrayidx13.i.i.i = getelementptr inbounds [13 x i32]* %icoeff.i.i.i, i64 0, i64 %indvars.iv188.i.i.i
+  store i32 %94, i32* %arrayidx13.i.i.i, align 4, !tbaa !16
+  br label %if.end14.i.i.i
+
+if.end14.i.i.i:                                   ; preds = %if.then4.i.i.i, %if.then.i463.i.i, %for.body.i461.i.i
+  %variable17.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv188.i.i.i, i32 3
+  %95 = load i8** %variable17.i.i.i, align 16, !tbaa !29
+  %cmp18.i465.i.i = icmp eq i8* %95, null
+  br i1 %cmp18.i465.i.i, label %for.inc.i.i.i, label %if.then19.i.i.i
+
+if.then19.i.i.i:                                  ; preds = %if.end14.i.i.i
+  %arrayidx21.i466.i.i = getelementptr inbounds [13 x i8*]* %oiv_used.i.i.i, i64 0, i64 %indvars.iv188.i.i.i
+  %96 = load i8** %arrayidx21.i466.i.i, align 8, !tbaa !1
+  %tobool22.i.i.i = icmp eq i8* %96, null
+  br i1 %tobool22.i.i.i, label %if.then23.i.i.i, label %for.inc.i.i.i
+
+if.then23.i.i.i:                                  ; preds = %if.then19.i.i.i
+  store i8* %95, i8** %arrayidx21.i466.i.i, align 8, !tbaa !1
+  %coefficient31.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv188.i.i.i, i32 1
+  %97 = load i32* %coefficient31.i.i.i, align 4, !tbaa !20
+  %arrayidx33.i.i.i = getelementptr inbounds [13 x i32]* %ocoeff.i.i.i, i64 0, i64 %indvars.iv188.i.i.i
+  store i32 %97, i32* %arrayidx33.i.i.i, align 4, !tbaa !16
+  br label %for.inc.i.i.i
+
+for.inc.i.i.i:                                    ; preds = %if.then23.i.i.i, %if.then19.i.i.i, %if.end14.i.i.i
+  %indvars.iv.next189.i.i.i = add nuw nsw i64 %indvars.iv188.i.i.i, 1
+  %lftr.wideiv55 = trunc i64 %indvars.iv.next189.i.i.i to i32
+  %exitcond56 = icmp eq i32 %lftr.wideiv55, %91
+  br i1 %exitcond56, label %for.body38.i.i.i, label %for.body.i461.i.i
+
+for.body38.i.i.i:                                 ; preds = %for.inc.i.i.i, %for.inc92.i.i.i
+  %indvars.iv184.i.i.i = phi i64 [ %indvars.iv.next185.i.i.i, %for.inc92.i.i.i ], [ 1, %for.inc.i.i.i ]
+  %arrayidx40.i.i.i = getelementptr inbounds [13 x i8*]* %iiv_used.i.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  %98 = load i8** %arrayidx40.i.i.i, align 8, !tbaa !1
+  %cmp41.i.i.i = icmp eq i8* %98, null
+  %arrayidx43.i.i.i = getelementptr inbounds [13 x i8*]* %oiv_used.i.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  %99 = load i8** %arrayidx43.i.i.i, align 8, !tbaa !1
+  %cmp44.i.i.i = icmp eq i8* %99, null
+  %or.cond193.i.i.i = and i1 %cmp41.i.i.i, %cmp44.i.i.i
+  br i1 %or.cond193.i.i.i, label %if.then45.i.i.i, label %if.else.i467.i.i
+
+if.then45.i.i.i:                                  ; preds = %for.body38.i.i.i
+  %arrayidx47.i.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  store i32 0, i32* %arrayidx47.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+if.else.i467.i.i:                                 ; preds = %for.body38.i.i.i
+  %cmp52.i.i.i = icmp eq i8* %98, %99
+  %arrayidx55.i.i.i = getelementptr inbounds [13 x i32]* %icoeff.i.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  %100 = load i32* %arrayidx55.i.i.i, align 4, !tbaa !16
+  br i1 %cmp52.i.i.i, label %if.then53.i.i.i, label %if.else76.i.i.i
+
+if.then53.i.i.i:                                  ; preds = %if.else.i467.i.i
+  %arrayidx57.i.i.i = getelementptr inbounds [13 x i32]* %ocoeff.i.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  %101 = load i32* %arrayidx57.i.i.i, align 4, !tbaa !16
+  %cmp58.i.i.i = icmp eq i32 %100, %101
+  br i1 %cmp58.i.i.i, label %if.then59.i.i.i, label %if.else62.i.i.i
+
+if.then59.i.i.i:                                  ; preds = %if.then53.i.i.i
+  %arrayidx61.i.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  store i32 1, i32* %arrayidx61.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+if.else62.i.i.i:                                  ; preds = %if.then53.i.i.i
+  %mul.i468.i.i = sub i32 0, %101
+  %cmp67.i469.i.i = icmp eq i32 %100, %mul.i468.i.i
+  %arrayidx70.i.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  br i1 %cmp67.i469.i.i, label %if.then68.i470.i.i, label %if.else71.i.i.i
+
+if.then68.i470.i.i:                               ; preds = %if.else62.i.i.i
+  store i32 4, i32* %arrayidx70.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+if.else71.i.i.i:                                  ; preds = %if.else62.i.i.i
+  store i32 2, i32* %arrayidx70.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+if.else76.i.i.i:                                  ; preds = %if.else.i467.i.i
+  %cmp79.i.i.i = icmp eq i32 %100, 0
+  br i1 %cmp79.i.i.i, label %if.then83.i.i.i, label %lor.lhs.false.i.i.i
+
+lor.lhs.false.i.i.i:                              ; preds = %if.else76.i.i.i
+  %arrayidx81.i.i.i = getelementptr inbounds [13 x i32]* %ocoeff.i.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  %102 = load i32* %arrayidx81.i.i.i, align 4, !tbaa !16
+  %cmp82.i.i.i = icmp eq i32 %102, 0
+  br i1 %cmp82.i.i.i, label %if.then83.i.i.i, label %if.else86.i.i.i
+
+if.then83.i.i.i:                                  ; preds = %lor.lhs.false.i.i.i, %if.else76.i.i.i
+  %arrayidx85.i.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  store i32 3, i32* %arrayidx85.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+if.else86.i.i.i:                                  ; preds = %lor.lhs.false.i.i.i
+  %arrayidx88.i.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv184.i.i.i
+  store i32 5, i32* %arrayidx88.i.i.i, align 4, !tbaa !15
+  br label %for.inc92.i.i.i
+
+for.inc92.i.i.i:                                  ; preds = %if.else86.i.i.i, %if.then83.i.i.i, %if.else71.i.i.i, %if.then68.i470.i.i, %if.then59.i.i.i, %if.then45.i.i.i
+  %indvars.iv.next185.i.i.i = add nuw nsw i64 %indvars.iv184.i.i.i, 1
+  %lftr.wideiv57 = trunc i64 %indvars.iv.next185.i.i.i to i32
+  %exitcond58 = icmp eq i32 %lftr.wideiv57, %91
+  br i1 %exitcond58, label %for.body100.lr.ph.i.i.i, label %for.body38.i.i.i
+
+for.body100.lr.ph.i.i.i:                          ; preds = %for.inc92.i.i.i, %for.inc121.i.i.i
+  %separability.0.load590.i.i = phi i32 [ %separability.0.load588.i.i, %for.inc121.i.i.i ], [ 1, %for.inc92.i.i.i ]
+  %indvars.iv180.i.i.i = phi i64 [ %indvars.iv.next181.i.i.i, %for.inc121.i.i.i ], [ 1, %for.inc92.i.i.i ]
+  %arrayidx104.i.i.i = getelementptr inbounds [13 x i8*]* %iiv_used.i.i.i, i64 0, i64 %indvars.iv180.i.i.i
+  %103 = trunc i64 %indvars.iv180.i.i.i to i32
+  br label %for.body100.i.i.i
+
+for.body100.i.i.i:                                ; preds = %for.inc118.i.i.i, %for.body100.lr.ph.i.i.i
+  %separability.0.load589.i.i = phi i32 [ %separability.0.load588.i.i, %for.inc118.i.i.i ], [ %separability.0.load590.i.i, %for.body100.lr.ph.i.i.i ]
+  %indvars.iv.i471.i.i = phi i64 [ %indvars.iv.next.i472.i.i, %for.inc118.i.i.i ], [ 1, %for.body100.lr.ph.i.i.i ]
+  %104 = trunc i64 %indvars.iv.i471.i.i to i32
+  %cmp101.i.i.i = icmp eq i32 %103, %104
+  br i1 %cmp101.i.i.i, label %for.inc118.i.i.i, label %land.lhs.true102.i.i.i
+
+land.lhs.true102.i.i.i:                           ; preds = %for.body100.i.i.i
+  %105 = load i8** %arrayidx104.i.i.i, align 8, !tbaa !1
+  %tobool105.i.i.i = icmp eq i8* %105, null
+  br i1 %tobool105.i.i.i, label %for.inc118.i.i.i, label %land.lhs.true106.i.i.i
+
+land.lhs.true106.i.i.i:                           ; preds = %land.lhs.true102.i.i.i
+  %arrayidx108.i.i.i = getelementptr inbounds [13 x i8*]* %oiv_used.i.i.i, i64 0, i64 %indvars.iv.i471.i.i
+  %106 = load i8** %arrayidx108.i.i.i, align 8, !tbaa !1
+  %tobool109.i.i.i = icmp ne i8* %106, null
+  %cmp115.i.i.i = icmp eq i8* %105, %106
+  %or.cond.i.i.i = and i1 %tobool109.i.i.i, %cmp115.i.i.i
+  %.separability.0.load589.i.i = select i1 %or.cond.i.i.i, i32 0, i32 %separability.0.load589.i.i
+  br label %for.inc118.i.i.i
+
+for.inc118.i.i.i:                                 ; preds = %land.lhs.true106.i.i.i, %land.lhs.true102.i.i.i, %for.body100.i.i.i
+  %separability.0.load588.i.i = phi i32 [ %separability.0.load589.i.i, %land.lhs.true102.i.i.i ], [ %separability.0.load589.i.i, %for.body100.i.i.i ], [ %.separability.0.load589.i.i, %land.lhs.true106.i.i.i ]
+  %indvars.iv.next.i472.i.i = add nuw nsw i64 %indvars.iv.i471.i.i, 1
+  %lftr.wideiv59 = trunc i64 %indvars.iv.next.i472.i.i to i32
+  %exitcond60 = icmp eq i32 %lftr.wideiv59, %91
+  br i1 %exitcond60, label %for.inc121.i.i.i, label %for.body100.i.i.i
+
+for.inc121.i.i.i:                                 ; preds = %for.inc118.i.i.i
+  %indvars.iv.next181.i.i.i = add nuw nsw i64 %indvars.iv180.i.i.i, 1
+  %lftr.wideiv61 = trunc i64 %indvars.iv.next181.i.i.i to i32
+  %exitcond62 = icmp eq i32 %lftr.wideiv61, %91
+  br i1 %exitcond62, label %classify_dependence.exit.i.i, label %for.body100.lr.ph.i.i.i
+
+classify_dependence.exit.i.i:                     ; preds = %for.inc121.i.i.i, %normalize_coefficients.exit523.i.i
+  %separability.0.load587.i.i = phi i32 [ 1, %normalize_coefficients.exit523.i.i ], [ %separability.0.load588.i.i, %for.inc121.i.i.i ]
+  call void @llvm.lifetime.end(i64 52, i8* %21) #4
+  call void @llvm.lifetime.end(i64 52, i8* %20) #4
+  call void @llvm.lifetime.end(i64 104, i8* %19) #4
+  call void @llvm.lifetime.end(i64 104, i8* %18) #4
+  br i1 %tobool31619.i.i, label %for.inc295.i.i, label %for.cond80.preheader.lr.ph.i.i
+
+for.cond80.preheader.lr.ph.i.i:                   ; preds = %classify_dependence.exit.i.i
+  %cmp81625.i.i = icmp slt i32 %retval.0.i584593.i.i, 1
+  %tobool92.i.i = icmp eq i32 %separability.0.load587.i.i, 0
+  %107 = add i32 %retval.0.i584593.i.i, 1
+  br label %for.cond80.preheader.i.i
+
+for.cond80.preheader.i.i:                         ; preds = %for.end133.i.i, %for.cond80.preheader.lr.ph.i.i
+  %indvars.iv683.i.i = phi i64 [ 1, %for.cond80.preheader.lr.ph.i.i ], [ %indvars.iv.next684.i.i, %for.end133.i.i ]
+  %ck_loop_ptr.1629.i.i = phi %struct.loop* [ %loop_ptr.0.lcssa.i.i, %for.cond80.preheader.lr.ph.i.i ], [ %133, %for.end133.i.i ]
+  br i1 %cmp81625.i.i, label %for.end133.i.i, label %for.body83.lr.ph.i.i
+
+for.body83.lr.ph.i.i:                             ; preds = %for.cond80.preheader.i.i
+  %ind.i.i.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.1629.i.i, i64 0, i32 5
+  %depth.i.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.1629.i.i, i64 0, i32 2
+  br label %for.body83.i.i
+
+for.body83.i.i:                                   ; preds = %for.inc131.i.i, %for.body83.lr.ph.i.i
+  %indvars.iv.i.i = phi i64 [ %indvars.iv.next.i.i, %for.inc131.i.i ], [ 1, %for.body83.lr.ph.i.i ]
+  %arrayidx87.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv683.i.i, i64 %indvars.iv.i.i
+  store i32 5, i32* %arrayidx87.i.i, align 4, !tbaa !15
+  %arrayidx91.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %indvars.iv683.i.i, i64 %indvars.iv.i.i
+  store i32 2147483647, i32* %arrayidx91.i.i, align 4, !tbaa !16
+  br i1 %tobool92.i.i, label %if.else124.i.i, label %land.lhs.true93.i.i
+
+land.lhs.true93.i.i:                              ; preds = %for.body83.i.i
+  %arrayidx95.i.i = getelementptr inbounds [13 x i32]* %complexity.i.i, i64 0, i64 %indvars.iv.i.i
+  %108 = load i32* %arrayidx95.i.i, align 4, !tbaa !15
+  switch i32 %108, label %if.else124.i.i [
+    i32 0, label %if.then98.i.i
+    i32 1, label %if.then119.i.i
+    i32 3, label %if.then119.i.i
+    i32 4, label %if.then119.i.i
+  ]
+
+if.then98.i.i:                                    ; preds = %land.lhs.true93.i.i
+  %offset.i454.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %109 = load i32* %offset.i454.i.i, align 8, !tbaa !21
+  %offset3.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %110 = load i32* %offset3.i.i.i, align 8, !tbaa !21
+  %cmp.i455.i.i = icmp eq i32 %109, %110
+  br i1 %cmp.i455.i.i, label %for.inc131.i.i, label %if.then.i457.i.i
+
+if.then.i457.i.i:                                 ; preds = %if.then98.i.i
+  %111 = load i32* %depth.i.i.i, align 4, !tbaa !11
+  %idxprom5.i.i.i = sext i32 %111 to i64
+  %arrayidx7.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %idxprom5.i.i.i, i64 %indvars.iv.i.i
+  store i32 6, i32* %arrayidx7.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+if.then119.i.i:                                   ; preds = %land.lhs.true93.i.i, %land.lhs.true93.i.i, %land.lhs.true93.i.i
+  %ind_ptr.013.i.i423.i.i = load %struct.induction** %ind.i.i.i.i, align 8
+  %tobool14.i.i424.i.i = icmp eq %struct.induction* %ind_ptr.013.i.i423.i.i, null
+  br i1 %tobool14.i.i424.i.i, label %check_subscript_induction.exit.i443.i.i, label %for.body.lr.ph.i.i427.i.i
+
+for.body.lr.ph.i.i427.i.i:                        ; preds = %if.then119.i.i
+  %variable.i.i425.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 3
+  %112 = load i8** %variable.i.i425.i.i, align 16, !tbaa !29
+  %variable2.i.i426.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 3
+  %113 = load i8** %variable2.i.i426.i.i, align 16, !tbaa !29
+  br label %for.body.i.i439.i.i
+
+for.body.i.i439.i.i:                              ; preds = %for.body.i.i439.i.i, %for.body.lr.ph.i.i427.i.i
+  %ind_ptr.017.i.i428.i.i = phi %struct.induction* [ %ind_ptr.013.i.i423.i.i, %for.body.lr.ph.i.i427.i.i ], [ %ind_ptr.0.i.i437.i.i, %for.body.i.i439.i.i ]
+  %sub_ind_output.016.i.i429.i.i = phi i32 [ 0, %for.body.lr.ph.i.i427.i.i ], [ %sub_ind_output.1.i.i435.i.i, %for.body.i.i439.i.i ]
+  %sub_ind_input.015.i.i430.i.i = phi i32 [ 0, %for.body.lr.ph.i.i427.i.i ], [ %.sub_ind_input.0.i.i433.i.i, %for.body.i.i439.i.i ]
+  %variable1.i.i431.i.i = getelementptr inbounds %struct.induction* %ind_ptr.017.i.i428.i.i, i64 0, i32 0
+  %114 = load i8** %variable1.i.i431.i.i, align 8, !tbaa !30
+  %cmp.i.i432.i.i = icmp eq i8* %112, %114
+  %.sub_ind_input.0.i.i433.i.i = select i1 %cmp.i.i432.i.i, i32 1, i32 %sub_ind_input.015.i.i430.i.i
+  %cmp4.i.i434.i.i = icmp eq i8* %113, %114
+  %sub_ind_output.1.i.i435.i.i = select i1 %cmp4.i.i434.i.i, i32 1, i32 %sub_ind_output.016.i.i429.i.i
+  %next.i.i436.i.i = getelementptr inbounds %struct.induction* %ind_ptr.017.i.i428.i.i, i64 0, i32 4
+  %ind_ptr.0.i.i437.i.i = load %struct.induction** %next.i.i436.i.i, align 8
+  %tobool.i.i438.i.i = icmp eq %struct.induction* %ind_ptr.0.i.i437.i.i, null
+  br i1 %tobool.i.i438.i.i, label %check_subscript_induction.exit.i443.i.i, label %for.body.i.i439.i.i
+
+check_subscript_induction.exit.i443.i.i:          ; preds = %for.body.i.i439.i.i, %if.then119.i.i
+  %sub_ind_output.0.lcssa.i.i440.i.i = phi i32 [ 0, %if.then119.i.i ], [ %sub_ind_output.1.i.i435.i.i, %for.body.i.i439.i.i ]
+  %sub_ind_input.0.lcssa.i.i441.i.i = phi i32 [ 0, %if.then119.i.i ], [ %.sub_ind_input.0.i.i433.i.i, %for.body.i.i439.i.i ]
+  %115 = or i32 %sub_ind_input.0.lcssa.i.i441.i.i, %sub_ind_output.0.lcssa.i.i440.i.i
+  %not..i.i442.i.i = icmp eq i32 %115, 0
+  br i1 %not..i.i442.i.i, label %for.inc131.i.i, label %if.end.i447.i.i
+
+if.end.i447.i.i:                                  ; preds = %check_subscript_induction.exit.i443.i.i
+  %offset.i444.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %116 = load i32* %offset.i444.i.i, align 8, !tbaa !21
+  %offset7.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %117 = load i32* %offset7.i.i.i, align 8, !tbaa !21
+  %coefficient.i445.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 1
+  %118 = load i32* %coefficient.i445.i.i, align 4, !tbaa !20
+  %cmp.i446.i.i = icmp eq i32 %118, -2147483648
+  %coefficient14.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 1
+  %119 = load i32* %coefficient14.i.i.i, align 4, !tbaa !20
+  br i1 %cmp.i446.i.i, label %if.end43.i.i.i, label %if.else.i448.i.i
+
+if.else.i448.i.i:                                 ; preds = %if.end.i447.i.i
+  %cmp18.i.i.i = icmp eq i32 %119, -2147483648
+  br i1 %cmp18.i.i.i, label %if.end43.i.i.i, label %if.else23.i.i.i
+
+if.else23.i.i.i:                                  ; preds = %if.else.i448.i.i
+  %mul.i449.i.i = sub i32 0, %119
+  %cmp30.i450.i.i = icmp eq i32 %118, %mul.i449.i.i
+  br i1 %cmp30.i450.i.i, label %if.then31.i.i.i, label %if.end43.i.i.i
+
+if.then31.i.i.i:                                  ; preds = %if.else23.i.i.i
+  %ispos.i.i.i = icmp sgt i32 %118, -1
+  %neg.i.i.i = sub i32 0, %118
+  %120 = select i1 %ispos.i.i.i, i32 %118, i32 %neg.i.i.i
+  %mul36.i.i.i = shl nsw i32 %120, 1
+  br label %if.end43.i.i.i
+
+if.end43.i.i.i:                                   ; preds = %if.then31.i.i.i, %if.else23.i.i.i, %if.else.i448.i.i, %if.end.i447.i.i
+  %coef.0.i.i.i = phi i32 [ %mul36.i.i.i, %if.then31.i.i.i ], [ %119, %if.end.i447.i.i ], [ %118, %if.else.i448.i.i ], [ %119, %if.else23.i.i.i ]
+  %sub8114.i.i.i = sub i32 %117, %116
+  %div.i451.i.i = sdiv i32 %sub8114.i.i.i, %coef.0.i.i.i
+  %mul45.i.i.i = mul nsw i32 %div.i451.i.i, %coef.0.i.i.i
+  %cmp47.i.i.i = icmp eq i32 %mul45.i.i.i, %sub8114.i.i.i
+  %121 = load i32* %depth.i.i.i, align 4, !tbaa !11
+  %idxprom56.i.i.i = sext i32 %121 to i64
+  br i1 %cmp47.i.i.i, label %if.else53.i.i.i, label %if.then48.i.i.i
+
+if.then48.i.i.i:                                  ; preds = %if.end43.i.i.i
+  %arrayidx52.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %idxprom56.i.i.i, i64 %indvars.iv.i.i
+  store i32 6, i32* %arrayidx52.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+if.else53.i.i.i:                                  ; preds = %if.end43.i.i.i
+  %arrayidx58.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %idxprom56.i.i.i, i64 %indvars.iv.i.i
+  store i32 %div.i451.i.i, i32* %arrayidx58.i.i.i, align 4, !tbaa !16
+  %cmp59.i.i.i = icmp slt i32 %div.i451.i.i, 0
+  br i1 %cmp59.i.i.i, label %if.then60.i.i.i, label %if.else66.i.i.i
+
+if.then60.i.i.i:                                  ; preds = %if.else53.i.i.i
+  %122 = load i32* %depth.i.i.i, align 4, !tbaa !11
+  %idxprom63.i.i.i = sext i32 %122 to i64
+  %arrayidx65.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %idxprom63.i.i.i, i64 %indvars.iv.i.i
+  store i32 3, i32* %arrayidx65.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+if.else66.i.i.i:                                  ; preds = %if.else53.i.i.i
+  %cmp67.i452.i.i = icmp sgt i32 %div.i451.i.i, 0
+  %123 = load i32* %depth.i.i.i, align 4, !tbaa !11
+  %idxprom71.i.i.i = sext i32 %123 to i64
+  %arrayidx73.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %idxprom71.i.i.i, i64 %indvars.iv.i.i
+  br i1 %cmp67.i452.i.i, label %if.then68.i.i.i, label %if.else74.i.i.i
+
+if.then68.i.i.i:                                  ; preds = %if.else66.i.i.i
+  store i32 0, i32* %arrayidx73.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+if.else74.i.i.i:                                  ; preds = %if.else66.i.i.i
+  store i32 2, i32* %arrayidx73.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+if.else124.i.i:                                   ; preds = %land.lhs.true93.i.i, %for.body83.i.i
+  %ind_ptr.013.i.i.i.i = load %struct.induction** %ind.i.i.i.i, align 8
+  %tobool14.i.i.i.i = icmp eq %struct.induction* %ind_ptr.013.i.i.i.i, null
+  br i1 %tobool14.i.i.i.i, label %check_subscript_induction.exit.i.i.i, label %for.body.lr.ph.i.i.i.i
+
+for.body.lr.ph.i.i.i.i:                           ; preds = %if.else124.i.i
+  %variable.i.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 3
+  %124 = load i8** %variable.i.i.i.i, align 16, !tbaa !29
+  %variable2.i.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 3
+  %125 = load i8** %variable2.i.i.i.i, align 16, !tbaa !29
+  br label %for.body.i.i.i.i
+
+for.body.i.i.i.i:                                 ; preds = %for.body.i.i.i.i, %for.body.lr.ph.i.i.i.i
+  %ind_ptr.017.i.i.i.i = phi %struct.induction* [ %ind_ptr.013.i.i.i.i, %for.body.lr.ph.i.i.i.i ], [ %ind_ptr.0.i.i.i.i, %for.body.i.i.i.i ]
+  %sub_ind_output.016.i.i.i.i = phi i32 [ 0, %for.body.lr.ph.i.i.i.i ], [ %sub_ind_output.1.i.i.i.i, %for.body.i.i.i.i ]
+  %sub_ind_input.015.i.i.i.i = phi i32 [ 0, %for.body.lr.ph.i.i.i.i ], [ %.sub_ind_input.0.i.i.i.i, %for.body.i.i.i.i ]
+  %variable1.i.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.017.i.i.i.i, i64 0, i32 0
+  %126 = load i8** %variable1.i.i.i.i, align 8, !tbaa !30
+  %cmp.i.i.i.i = icmp eq i8* %124, %126
+  %.sub_ind_input.0.i.i.i.i = select i1 %cmp.i.i.i.i, i32 1, i32 %sub_ind_input.015.i.i.i.i
+  %cmp4.i.i.i.i = icmp eq i8* %125, %126
+  %sub_ind_output.1.i.i.i.i = select i1 %cmp4.i.i.i.i, i32 1, i32 %sub_ind_output.016.i.i.i.i
+  %next.i.i.i.i = getelementptr inbounds %struct.induction* %ind_ptr.017.i.i.i.i, i64 0, i32 4
+  %ind_ptr.0.i.i.i.i = load %struct.induction** %next.i.i.i.i, align 8
+  %tobool.i.i.i.i = icmp eq %struct.induction* %ind_ptr.0.i.i.i.i, null
+  br i1 %tobool.i.i.i.i, label %check_subscript_induction.exit.i.i.i, label %for.body.i.i.i.i
+
+check_subscript_induction.exit.i.i.i:             ; preds = %for.body.i.i.i.i, %if.else124.i.i
+  %sub_ind_output.0.lcssa.i.i.i.i = phi i32 [ 0, %if.else124.i.i ], [ %sub_ind_output.1.i.i.i.i, %for.body.i.i.i.i ]
+  %sub_ind_input.0.lcssa.i.i.i.i = phi i32 [ 0, %if.else124.i.i ], [ %.sub_ind_input.0.i.i.i.i, %for.body.i.i.i.i ]
+  %127 = or i32 %sub_ind_input.0.lcssa.i.i.i.i, %sub_ind_output.0.lcssa.i.i.i.i
+  %not..i.i.i.i = icmp eq i32 %127, 0
+  br i1 %not..i.i.i.i, label %for.inc131.i.i, label %if.end.i.i.i
+
+if.end.i.i.i:                                     ; preds = %check_subscript_induction.exit.i.i.i
+  %coefficient.i415.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 1
+  %128 = load i32* %coefficient.i415.i.i, align 4, !tbaa !20
+  %coefficient7.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 1
+  %129 = load i32* %coefficient7.i.i.i, align 4, !tbaa !20
+  %cmp.i1.i.i.i = icmp eq i32 %128, 0
+  %cmp2.i.i.i.i = icmp eq i32 %129, 0
+  %or.cond.i.i.i.i = or i1 %cmp.i1.i.i.i, %cmp2.i.i.i.i
+  br i1 %or.cond.i.i.i.i, label %for.inc131.i.i, label %if.else10.i.i.i.i
+
+if.else10.i.i.i.i:                                ; preds = %if.end.i.i.i
+  %cmp11.i.i.i.i = icmp slt i32 %128, 0
+  %sub13.i.i.i.i = sub nsw i32 0, %128
+  %cond16.i.i.i.i = select i1 %cmp11.i.i.i.i, i32 %sub13.i.i.i.i, i32 %128
+  %cmp17.i.i.i.i = icmp slt i32 %129, 0
+  %sub19.i.i.i.i = sub nsw i32 0, %129
+  %cond22.i.i.i.i = select i1 %cmp17.i.i.i.i, i32 %sub19.i.i.i.i, i32 %129
+  %rem.i.i.i.i = srem i32 %cond16.i.i.i.i, %cond22.i.i.i.i
+  %cmp2338.i.i.i.i = icmp eq i32 %rem.i.i.i.i, 0
+  br i1 %cmp2338.i.i.i.i, label %find_gcd.exit.i.i.i, label %while.body.i.i.i.i
+
+while.body.i.i.i.i:                               ; preds = %if.else10.i.i.i.i, %while.body.i.i.i.i
+  %r.040.i.i.i.i = phi i32 [ %rem24.i.i.i.i, %while.body.i.i.i.i ], [ %rem.i.i.i.i, %if.else10.i.i.i.i ]
+  %g1.039.i.i.i.i = phi i32 [ %r.040.i.i.i.i, %while.body.i.i.i.i ], [ %cond22.i.i.i.i, %if.else10.i.i.i.i ]
+  %rem24.i.i.i.i = srem i32 %g1.039.i.i.i.i, %r.040.i.i.i.i
+  %cmp23.i.i.i.i = icmp eq i32 %rem24.i.i.i.i, 0
+  br i1 %cmp23.i.i.i.i, label %find_gcd.exit.i.i.i, label %while.body.i.i.i.i
+
+find_gcd.exit.i.i.i:                              ; preds = %while.body.i.i.i.i, %if.else10.i.i.i.i
+  %g.0.i.i.i.i = phi i32 [ %cond22.i.i.i.i, %if.else10.i.i.i.i ], [ %r.040.i.i.i.i, %while.body.i.i.i.i ]
+  %cmp.i416.i.i = icmp sgt i32 %g.0.i.i.i.i, 1
+  br i1 %cmp.i416.i.i, label %if.then9.i419.i.i, label %for.inc131.i.i
+
+if.then9.i419.i.i:                                ; preds = %find_gcd.exit.i.i.i
+  %offset.i417.i.i = getelementptr inbounds [13 x %struct.subscript]* %icoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %130 = load i32* %offset.i417.i.i, align 8, !tbaa !21
+  %offset14.i.i.i = getelementptr inbounds [13 x %struct.subscript]* %ocoefficients.i.i, i64 0, i64 %indvars.iv.i.i, i32 2
+  %131 = load i32* %offset14.i.i.i, align 8, !tbaa !21
+  %sub15.i.i.i = sub nsw i32 %130, %131
+  %div.i.i.i = srem i32 %sub15.i.i.i, %g.0.i.i.i.i
+  %cmp16.i418.i.i = icmp eq i32 %div.i.i.i, 0
+  br i1 %cmp16.i418.i.i, label %for.inc131.i.i, label %if.then17.i420.i.i
+
+if.then17.i420.i.i:                               ; preds = %if.then9.i419.i.i
+  %132 = load i32* %depth.i.i.i, align 4, !tbaa !11
+  %idxprom19.i.i.i = sext i32 %132 to i64
+  %arrayidx21.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %idxprom19.i.i.i, i64 %indvars.iv.i.i
+  store i32 6, i32* %arrayidx21.i.i.i, align 4, !tbaa !15
+  br label %for.inc131.i.i
+
+for.inc131.i.i:                                   ; preds = %if.then17.i420.i.i, %if.then9.i419.i.i, %find_gcd.exit.i.i.i, %if.end.i.i.i, %check_subscript_induction.exit.i.i.i, %if.else74.i.i.i, %if.then68.i.i.i, %if.then60.i.i.i, %if.then48.i.i.i, %check_subscript_induction.exit.i443.i.i, %if.then.i457.i.i, %if.then98.i.i
+  %indvars.iv.next.i.i = add nuw nsw i64 %indvars.iv.i.i, 1
+  %lftr.wideiv63 = trunc i64 %indvars.iv.next.i.i to i32
+  %exitcond64 = icmp eq i32 %lftr.wideiv63, %107
+  br i1 %exitcond64, label %for.end133.i.i, label %for.body83.i.i
+
+for.end133.i.i:                                   ; preds = %for.inc131.i.i, %for.cond80.preheader.i.i
+  %j.4.lcssa.i.i = phi i32 [ 1, %for.cond80.preheader.i.i ], [ %107, %for.inc131.i.i ]
+  %next_nest.i.i = getelementptr inbounds %struct.loop* %ck_loop_ptr.1629.i.i, i64 0, i32 4
+  %133 = load %struct.loop** %next_nest.i.i, align 8, !tbaa !12
+  %indvars.iv.next684.i.i = add nuw nsw i64 %indvars.iv683.i.i, 1
+  %tobool78.i.i = icmp eq %struct.loop* %133, null
+  br i1 %tobool78.i.i, label %for.end136.i.i, label %for.cond80.preheader.i.i
+
+for.end136.i.i:                                   ; preds = %for.end133.i.i
+  %134 = trunc i64 %indvars.iv.next684.i.i to i32
+  %sub.i.i = add i32 %134, -1
+  %cmp99.i.i.i = icmp slt i32 %134, 2
+  br i1 %cmp99.i.i.i, label %for.inc295.i.i, label %for.body.lr.ph.i.i.i
+
+for.body.lr.ph.i.i.i:                             ; preds = %for.end136.i.i
+  %cmp696.i.i.i = icmp slt i32 %j.4.lcssa.i.i, 2
+  br i1 %cmp696.i.i.i, label %for.end.us.i.i.i, label %for.body7.lr.ph.i.i.i
+
+for.end.us.i.i.i:                                 ; preds = %for.body.lr.ph.i.i.i, %for.end.us.i.i.i
+  %indvars.iv105.i.i.i = phi i64 [ %indvars.iv.next106.i.i.i, %for.end.us.i.i.i ], [ 1, %for.body.lr.ph.i.i.i ]
+  %arrayidx1.us.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %indvars.iv105.i.i.i, i64 0
+  store i32 2147483647, i32* %arrayidx1.us.i.i.i, align 4, !tbaa !16
+  %arrayidx4.us.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv105.i.i.i, i64 0
+  store i32 5, i32* %arrayidx4.us.i.i.i, align 4, !tbaa !15
+  %indvars.iv.next106.i.i.i = add nuw nsw i64 %indvars.iv105.i.i.i, 1
+  %lftr.wideiv69 = trunc i64 %indvars.iv.next106.i.i.i to i32
+  %exitcond70 = icmp eq i32 %lftr.wideiv69, %134
+  br i1 %exitcond70, label %for.body144.i.i, label %for.end.us.i.i.i
+
+for.body7.lr.ph.i.i.i:                            ; preds = %for.body.lr.ph.i.i.i, %for.end.i.i.i
+  %indvars.iv101.i.i.i = phi i64 [ %indvars.iv.next102.i.i.i, %for.end.i.i.i ], [ 1, %for.body.lr.ph.i.i.i ]
+  %arrayidx1.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %indvars.iv101.i.i.i, i64 0
+  store i32 2147483647, i32* %arrayidx1.i.i.i, align 4, !tbaa !16
+  %arrayidx4.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv101.i.i.i, i64 0
+  store i32 5, i32* %arrayidx4.i.i.i, align 4, !tbaa !15
+  br label %for.body7.i.i.i
+
+for.body7.i.i.i:                                  ; preds = %for.body7.i.i.i, %for.body7.lr.ph.i.i.i
+  %135 = phi i32 [ %139, %for.body7.i.i.i ], [ 5, %for.body7.lr.ph.i.i.i ]
+  %136 = phi i32 [ %storemerge.i.i.i, %for.body7.i.i.i ], [ 2147483647, %for.body7.lr.ph.i.i.i ]
+  %indvars.iv.i410.i.i = phi i64 [ %indvars.iv.next.i411.i.i, %for.body7.i.i.i ], [ 1, %for.body7.lr.ph.i.i.i ]
+  %sign.098.i.i.i = phi i32 [ %.sign.0.i.i.i, %for.body7.i.i.i ], [ 1, %for.body7.lr.ph.i.i.i ]
+  %arrayidx11.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %indvars.iv101.i.i.i, i64 %indvars.iv.i410.i.i
+  %137 = load i32* %arrayidx11.i.i.i, align 4, !tbaa !16
+  %cmp12.i.i.i = icmp slt i32 %137, 0
+  %sub.i.i.i = sub nsw i32 0, %137
+  %sub..i.i.i = select i1 %cmp12.i.i.i, i32 %sub.i.i.i, i32 %137
+  %.sign.0.i.i.i = select i1 %cmp12.i.i.i, i32 -1, i32 %sign.098.i.i.i
+  %storemerge.i.i.i = and i32 %sub..i.i.i, %136
+  store i32 %storemerge.i.i.i, i32* %arrayidx1.i.i.i, align 4, !tbaa !16
+  %arrayidx46.i.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv101.i.i.i, i64 %indvars.iv.i410.i.i
+  %138 = load i32* %arrayidx46.i.i.i, align 4, !tbaa !15
+  %idxprom47.i.i.i = sext i32 %138 to i64
+  %idxprom51.i.i.i = sext i32 %135 to i64
+  %arrayidx53.i.i.i = getelementptr inbounds [8 x [8 x i32]]* @merge_dependencies.direction_merge, i64 0, i64 %idxprom51.i.i.i, i64 %idxprom47.i.i.i
+  %139 = load i32* %arrayidx53.i.i.i, align 4, !tbaa !15
+  store i32 %139, i32* %arrayidx4.i.i.i, align 4, !tbaa !15
+  %indvars.iv.next.i411.i.i = add nuw nsw i64 %indvars.iv.i410.i.i, 1
+  %lftr.wideiv65 = trunc i64 %indvars.iv.next.i411.i.i to i32
+  %exitcond66 = icmp eq i32 %lftr.wideiv65, %j.4.lcssa.i.i
+  br i1 %exitcond66, label %for.end.i.i.i, label %for.body7.i.i.i
+
+for.end.i.i.i:                                    ; preds = %for.body7.i.i.i
+  %mul.i414.i.i = mul nsw i32 %storemerge.i.i.i, %.sign.0.i.i.i
+  store i32 %mul.i414.i.i, i32* %arrayidx1.i.i.i, align 4, !tbaa !16
+  %indvars.iv.next102.i.i.i = add nuw nsw i64 %indvars.iv101.i.i.i, 1
+  %lftr.wideiv67 = trunc i64 %indvars.iv.next102.i.i.i to i32
+  %exitcond68 = icmp eq i32 %lftr.wideiv67, %134
+  br i1 %exitcond68, label %for.body144.i.i, label %for.body7.lr.ph.i.i.i
+
+for.body144.i.i:                                  ; preds = %for.end.us.i.i.i, %for.end.i.i.i, %for.body144.i.i
+  %indvars.iv691.i.i = phi i64 [ %indvars.iv.next692.i.i, %for.body144.i.i ], [ 1, %for.end.i.i.i ], [ 1, %for.end.us.i.i.i ]
+  %have_dependence.0635.i.i = phi i32 [ %have_dependence.0..i.i, %for.body144.i.i ], [ 0, %for.end.i.i.i ], [ 0, %for.end.us.i.i.i ]
+  %arrayidx147.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv691.i.i, i64 0
+  %140 = load i32* %arrayidx147.i.i, align 4, !tbaa !15
+  %cmp148.i.i = icmp eq i32 %140, 6
+  %have_dependence.0..i.i = select i1 %cmp148.i.i, i32 %have_dependence.0635.i.i, i32 1
+  %indvars.iv.next692.i.i = add nuw nsw i64 %indvars.iv691.i.i, 1
+  %141 = trunc i64 %indvars.iv691.i.i to i32
+  %cmp142.i.i = icmp slt i32 %141, %sub.i.i
+  br i1 %cmp142.i.i, label %for.body144.i.i, label %for.end154.i.i
+
+for.end154.i.i:                                   ; preds = %for.body144.i.i
+  %phitmp.i.i = icmp eq i32 %have_dependence.0..i.i, 0
+  br i1 %phitmp.i.i, label %for.inc295.i.i, label %do.body.i.i
+
+do.body.i.i:                                      ; preds = %for.end154.i.i
+  %142 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used.i.i = getelementptr inbounds %struct.varray_head_tag* %142, i64 0, i32 1
+  %143 = load i64* %elements_used.i.i, align 8, !tbaa !34
+  %num_elements158.i.i = getelementptr inbounds %struct.varray_head_tag* %142, i64 0, i32 0
+  %144 = load i64* %num_elements158.i.i, align 8, !tbaa !5
+  %cmp159.i.i = icmp ult i64 %143, %144
+  br i1 %cmp159.i.i, label %if.end164.i.i, label %if.then161.i.i
+
+if.then161.i.i:                                   ; preds = %do.body.i.i
+  %mul.i.i = shl i64 %144, 1
+  %call163.i.i = call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %142, i64 %mul.i.i) #4
+  store %struct.varray_head_tag* %call163.i.i, %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  br label %if.end164.i.i
+
+if.end164.i.i:                                    ; preds = %if.then161.i.i, %do.body.i.i
+  %call165.i.i = call noalias i8* @xmalloc(i64 136) #4
+  %145 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used166.i.i = getelementptr inbounds %struct.varray_head_tag* %145, i64 0, i32 1
+  %146 = load i64* %elements_used166.i.i, align 8, !tbaa !34
+  %inc167.i.i = add i64 %146, 1
+  store i64 %inc167.i.i, i64* %elements_used166.i.i, align 8, !tbaa !34
+  %data168.i.i = getelementptr inbounds %struct.varray_head_tag* %145, i64 0, i32 4
+  %generic169.i.i = bitcast %union.varray_data_tag* %data168.i.i to [1 x i8*]*
+  %arrayidx170.i.i = getelementptr inbounds [1 x i8*]* %generic169.i.i, i64 0, i64 %146
+  store i8* %call165.i.i, i8** %arrayidx170.i.i, align 8, !tbaa !1
+  %147 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used171.i.i = getelementptr inbounds %struct.varray_head_tag* %147, i64 0, i32 1
+  %148 = load i64* %elements_used171.i.i, align 8, !tbaa !34
+  %sub172.i.i = add i64 %148, -1
+  %data173.i.i = getelementptr inbounds %struct.varray_head_tag* %147, i64 0, i32 4
+  %generic174.i.i = bitcast %union.varray_data_tag* %data173.i.i to [1 x i8*]*
+  %arrayidx175.i.i = getelementptr inbounds [1 x i8*]* %generic174.i.i, i64 0, i64 %sub172.i.i
+  %149 = load i8** %arrayidx175.i.i, align 8, !tbaa !1
+  %150 = bitcast i8* %149 to %struct.dependence*
+  %151 = load %union.tree_node** %expression.i524.i.i, align 8, !tbaa !35
+  %source.i.i = bitcast i8* %149 to %union.tree_node**
+  store %union.tree_node* %151, %union.tree_node** %source.i.i, align 8, !tbaa !36
+  %152 = load %union.tree_node** %expression.i.i.i, align 8, !tbaa !35
+  %destination.i.i = getelementptr inbounds i8* %149, i64 8
+  %153 = bitcast i8* %destination.i.i to %union.tree_node**
+  store %union.tree_node* %152, %union.tree_node** %153, align 8, !tbaa !38
+  %next.i.i = getelementptr inbounds i8* %149, i64 128
+  %154 = bitcast i8* %next.i.i to %struct.dependence**
+  store %struct.dependence* null, %struct.dependence** %154, align 8, !tbaa !39
+  %cmp177.i.i = icmp ult %struct.def_use* %def_ptr.0651.i.i, %use_ptr.0642.i.i
+  br i1 %cmp177.i.i, label %land.lhs.true179.i.i, label %if.else184.i.i
+
+land.lhs.true179.i.i:                             ; preds = %if.end164.i.i
+  %type180.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 4
+  %155 = load i32* %type180.i.i, align 4, !tbaa !17
+  %cmp181.i.i = icmp eq i32 %155, 1
+  br i1 %cmp181.i.i, label %if.then183.i.i, label %if.else184.i.i
+
+if.then183.i.i:                                   ; preds = %land.lhs.true179.i.i
+  %dependence.i.i = getelementptr inbounds i8* %149, i64 16
+  %156 = bitcast i8* %dependence.i.i to i32*
+  store i32 0, i32* %156, align 4, !tbaa !40
+  br label %for.body201.i.i
+
+if.else184.i.i:                                   ; preds = %land.lhs.true179.i.i, %if.end164.i.i
+  %cmp185.i.i = icmp ugt %struct.def_use* %def_ptr.0651.i.i, %use_ptr.0642.i.i
+  br i1 %cmp185.i.i, label %land.lhs.true187.i.i, label %if.else193.i.i
+
+land.lhs.true187.i.i:                             ; preds = %if.else184.i.i
+  %type188.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 4
+  %157 = load i32* %type188.i.i, align 4, !tbaa !17
+  %cmp189.i.i = icmp eq i32 %157, 1
+  br i1 %cmp189.i.i, label %if.then191.i.i, label %if.else193.i.i
+
+if.then191.i.i:                                   ; preds = %land.lhs.true187.i.i
+  %dependence192.i.i = getelementptr inbounds i8* %149, i64 16
+  %158 = bitcast i8* %dependence192.i.i to i32*
+  store i32 1, i32* %158, align 4, !tbaa !40
+  br label %for.body201.i.i
+
+if.else193.i.i:                                   ; preds = %land.lhs.true187.i.i, %if.else184.i.i
+  %dependence194.i.i = getelementptr inbounds i8* %149, i64 16
+  %159 = bitcast i8* %dependence194.i.i to i32*
+  store i32 2, i32* %159, align 4, !tbaa !40
+  br label %for.body201.i.i
+
+for.body201.i.i:                                  ; preds = %if.else193.i.i, %if.then191.i.i, %if.then183.i.i, %for.inc229.i.i
+  %indvars.iv693.i.i = phi i64 [ %indvars.iv.next694.i.i, %for.inc229.i.i ], [ 1, %if.then183.i.i ], [ 1, %if.then191.i.i ], [ 1, %if.else193.i.i ]
+  %arrayidx204.i.i = getelementptr inbounds [13 x [13 x i32]]* %direction.i.i, i64 0, i64 %indvars.iv693.i.i, i64 0
+  %160 = load i32* %arrayidx204.i.i, align 4, !tbaa !15
+  switch i32 %160, label %for.inc229.i.i [
+    i32 3, label %if.then207.i.i
+    i32 0, label %if.then225.i.i
+  ]
+
+if.then207.i.i:                                   ; preds = %for.body201.i.i
+  %dependence208.i.i = getelementptr inbounds i8* %149, i64 16
+  %161 = bitcast i8* %dependence208.i.i to i32*
+  store i32 1, i32* %161, align 4, !tbaa !40
+  store i32 0, i32* %arrayidx204.i.i, align 4, !tbaa !15
+  %arrayidx214.i.i = getelementptr inbounds [13 x [13 x i32]]* %distance.i.i, i64 0, i64 %indvars.iv693.i.i, i64 0
+  %162 = load i32* %arrayidx214.i.i, align 4, !tbaa !16
+  %sub215.i.i = sub nsw i32 0, %162
+  store i32 %sub215.i.i, i32* %arrayidx214.i.i, align 4, !tbaa !16
+  br label %for.cond232.preheader.i.i
+
+for.cond232.preheader.i.i:                        ; preds = %for.inc229.i.i, %if.then225.i.i, %if.then207.i.i
+  %163 = load i32* %arrayidx1.i.i, align 4, !tbaa !15
+  %arrayidx241.i.i = getelementptr inbounds i8* %149, i64 24
+  %164 = bitcast i8* %arrayidx241.i.i to i32*
+  store i32 %163, i32* %164, align 4, !tbaa !15
+  %165 = load i32* %arrayidx4.i.i, align 4, !tbaa !16
+  %arrayidx247.i.i = getelementptr inbounds i8* %149, i64 76
+  %166 = bitcast i8* %arrayidx247.i.i to i32*
+  store i32 %165, i32* %166, align 4, !tbaa !16
+  %167 = load i32* %arrayidx1.1.i.i, align 8, !tbaa !15
+  %arrayidx241.1.i.i = getelementptr inbounds i8* %149, i64 28
+  %168 = bitcast i8* %arrayidx241.1.i.i to i32*
+  store i32 %167, i32* %168, align 4, !tbaa !15
+  %169 = load i32* %arrayidx4.1.i.i, align 8, !tbaa !16
+  %arrayidx247.1.i.i = getelementptr inbounds i8* %149, i64 80
+  %170 = bitcast i8* %arrayidx247.1.i.i to i32*
+  store i32 %169, i32* %170, align 4, !tbaa !16
+  %171 = load i32* %arrayidx1.2.i.i, align 4, !tbaa !15
+  %arrayidx241.2.i.i = getelementptr inbounds i8* %149, i64 32
+  %172 = bitcast i8* %arrayidx241.2.i.i to i32*
+  store i32 %171, i32* %172, align 4, !tbaa !15
+  %173 = load i32* %arrayidx4.2.i.i, align 4, !tbaa !16
+  %arrayidx247.2.i.i = getelementptr inbounds i8* %149, i64 84
+  %174 = bitcast i8* %arrayidx247.2.i.i to i32*
+  store i32 %173, i32* %174, align 4, !tbaa !16
+  %175 = load i32* %arrayidx1.3.i.i, align 16, !tbaa !15
+  %arrayidx241.3.i.i = getelementptr inbounds i8* %149, i64 36
+  %176 = bitcast i8* %arrayidx241.3.i.i to i32*
+  store i32 %175, i32* %176, align 4, !tbaa !15
+  %177 = load i32* %arrayidx4.3.i.i, align 16, !tbaa !16
+  %arrayidx247.3.i.i = getelementptr inbounds i8* %149, i64 88
+  %178 = bitcast i8* %arrayidx247.3.i.i to i32*
+  store i32 %177, i32* %178, align 4, !tbaa !16
+  %179 = load i32* %arrayidx1.4.i.i, align 4, !tbaa !15
+  %arrayidx241.4.i.i = getelementptr inbounds i8* %149, i64 40
+  %180 = bitcast i8* %arrayidx241.4.i.i to i32*
+  store i32 %179, i32* %180, align 4, !tbaa !15
+  %181 = load i32* %arrayidx4.4.i.i, align 4, !tbaa !16
+  %arrayidx247.4.i.i = getelementptr inbounds i8* %149, i64 92
+  %182 = bitcast i8* %arrayidx247.4.i.i to i32*
+  store i32 %181, i32* %182, align 4, !tbaa !16
+  %183 = load i32* %arrayidx1.5.i.i, align 8, !tbaa !15
+  %arrayidx241.5.i.i = getelementptr inbounds i8* %149, i64 44
+  %184 = bitcast i8* %arrayidx241.5.i.i to i32*
+  store i32 %183, i32* %184, align 4, !tbaa !15
+  %185 = load i32* %arrayidx4.5.i.i, align 8, !tbaa !16
+  %arrayidx247.5.i.i = getelementptr inbounds i8* %149, i64 96
+  %186 = bitcast i8* %arrayidx247.5.i.i to i32*
+  store i32 %185, i32* %186, align 4, !tbaa !16
+  %187 = load i32* %arrayidx1.6.i.i, align 4, !tbaa !15
+  %arrayidx241.6.i.i = getelementptr inbounds i8* %149, i64 48
+  %188 = bitcast i8* %arrayidx241.6.i.i to i32*
+  store i32 %187, i32* %188, align 4, !tbaa !15
+  %189 = load i32* %arrayidx4.6.i.i, align 4, !tbaa !16
+  %arrayidx247.6.i.i = getelementptr inbounds i8* %149, i64 100
+  %190 = bitcast i8* %arrayidx247.6.i.i to i32*
+  store i32 %189, i32* %190, align 4, !tbaa !16
+  %191 = load i32* %arrayidx1.7.i.i, align 16, !tbaa !15
+  %arrayidx241.7.i.i = getelementptr inbounds i8* %149, i64 52
+  %192 = bitcast i8* %arrayidx241.7.i.i to i32*
+  store i32 %191, i32* %192, align 4, !tbaa !15
+  %193 = load i32* %arrayidx4.7.i.i, align 16, !tbaa !16
+  %arrayidx247.7.i.i = getelementptr inbounds i8* %149, i64 104
+  %194 = bitcast i8* %arrayidx247.7.i.i to i32*
+  store i32 %193, i32* %194, align 4, !tbaa !16
+  %195 = load i32* %arrayidx1.8.i.i, align 4, !tbaa !15
+  %arrayidx241.8.i.i = getelementptr inbounds i8* %149, i64 56
+  %196 = bitcast i8* %arrayidx241.8.i.i to i32*
+  store i32 %195, i32* %196, align 4, !tbaa !15
+  %197 = load i32* %arrayidx4.8.i.i, align 4, !tbaa !16
+  %arrayidx247.8.i.i = getelementptr inbounds i8* %149, i64 108
+  %198 = bitcast i8* %arrayidx247.8.i.i to i32*
+  store i32 %197, i32* %198, align 4, !tbaa !16
+  %199 = load i32* %arrayidx1.9.i.i, align 8, !tbaa !15
+  %arrayidx241.9.i.i = getelementptr inbounds i8* %149, i64 60
+  %200 = bitcast i8* %arrayidx241.9.i.i to i32*
+  store i32 %199, i32* %200, align 4, !tbaa !15
+  %201 = load i32* %arrayidx4.9.i.i, align 8, !tbaa !16
+  %arrayidx247.9.i.i = getelementptr inbounds i8* %149, i64 112
+  %202 = bitcast i8* %arrayidx247.9.i.i to i32*
+  store i32 %201, i32* %202, align 4, !tbaa !16
+  %203 = load i32* %arrayidx1.10.i.i, align 4, !tbaa !15
+  %arrayidx241.10.i.i = getelementptr inbounds i8* %149, i64 64
+  %204 = bitcast i8* %arrayidx241.10.i.i to i32*
+  store i32 %203, i32* %204, align 4, !tbaa !15
+  %205 = load i32* %arrayidx4.10.i.i, align 4, !tbaa !16
+  %arrayidx247.10.i.i = getelementptr inbounds i8* %149, i64 116
+  %206 = bitcast i8* %arrayidx247.10.i.i to i32*
+  store i32 %205, i32* %206, align 4, !tbaa !16
+  %207 = load i32* %arrayidx1.11.i.i, align 16, !tbaa !15
+  %arrayidx241.11.i.i = getelementptr inbounds i8* %149, i64 68
+  %208 = bitcast i8* %arrayidx241.11.i.i to i32*
+  store i32 %207, i32* %208, align 4, !tbaa !15
+  %209 = load i32* %arrayidx4.11.i.i, align 16, !tbaa !16
+  %arrayidx247.11.i.i = getelementptr inbounds i8* %149, i64 120
+  %210 = bitcast i8* %arrayidx247.11.i.i to i32*
+  store i32 %209, i32* %210, align 4, !tbaa !16
+  %211 = load %struct.dependence** %dep.i.i, align 8, !tbaa !41
+  br label %for.cond251.i.i
+
+if.then225.i.i:                                   ; preds = %for.body201.i.i
+  %dependence226.i.i = getelementptr inbounds i8* %149, i64 16
+  %212 = bitcast i8* %dependence226.i.i to i32*
+  store i32 0, i32* %212, align 4, !tbaa !40
+  br label %for.cond232.preheader.i.i
+
+for.inc229.i.i:                                   ; preds = %for.body201.i.i
+  %indvars.iv.next694.i.i = add nuw nsw i64 %indvars.iv693.i.i, 1
+  %213 = trunc i64 %indvars.iv693.i.i to i32
+  %cmp199.i.i = icmp slt i32 %213, %sub.i.i
+  br i1 %cmp199.i.i, label %for.body201.i.i, label %for.cond232.preheader.i.i
+
+for.cond251.i.i:                                  ; preds = %land.rhs253.i.i, %for.cond232.preheader.i.i
+  %dep_list.0.i.i = phi %struct.dependence* [ %211, %for.cond232.preheader.i.i ], [ %214, %land.rhs253.i.i ]
+  %tobool252.i.i = icmp eq %struct.dependence* %dep_list.0.i.i, null
+  br i1 %tobool252.i.i, label %do.body263.i.i, label %land.rhs253.i.i
+
+land.rhs253.i.i:                                  ; preds = %for.cond251.i.i
+  %next254.i.i = getelementptr inbounds %struct.dependence* %dep_list.0.i.i, i64 0, i32 5
+  %214 = load %struct.dependence** %next254.i.i, align 8, !tbaa !39
+  %tobool255.i.i = icmp eq %struct.dependence* %214, null
+  br i1 %tobool255.i.i, label %if.else292.i.i, label %for.cond251.i.i
+
+do.body263.i.i:                                   ; preds = %for.cond251.i.i
+  %215 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used264.i.i = getelementptr inbounds %struct.varray_head_tag* %215, i64 0, i32 1
+  %216 = load i64* %elements_used264.i.i, align 8, !tbaa !34
+  %num_elements265.i.i = getelementptr inbounds %struct.varray_head_tag* %215, i64 0, i32 0
+  %217 = load i64* %num_elements265.i.i, align 8, !tbaa !5
+  %cmp266.i.i = icmp ult i64 %216, %217
+  br i1 %cmp266.i.i, label %if.end272.i.i, label %if.then268.i.i
+
+if.then268.i.i:                                   ; preds = %do.body263.i.i
+  %mul270.i.i = shl i64 %217, 1
+  %call271.i.i = call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %215, i64 %mul270.i.i) #4
+  store %struct.varray_head_tag* %call271.i.i, %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  br label %if.end272.i.i
+
+if.end272.i.i:                                    ; preds = %if.then268.i.i, %do.body263.i.i
+  %call273.i.i = call noalias i8* @xmalloc(i64 136) #4
+  %218 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used274.i.i = getelementptr inbounds %struct.varray_head_tag* %218, i64 0, i32 1
+  %219 = load i64* %elements_used274.i.i, align 8, !tbaa !34
+  %inc275.i.i = add i64 %219, 1
+  store i64 %inc275.i.i, i64* %elements_used274.i.i, align 8, !tbaa !34
+  %data276.i.i = getelementptr inbounds %struct.varray_head_tag* %218, i64 0, i32 4
+  %generic277.i.i = bitcast %union.varray_data_tag* %data276.i.i to [1 x i8*]*
+  %arrayidx278.i.i = getelementptr inbounds [1 x i8*]* %generic277.i.i, i64 0, i64 %219
+  store i8* %call273.i.i, i8** %arrayidx278.i.i, align 8, !tbaa !1
+  %220 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %elements_used281.i.i = getelementptr inbounds %struct.varray_head_tag* %220, i64 0, i32 1
+  %221 = load i64* %elements_used281.i.i, align 8, !tbaa !34
+  %sub282.i.i = add i64 %221, -1
+  %data283.i.i = getelementptr inbounds %struct.varray_head_tag* %220, i64 0, i32 4
+  %generic284.i.i = bitcast %union.varray_data_tag* %data283.i.i to [1 x i8*]*
+  %arrayidx285.i.i = getelementptr inbounds [1 x i8*]* %generic284.i.i, i64 0, i64 %sub282.i.i
+  %222 = load i8** %arrayidx285.i.i, align 8, !tbaa !1
+  %source286.i.i = bitcast i8* %222 to %union.tree_node**
+  store %union.tree_node* null, %union.tree_node** %source286.i.i, align 8, !tbaa !36
+  %223 = load %union.tree_node** %expression.i.i.i, align 8, !tbaa !35
+  %destination288.i.i = getelementptr inbounds i8* %222, i64 8
+  %224 = bitcast i8* %destination288.i.i to %union.tree_node**
+  store %union.tree_node* %223, %union.tree_node** %224, align 8, !tbaa !38
+  %dependence289.i.i = getelementptr inbounds i8* %222, i64 16
+  %225 = bitcast i8* %dependence289.i.i to i32*
+  store i32 3, i32* %225, align 4, !tbaa !40
+  %next290.i.i = getelementptr inbounds i8* %222, i64 128
+  %226 = bitcast i8* %next290.i.i to %struct.dependence**
+  store %struct.dependence* %150, %struct.dependence** %226, align 8, !tbaa !39
+  store %struct.dependence* %150, %struct.dependence** %dep.i.i, align 8, !tbaa !41
+  br label %for.inc295.i.i
+
+if.else292.i.i:                                   ; preds = %land.rhs253.i.i
+  store %struct.dependence* %150, %struct.dependence** %next254.i.i, align 8, !tbaa !39
+  br label %for.inc295.i.i
+
+for.inc295.i.i:                                   ; preds = %if.else292.i.i, %if.end272.i.i, %for.end154.i.i, %for.end136.i.i, %classify_dependence.exit.i.i, %lor.lhs.false.i.i, %for.body60.i.i
+  %next296.i.i = getelementptr inbounds %struct.def_use* %use_ptr.0642.i.i, i64 0, i32 6
+  %227 = load %struct.def_use** %next296.i.i, align 8, !tbaa !42
+  %tobool59.i.i = icmp eq %struct.def_use* %227, null
+  br i1 %tobool59.i.i, label %for.inc298.i.i, label %for.body60.i.i
+
+for.inc298.i.i:                                   ; preds = %if.else.i.i.i, %for.inc295.i.i, %for.end53.i.i, %get_coefficients.exit.i.i, %for.body6.i.i
+  %next299.i.i = getelementptr inbounds %struct.def_use* %def_ptr.0651.i.i, i64 0, i32 6
+  %228 = load %struct.def_use** %next299.i.i, align 8, !tbaa !42
+  %tobool.i.i = icmp eq %struct.def_use* %228, null
+  br i1 %tobool.i.i, label %for.inc.loopexit.i, label %for.body6.i.i
+
+for.inc.loopexit.i:                               ; preds = %for.inc298.i.i
+  %.pre51.i = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  br label %for.inc.i32
+
+for.inc.i32:                                      ; preds = %for.inc.loopexit.i, %if.then.i30, %for.body.i29
+  %229 = phi %struct.varray_head_tag* [ %.pre51.i, %for.inc.loopexit.i ], [ %48, %if.then.i30 ], [ %48, %for.body.i29 ]
+  %inc.i = add i32 %du_idx.024.i, 1
+  %data5.i = getelementptr inbounds %struct.varray_head_tag* %229, i64 0, i32 4
+  %generic6.i = bitcast %union.varray_data_tag* %data5.i to [1 x i8*]*
+  %arrayidx7.i = getelementptr inbounds [1 x i8*]* %generic6.i, i64 0, i64 %conv.i25
+  %du_ptr.0.in.i = load i8** %arrayidx7.i, align 8
+  %tobool.i31 = icmp eq i8* %du_ptr.0.in.i, null
+  br i1 %tobool.i31, label %get_node_dependence.exit.loopexit, label %land.rhs.i28
+
+get_node_dependence.exit.loopexit:                ; preds = %for.inc.i32, %land.rhs.i28
+  %.pre = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  br label %get_node_dependence.exit
+
+get_node_dependence.exit:                         ; preds = %get_node_dependence.exit.loopexit, %link_loops.exit
+  %230 = phi %struct.varray_head_tag* [ %.pre, %get_node_dependence.exit.loopexit ], [ %12, %link_loops.exit ]
+  %elements_used = getelementptr inbounds %struct.varray_head_tag* %230, i64 0, i32 1
+  %231 = load i64* %elements_used, align 8, !tbaa !34
+  %sub = add i64 %231, -1
+  %data = getelementptr inbounds %struct.varray_head_tag* %230, i64 0, i32 4
+  %generic = bitcast %union.varray_data_tag* %data to [1 x i8*]*
+  %arrayidx = getelementptr inbounds [1 x i8*]* %generic, i64 0, i64 %sub
+  %du_ptr.0.in42 = load i8** %arrayidx, align 8
+  store i64 %sub, i64* %elements_used, align 8, !tbaa !34
+  %tobool45 = icmp eq i64 %231, 0
+  br i1 %tobool45, label %do.body, label %for.body
+
+for.body:                                         ; preds = %get_node_dependence.exit, %for.body
+  %du_ptr.0.in46 = phi i8* [ %du_ptr.0.in, %for.body ], [ %du_ptr.0.in42, %get_node_dependence.exit ]
+  call void @free(i8* %du_ptr.0.in46)
+  %232 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %elements_used5 = getelementptr inbounds %struct.varray_head_tag* %232, i64 0, i32 1
+  %233 = load i64* %elements_used5, align 8, !tbaa !34
+  %sub6 = add i64 %233, -1
+  %data7 = getelementptr inbounds %struct.varray_head_tag* %232, i64 0, i32 4
+  %generic8 = bitcast %union.varray_data_tag* %data7 to [1 x i8*]*
+  %arrayidx9 = getelementptr inbounds [1 x i8*]* %generic8, i64 0, i64 %sub6
+  %du_ptr.0.in = load i8** %arrayidx9, align 8
+  store i64 %sub6, i64* %elements_used5, align 8, !tbaa !34
+  %tobool = icmp eq i64 %233, 0
+  br i1 %tobool, label %do.body, label %for.body
+
+do.body:                                          ; preds = %for.body, %get_node_dependence.exit
+  %234 = phi %struct.varray_head_tag* [ %230, %get_node_dependence.exit ], [ %232, %for.body ]
+  %tobool10 = icmp eq %struct.varray_head_tag* %234, null
+  br i1 %tobool10, label %do.body11, label %if.then
+
+if.then:                                          ; preds = %do.body
+  %235 = bitcast %struct.varray_head_tag* %234 to i8*
+  call void @free(i8* %235)
+  store %struct.varray_head_tag* null, %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  br label %do.body11
+
+do.body11:                                        ; preds = %do.body, %if.then
+  %236 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %tobool12 = icmp eq %struct.varray_head_tag* %236, null
+  br i1 %tobool12, label %do.body16, label %if.then13
+
+if.then13:                                        ; preds = %do.body11
+  %237 = bitcast %struct.varray_head_tag* %236 to i8*
+  call void @free(i8* %237)
+  store %struct.varray_head_tag* null, %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  br label %do.body16
+
+do.body16:                                        ; preds = %do.body11, %if.then13
+  %238 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %tobool17 = icmp eq %struct.varray_head_tag* %238, null
+  br i1 %tobool17, label %do.end20, label %if.then18
+
+if.then18:                                        ; preds = %do.body16
+  %239 = bitcast %struct.varray_head_tag* %238 to i8*
+  call void @free(i8* %239)
+  store %struct.varray_head_tag* null, %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  br label %do.end20
+
+do.end20:                                         ; preds = %do.body16, %if.then18
+  ret void
+}
+
+declare %struct.varray_head_tag* @varray_init(i64, i64, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define internal fastcc void @build_def_use(%union.tree_node* %exp, i32 %du_type) #0 {
+entry:
+  %null_string = alloca i8, align 1
+  %cmp = icmp eq i32 %du_type, 2
+  br i1 %cmp, label %if.then, label %while.cond.preheader
+
+if.then:                                          ; preds = %entry
+  store %union.tree_node* null, %union.tree_node** @build_def_use.outer_loop, align 8, !tbaa !1
+  store i32 0, i32* @build_def_use.nloop, align 4, !tbaa !16
+  store i32 0, i32* @build_def_use.du_idx, align 4, !tbaa !16
+  br label %while.cond.preheader
+
+while.cond.preheader:                             ; preds = %if.then, %entry
+  %tobool309 = icmp eq %union.tree_node* %exp, null
+  br i1 %tobool309, label %while.end, label %while.body
+
+while.body:                                       ; preds = %while.cond.preheader, %while.cond.backedge
+  %node.0310 = phi %union.tree_node* [ %node.0.be, %while.cond.backedge ], [ %exp, %while.cond.preheader ]
+  %code = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 2
+  %bf.load = load i32* %code, align 8
+  %bf.clear = and i32 %bf.load, 255
+  switch i32 %bf.clear, label %sw.default [
+    i32 153, label %sw.bb
+    i32 2, label %sw.bb2
+    i32 53, label %sw.bb4
+    i32 156, label %sw.bb7
+    i32 48, label %sw.bb29
+    i32 41, label %sw.bb74
+    i32 43, label %sw.bb93
+    i32 166, label %sw.bb185
+    i32 154, label %sw.bb185
+    i32 152, label %sw.bb188
+  ]
+
+sw.bb:                                            ; preds = %while.body
+  %operands = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx = bitcast i32* %operands to %union.tree_node**
+  br label %while.cond.backedge
+
+sw.bb2:                                           ; preds = %while.body
+  %value = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %0 = bitcast i32* %value to %union.tree_node**
+  %1 = load %union.tree_node** %0, align 8, !tbaa !43
+  call fastcc void @build_def_use(%union.tree_node* %1, i32 0)
+  %chain = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.bb4:                                           ; preds = %while.body
+  %chain6 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.bb7:                                           ; preds = %while.body
+  %2 = load i32* @build_def_use.nloop, align 4, !tbaa !16
+  %tobool8 = icmp eq i32 %2, 0
+  br i1 %tobool8, label %if.then9, label %sw.bb7.if.end10_crit_edge
+
+sw.bb7.if.end10_crit_edge:                        ; preds = %sw.bb7
+  %.pre = load %union.tree_node** @build_def_use.outer_loop, align 8, !tbaa !1
+  br label %if.end10
+
+if.then9:                                         ; preds = %sw.bb7
+  store %union.tree_node* %node.0310, %union.tree_node** @build_def_use.outer_loop, align 8, !tbaa !1
+  br label %if.end10
+
+if.end10:                                         ; preds = %sw.bb7.if.end10_crit_edge, %if.then9
+  %3 = phi %union.tree_node* [ %.pre, %sw.bb7.if.end10_crit_edge ], [ %node.0310, %if.then9 ]
+  %inc = add nsw i32 %2, 1
+  store i32 %inc, i32* @build_def_use.nloop, align 4, !tbaa !16
+  store %union.tree_node* %node.0310, %union.tree_node** @build_def_use.current_loop, align 8, !tbaa !1
+  %4 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %elements_used.i = getelementptr inbounds %struct.varray_head_tag* %4, i64 0, i32 1
+  %5 = load i64* %elements_used.i, align 8, !tbaa !34
+  %num_elements.i280 = getelementptr inbounds %struct.varray_head_tag* %4, i64 0, i32 0
+  %6 = load i64* %num_elements.i280, align 8, !tbaa !5
+  %cmp.i281 = icmp ult i64 %5, %6
+  br i1 %cmp.i281, label %add_loop.exit, label %if.then.i283
+
+if.then.i283:                                     ; preds = %if.end10
+  %mul.i = shl i64 %6, 1
+  %call.i282 = call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %4, i64 %mul.i) #4
+  store %struct.varray_head_tag* %call.i282, %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  br label %add_loop.exit
+
+add_loop.exit:                                    ; preds = %if.end10, %if.then.i283
+  %call2.i = call noalias i8* @xmalloc(i64 40) #4
+  %7 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %elements_used3.i = getelementptr inbounds %struct.varray_head_tag* %7, i64 0, i32 1
+  %8 = load i64* %elements_used3.i, align 8, !tbaa !34
+  %inc.i284 = add i64 %8, 1
+  store i64 %inc.i284, i64* %elements_used3.i, align 8, !tbaa !34
+  %data.i285 = getelementptr inbounds %struct.varray_head_tag* %7, i64 0, i32 4
+  %generic.i = bitcast %union.varray_data_tag* %data.i285 to [1 x i8*]*
+  %arrayidx.i286 = getelementptr inbounds [1 x i8*]* %generic.i, i64 0, i64 %8
+  store i8* %call2.i, i8** %arrayidx.i286, align 8, !tbaa !1
+  %9 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %elements_used4.i = getelementptr inbounds %struct.varray_head_tag* %9, i64 0, i32 1
+  %10 = load i64* %elements_used4.i, align 8, !tbaa !34
+  %sub.i = add i64 %10, -1
+  %data5.i = getelementptr inbounds %struct.varray_head_tag* %9, i64 0, i32 4
+  %generic6.i = bitcast %union.varray_data_tag* %data5.i to [1 x i8*]*
+  %arrayidx7.i = getelementptr inbounds [1 x i8*]* %generic6.i, i64 0, i64 %sub.i
+  %11 = load i8** %arrayidx7.i, align 8, !tbaa !1
+  %12 = bitcast i8* %11 to %struct.loop*
+  %outer_loop8.i = bitcast i8* %11 to %union.tree_node**
+  store %union.tree_node* %3, %union.tree_node** %outer_loop8.i, align 8, !tbaa !8
+  %containing_loop.i = getelementptr inbounds i8* %11, i64 8
+  %13 = bitcast i8* %containing_loop.i to %union.tree_node**
+  store %union.tree_node* %node.0310, %union.tree_node** %13, align 8, !tbaa !45
+  %depth.i = getelementptr inbounds i8* %11, i64 16
+  %14 = bitcast i8* %depth.i to i32*
+  store i32 %inc, i32* %14, align 4, !tbaa !11
+  %status.i = getelementptr inbounds i8* %11, i64 20
+  call void @llvm.memset.p0i8.i64(i8* %status.i, i8 0, i64 20, i32 4, i1 false) #4
+  store %struct.loop* %12, %struct.loop** @build_def_use.loop_def, align 8, !tbaa !1
+  %operands12 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx13 = bitcast i32* %operands12 to %union.tree_node**
+  %15 = load %union.tree_node** %arrayidx13, align 8, !tbaa !1
+  %arrayidx16 = getelementptr inbounds i32* %operands12, i64 2
+  %16 = bitcast i32* %arrayidx16 to %union.tree_node**
+  %17 = load %union.tree_node** %16, align 8, !tbaa !1
+  %arrayidx19 = getelementptr inbounds i32* %operands12, i64 4
+  %18 = bitcast i32* %arrayidx19 to %union.tree_node**
+  %19 = load %union.tree_node** %18, align 8, !tbaa !1
+  %tobool.i287 = icmp ne %union.tree_node* %15, null
+  %tobool1.i = icmp ne %union.tree_node* %19, null
+  %or.cond.i = and i1 %tobool.i287, %tobool1.i
+  %tobool3.i = icmp ne %union.tree_node* %17, null
+  %or.cond364.i = and i1 %or.cond.i, %tobool3.i
+  br i1 %or.cond364.i, label %while.cond.preheader.i, label %if.then22
+
+while.cond.preheader.i:                           ; preds = %add_loop.exit
+  %code.phi.trans.insert.i = getelementptr inbounds %union.tree_node* %19, i64 0, i32 0, i32 0, i32 2
+  %bf.load.pre.i = load i32* %code.phi.trans.insert.i, align 8
+  br label %while.cond.i
+
+while.cond.i:                                     ; preds = %if.end19.i, %while.cond.preheader.i
+  %bf.load.i = phi i32 [ %bf.load25.i, %if.end19.i ], [ %bf.load.pre.i, %while.cond.preheader.i ]
+  %incr.0.i = phi %union.tree_node* [ %24, %if.end19.i ], [ %19, %while.cond.preheader.i ]
+  %bf.clear.i = and i32 %bf.load.i, 255
+  %cmp.i288 = icmp eq i32 %bf.clear.i, 47
+  br i1 %cmp.i288, label %while.body.i, label %while.end.i
+
+while.body.i:                                     ; preds = %while.cond.i
+  %operands.i = getelementptr inbounds %union.tree_node* %incr.0.i, i64 0, i32 0, i32 2
+  %arrayidx.i289 = bitcast i32* %operands.i to %union.tree_node**
+  %20 = load %union.tree_node** %arrayidx.i289, align 8, !tbaa !1
+  %code5.i = getelementptr inbounds %union.tree_node* %20, i64 0, i32 0, i32 0, i32 2
+  %bf.load6.i = load i32* %code5.i, align 8
+  %bf.clear7.i = and i32 %bf.load6.i, 255
+  %21 = and i32 %bf.load6.i, 253
+  %22 = icmp eq i32 %21, 129
+  %cmp12.i = icmp eq i32 %bf.clear7.i, 130
+  %or.cond366.i = or i1 %22, %cmp12.i
+  %cmp14.i = icmp eq i32 %bf.clear7.i, 132
+  %or.cond367.i = or i1 %or.cond366.i, %cmp14.i
+  br i1 %or.cond367.i, label %while.end.i, label %if.end19.i
+
+if.end19.i:                                       ; preds = %while.body.i
+  %arrayidx22.i = getelementptr inbounds i32* %operands.i, i64 2
+  %23 = bitcast i32* %arrayidx22.i to %union.tree_node**
+  %24 = load %union.tree_node** %23, align 8, !tbaa !1
+  %code24.i = getelementptr inbounds %union.tree_node* %24, i64 0, i32 0, i32 0, i32 2
+  %bf.load25.i = load i32* %code24.i, align 8
+  %bf.clear26.i = and i32 %bf.load25.i, 255
+  %25 = and i32 %bf.load25.i, 253
+  %26 = icmp eq i32 %25, 129
+  %cmp31.i = icmp eq i32 %bf.clear26.i, 130
+  %or.cond369.i = or i1 %26, %cmp31.i
+  %cmp33.i = icmp eq i32 %bf.clear26.i, 132
+  %or.cond370.i = or i1 %or.cond369.i, %cmp33.i
+  br i1 %or.cond370.i, label %while.end.i, label %while.cond.i
+
+while.end.i:                                      ; preds = %if.end19.i, %while.body.i, %while.cond.i
+  %incr_node.addr.0.i = phi %union.tree_node* [ %19, %while.cond.i ], [ %20, %while.body.i ], [ %24, %if.end19.i ]
+  %value.i = getelementptr inbounds %union.tree_node* %17, i64 0, i32 0, i32 2
+  %27 = bitcast i32* %value.i to %union.tree_node**
+  %28 = load %union.tree_node** %27, align 8, !tbaa !43
+  %code44441.i = getelementptr inbounds %union.tree_node* %28, i64 0, i32 0, i32 0, i32 2
+  %bf.load45442.i = load i32* %code44441.i, align 8
+  %bf.clear46443.i = and i32 %bf.load45442.i, 255
+  %bf.clear46.off444.i = add i32 %bf.clear46443.i, -91
+  %switch445.i = icmp ult i32 %bf.clear46.off444.i, 2
+  br i1 %switch445.i, label %while.body53.lr.ph.i, label %while.end155.i
+
+while.body53.lr.ph.i:                             ; preds = %while.end.i
+  %operands84.i = getelementptr inbounds %union.tree_node* %incr_node.addr.0.i, i64 0, i32 0, i32 2
+  %arrayidx85.i = bitcast i32* %operands84.i to %union.tree_node**
+  br label %while.body53.i
+
+while.body53.i:                                   ; preds = %if.end151.i, %while.body53.lr.ph.i
+  %incr.1446.i = phi %union.tree_node* [ %28, %while.body53.lr.ph.i ], [ %29, %if.end151.i ]
+  %operands55.i = getelementptr inbounds %union.tree_node* %incr.1446.i, i64 0, i32 0, i32 2
+  %arrayidx56.i = bitcast i32* %operands55.i to %union.tree_node**
+  %29 = load %union.tree_node** %arrayidx56.i, align 8, !tbaa !1
+  %code58.i = getelementptr inbounds %union.tree_node* %29, i64 0, i32 0, i32 0, i32 2
+  %bf.load59.i = load i32* %code58.i, align 8
+  %bf.clear60.i = and i32 %bf.load59.i, 255
+  %idxprom439.i = zext i32 %bf.clear60.i to i64
+  %arrayidx61.i = getelementptr inbounds [256 x i8]* @tree_code_type, i64 0, i64 %idxprom439.i
+  %30 = load i8* %arrayidx61.i, align 1, !tbaa !15
+  %cmp62.i = icmp eq i8 %30, 60
+  br i1 %cmp62.i, label %land.lhs.true.i, label %if.end97.i
+
+land.lhs.true.i:                                  ; preds = %while.body53.i
+  %operands68.i = getelementptr inbounds %union.tree_node* %29, i64 0, i32 0, i32 2
+  %arrayidx69.i = bitcast i32* %operands68.i to %union.tree_node**
+  %31 = load %union.tree_node** %arrayidx69.i, align 8, !tbaa !1
+  %code71.i = getelementptr inbounds %union.tree_node* %31, i64 0, i32 0, i32 0, i32 2
+  %bf.load72.i = load i32* %code71.i, align 8
+  %bf.clear73.i = and i32 %bf.load72.i, 255
+  %cmp74.i = icmp eq i32 %bf.clear73.i, 34
+  br i1 %cmp74.i, label %land.lhs.true76.i, label %if.end97.i
+
+land.lhs.true76.i:                                ; preds = %land.lhs.true.i
+  %name.i = getelementptr inbounds %union.tree_node* %31, i64 0, i32 0, i32 8
+  %32 = load %union.tree_node** %name.i, align 8, !tbaa !46
+  %id.i = getelementptr inbounds %union.tree_node* %32, i64 0, i32 0, i32 1
+  %33 = getelementptr inbounds i8** %id.i, i64 1
+  %34 = load i8** %33, align 8, !tbaa !48
+  %35 = load %union.tree_node** %arrayidx85.i, align 8, !tbaa !1
+  %name87.i = getelementptr inbounds %union.tree_node* %35, i64 0, i32 0, i32 8
+  %36 = load %union.tree_node** %name87.i, align 8, !tbaa !46
+  %id89.i = getelementptr inbounds %union.tree_node* %36, i64 0, i32 0, i32 1
+  %37 = getelementptr inbounds i8** %id89.i, i64 1
+  %38 = load i8** %37, align 8, !tbaa !48
+  %cmp91.i = icmp eq i8* %34, %38
+  br i1 %cmp91.i, label %while.end155.i, label %if.end97.i
+
+if.end97.i:                                       ; preds = %land.lhs.true76.i, %land.lhs.true.i, %while.body53.i
+  %arrayidx100.i = getelementptr inbounds i32* %operands55.i, i64 2
+  %39 = bitcast i32* %arrayidx100.i to %union.tree_node**
+  %40 = load %union.tree_node** %39, align 8, !tbaa !1
+  %code102.i = getelementptr inbounds %union.tree_node* %40, i64 0, i32 0, i32 0, i32 2
+  %bf.load103.i = load i32* %code102.i, align 8
+  %bf.clear104.i = and i32 %bf.load103.i, 255
+  %idxprom105440.i = zext i32 %bf.clear104.i to i64
+  %arrayidx106.i = getelementptr inbounds [256 x i8]* @tree_code_type, i64 0, i64 %idxprom105440.i
+  %41 = load i8* %arrayidx106.i, align 1, !tbaa !15
+  %cmp108.i = icmp eq i8 %41, 60
+  br i1 %cmp108.i, label %land.lhs.true110.i, label %if.end151.i
+
+land.lhs.true110.i:                               ; preds = %if.end97.i
+  %operands115.i = getelementptr inbounds %union.tree_node* %40, i64 0, i32 0, i32 2
+  %arrayidx116.i = bitcast i32* %operands115.i to %union.tree_node**
+  %42 = load %union.tree_node** %arrayidx116.i, align 8, !tbaa !1
+  %code118.i = getelementptr inbounds %union.tree_node* %42, i64 0, i32 0, i32 0, i32 2
+  %bf.load119.i = load i32* %code118.i, align 8
+  %bf.clear120.i = and i32 %bf.load119.i, 255
+  %cmp121.i = icmp eq i32 %bf.clear120.i, 34
+  br i1 %cmp121.i, label %land.lhs.true123.i, label %if.end151.i
+
+land.lhs.true123.i:                               ; preds = %land.lhs.true110.i
+  %name131.i = getelementptr inbounds %union.tree_node* %42, i64 0, i32 0, i32 8
+  %43 = load %union.tree_node** %name131.i, align 8, !tbaa !46
+  %id133.i = getelementptr inbounds %union.tree_node* %43, i64 0, i32 0, i32 1
+  %44 = getelementptr inbounds i8** %id133.i, i64 1
+  %45 = load i8** %44, align 8, !tbaa !48
+  %46 = load %union.tree_node** %arrayidx85.i, align 8, !tbaa !1
+  %name139.i = getelementptr inbounds %union.tree_node* %46, i64 0, i32 0, i32 8
+  %47 = load %union.tree_node** %name139.i, align 8, !tbaa !46
+  %id141.i = getelementptr inbounds %union.tree_node* %47, i64 0, i32 0, i32 1
+  %48 = getelementptr inbounds i8** %id141.i, i64 1
+  %49 = load i8** %48, align 8, !tbaa !48
+  %cmp143.i = icmp eq i8* %45, %49
+  br i1 %cmp143.i, label %while.end155.i, label %if.end151.i
+
+if.end151.i:                                      ; preds = %land.lhs.true123.i, %land.lhs.true110.i, %if.end97.i
+  %bf.clear46.off.i = add i32 %bf.clear60.i, -91
+  %switch.i = icmp ult i32 %bf.clear46.off.i, 2
+  br i1 %switch.i, label %while.body53.i, label %while.end155.i
+
+while.end155.i:                                   ; preds = %if.end151.i, %land.lhs.true123.i, %land.lhs.true76.i, %while.end.i
+  %cond_node.addr.0.i = phi %union.tree_node* [ %28, %while.end.i ], [ %28, %if.end151.i ], [ %40, %land.lhs.true123.i ], [ %29, %land.lhs.true76.i ]
+  %code157.i = getelementptr inbounds %union.tree_node* %incr_node.addr.0.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load158.i = load i32* %code157.i, align 8
+  %bf.clear159.i = and i32 %bf.load158.i, 255
+  %50 = and i32 %bf.load158.i, 253
+  %51 = icmp eq i32 %50, 129
+  %cmp166.i = icmp eq i32 %bf.clear159.i, 130
+  %or.cond372.i = or i1 %51, %cmp166.i
+  %cmp169.i = icmp eq i32 %bf.clear159.i, 132
+  %or.cond373.i = or i1 %or.cond372.i, %cmp169.i
+  br i1 %or.cond373.i, label %land.lhs.true171.i, label %if.then22
+
+land.lhs.true171.i:                               ; preds = %while.end155.i
+  %code173.i = getelementptr inbounds %union.tree_node* %cond_node.addr.0.i, i64 0, i32 0, i32 0, i32 2
+  %bf.load174.i = load i32* %code173.i, align 8
+  %bf.clear175.i = and i32 %bf.load174.i, 255
+  %idxprom176438.i = zext i32 %bf.clear175.i to i64
+  %arrayidx177.i = getelementptr inbounds [256 x i8]* @tree_code_type, i64 0, i64 %idxprom176438.i
+  %52 = load i8* %arrayidx177.i, align 1, !tbaa !15
+  %cmp179.i = icmp eq i8 %52, 60
+  br i1 %cmp179.i, label %do.body.i, label %if.then22
+
+do.body.i:                                        ; preds = %land.lhs.true171.i
+  %53 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %elements_used.i290 = getelementptr inbounds %struct.varray_head_tag* %53, i64 0, i32 1
+  %54 = load i64* %elements_used.i290, align 8, !tbaa !34
+  %num_elements.i291 = getelementptr inbounds %struct.varray_head_tag* %53, i64 0, i32 0
+  %55 = load i64* %num_elements.i291, align 8, !tbaa !5
+  %cmp224.i = icmp ult i64 %54, %55
+  br i1 %cmp224.i, label %if.end228.i, label %if.then226.i
+
+if.then226.i:                                     ; preds = %do.body.i
+  %mul.i292 = shl i64 %55, 1
+  %call.i293 = call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %53, i64 %mul.i292) #4
+  store %struct.varray_head_tag* %call.i293, %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  br label %if.end228.i
+
+if.end228.i:                                      ; preds = %if.then226.i, %do.body.i
+  %call229.i = call noalias i8* @xmalloc(i64 32) #4
+  %56 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %elements_used230.i = getelementptr inbounds %struct.varray_head_tag* %56, i64 0, i32 1
+  %57 = load i64* %elements_used230.i, align 8, !tbaa !34
+  %inc.i294 = add i64 %57, 1
+  store i64 %inc.i294, i64* %elements_used230.i, align 8, !tbaa !34
+  %data.i295 = getelementptr inbounds %struct.varray_head_tag* %56, i64 0, i32 4
+  %generic.i296 = bitcast %union.varray_data_tag* %data.i295 to [1 x i8*]*
+  %arrayidx231.i = getelementptr inbounds [1 x i8*]* %generic.i296, i64 0, i64 %57
+  store i8* %call229.i, i8** %arrayidx231.i, align 8, !tbaa !1
+  %58 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %elements_used232.i = getelementptr inbounds %struct.varray_head_tag* %58, i64 0, i32 1
+  %59 = load i64* %elements_used232.i, align 8, !tbaa !34
+  %sub.i297 = add i64 %59, -1
+  %data233.i = getelementptr inbounds %struct.varray_head_tag* %58, i64 0, i32 4
+  %generic234.i = bitcast %union.varray_data_tag* %data233.i to [1 x i8*]*
+  %arrayidx235.i = getelementptr inbounds [1 x i8*]* %generic234.i, i64 0, i64 %sub.i297
+  %60 = load i8** %arrayidx235.i, align 8, !tbaa !1
+  %61 = bitcast i8* %60 to %struct.induction*
+  %ind.i298 = getelementptr inbounds i8* %11, i64 32
+  %62 = bitcast i8* %ind.i298 to %struct.induction**
+  store %struct.induction* %61, %struct.induction** %62, align 8, !tbaa !51
+  %operands237.i = getelementptr inbounds %union.tree_node* %incr_node.addr.0.i, i64 0, i32 0, i32 2
+  %arrayidx238.i = bitcast i32* %operands237.i to %union.tree_node**
+  %63 = load %union.tree_node** %arrayidx238.i, align 8, !tbaa !1
+  %name240.i = getelementptr inbounds %union.tree_node* %63, i64 0, i32 0, i32 8
+  %64 = load %union.tree_node** %name240.i, align 8, !tbaa !46
+  %id242.i = getelementptr inbounds %union.tree_node* %64, i64 0, i32 0, i32 1
+  %65 = getelementptr inbounds i8** %id242.i, i64 1
+  %66 = load i8** %65, align 8, !tbaa !48
+  %variable.i299 = bitcast i8* %60 to i8**
+  store i8* %66, i8** %variable.i299, align 8, !tbaa !30
+  %arrayidx246.i = getelementptr inbounds i32* %operands237.i, i64 2
+  %67 = bitcast i32* %arrayidx246.i to %union.tree_node**
+  %68 = load %union.tree_node** %67, align 8, !tbaa !1
+  %int_cst247.i = getelementptr inbounds %union.tree_node* %68, i64 0, i32 0, i32 2
+  %low.i = bitcast i32* %int_cst247.i to i64*
+  %69 = load i64* %low.i, align 8, !tbaa !22
+  %conv248.i = trunc i64 %69 to i32
+  %increment.i = getelementptr inbounds i8* %60, i64 8
+  %70 = bitcast i8* %increment.i to i32*
+  store i32 %conv248.i, i32* %70, align 4, !tbaa !52
+  %bf.load251.i = load i32* %code157.i, align 8
+  %bf.clear252.i = and i32 %bf.load251.i, 255
+  switch i32 %bf.clear252.i, label %if.end266.i [
+    i32 129, label %if.then262.i
+    i32 131, label %if.then262.i
+  ]
+
+if.then262.i:                                     ; preds = %if.end228.i, %if.end228.i
+  %sub264.i = sub nsw i32 0, %conv248.i
+  store i32 %sub264.i, i32* %70, align 4, !tbaa !52
+  br label %if.end266.i
+
+if.end266.i:                                      ; preds = %if.then262.i, %if.end228.i
+  %71 = phi i32 [ %conv248.i, %if.end228.i ], [ %sub264.i, %if.then262.i ]
+  %code.i.i = getelementptr inbounds %union.tree_node* %15, i64 0, i32 0, i32 0, i32 2
+  %bf.load.i.i = load i32* %code.i.i, align 8
+  %bf.clear.i.i = and i32 %bf.load.i.i, 255
+  %cmp.i.i = icmp eq i32 %bf.clear.i.i, 166
+  br i1 %cmp.i.i, label %if.end.i.i, label %while.cond.preheader.i.i
+
+if.end.i.i:                                       ; preds = %if.end266.i
+  %chain.i.i = getelementptr inbounds %union.tree_node* %15, i64 0, i32 0, i32 0, i32 0
+  %72 = load %union.tree_node** %chain.i.i, align 8, !tbaa !53
+  %tobool.i.i = icmp eq %union.tree_node* %72, null
+  br i1 %tobool.i.i, label %get_low_bound.exit.i, label %if.end.while.cond.preheader_crit_edge.i.i
+
+if.end.while.cond.preheader_crit_edge.i.i:        ; preds = %if.end.i.i
+  %code5.phi.trans.insert.i.i = getelementptr inbounds %union.tree_node* %72, i64 0, i32 0, i32 0, i32 2
+  %bf.load6.pre.i.i = load i32* %code5.phi.trans.insert.i.i, align 8
+  br label %while.cond.preheader.i.i
+
+while.cond.preheader.i.i:                         ; preds = %if.end.while.cond.preheader_crit_edge.i.i, %if.end266.i
+  %bf.load6.i.i = phi i32 [ %bf.load.i.i, %if.end266.i ], [ %bf.load6.pre.i.i, %if.end.while.cond.preheader_crit_edge.i.i ]
+  %node.addr.083.ph.i.i = phi %union.tree_node* [ %15, %if.end266.i ], [ %72, %if.end.while.cond.preheader_crit_edge.i.i ]
+  %bf.clear7.i.i = and i32 %bf.load6.i.i, 255
+  switch i32 %bf.clear7.i.i, label %if.end38.i.i [
+    i32 152, label %if.then34.split.i.i
+    i32 47, label %while.cond.us.i.i
+  ]
+
+while.cond.us.i.i:                                ; preds = %while.cond.preheader.i.i, %while.cond.us.i.i
+  br label %while.cond.us.i.i
+
+if.then34.split.i.i:                              ; preds = %while.cond.preheader.i.i
+  %operands36.i.i = getelementptr inbounds %union.tree_node* %node.addr.083.ph.i.i, i64 0, i32 0, i32 2
+  %arrayidx37.i.i = bitcast i32* %operands36.i.i to %union.tree_node**
+  %73 = load %union.tree_node** %arrayidx37.i.i, align 8, !tbaa !1
+  %code40.phi.trans.insert.i.i = getelementptr inbounds %union.tree_node* %73, i64 0, i32 0, i32 0, i32 2
+  %bf.load41.pre.i.i = load i32* %code40.phi.trans.insert.i.i, align 8
+  br label %if.end38.i.i
+
+if.end38.i.i:                                     ; preds = %if.then34.split.i.i, %while.cond.preheader.i.i
+  %bf.load41.i.i = phi i32 [ %bf.load41.pre.i.i, %if.then34.split.i.i ], [ %bf.load6.i.i, %while.cond.preheader.i.i ]
+  %node.addr.1.i.i = phi %union.tree_node* [ %73, %if.then34.split.i.i ], [ %node.addr.083.ph.i.i, %while.cond.preheader.i.i ]
+  %bf.clear42.i.i = and i32 %bf.load41.i.i, 255
+  %cmp43.i.i = icmp eq i32 %bf.clear42.i.i, 48
+  br i1 %cmp43.i.i, label %land.lhs.true44.i.i, label %get_low_bound.exit.i
+
+land.lhs.true44.i.i:                              ; preds = %if.end38.i.i
+  %operands46.i.i = getelementptr inbounds %union.tree_node* %node.addr.1.i.i, i64 0, i32 0, i32 2
+  %arrayidx47.i.i = bitcast i32* %operands46.i.i to %union.tree_node**
+  %74 = load %union.tree_node** %arrayidx47.i.i, align 8, !tbaa !1
+  %code49.i.i = getelementptr inbounds %union.tree_node* %74, i64 0, i32 0, i32 0, i32 2
+  %bf.load50.i.i = load i32* %code49.i.i, align 8
+  %bf.clear51.i.i = and i32 %bf.load50.i.i, 255
+  %cmp52.i.i = icmp eq i32 %bf.clear51.i.i, 34
+  br i1 %cmp52.i.i, label %land.lhs.true53.i.i, label %get_low_bound.exit.i
+
+land.lhs.true53.i.i:                              ; preds = %land.lhs.true44.i.i
+  %name58.i.i = getelementptr inbounds %union.tree_node* %74, i64 0, i32 0, i32 8
+  %75 = load %union.tree_node** %name58.i.i, align 8, !tbaa !46
+  %id60.i.i = getelementptr inbounds %union.tree_node* %75, i64 0, i32 0, i32 1
+  %76 = getelementptr inbounds i8** %id60.i.i, i64 1
+  %77 = load i8** %76, align 8, !tbaa !48
+  %cmp62.i.i = icmp eq i8* %77, %66
+  br i1 %cmp62.i.i, label %if.then63.i.i, label %get_low_bound.exit.i
+
+if.then63.i.i:                                    ; preds = %land.lhs.true53.i.i
+  %arrayidx66.i.i = getelementptr inbounds i32* %operands46.i.i, i64 2
+  %78 = bitcast i32* %arrayidx66.i.i to %union.tree_node**
+  %79 = load %union.tree_node** %78, align 8, !tbaa !1
+  %int_cst67.i.i = getelementptr inbounds %union.tree_node* %79, i64 0, i32 0, i32 2
+  %low.i.i = bitcast i32* %int_cst67.i.i to i64*
+  %80 = load i64* %low.i.i, align 8, !tbaa !22
+  %conv.i.i = trunc i64 %80 to i32
+  br label %get_low_bound.exit.i
+
+get_low_bound.exit.i:                             ; preds = %if.then63.i.i, %land.lhs.true53.i.i, %land.lhs.true44.i.i, %if.end38.i.i, %if.end.i.i
+  %retval.0.i.i = phi i32 [ %conv.i.i, %if.then63.i.i ], [ -2147483648, %if.end.i.i ], [ -2147483648, %land.lhs.true53.i.i ], [ -2147483648, %land.lhs.true44.i.i ], [ -2147483648, %if.end38.i.i ]
+  %low_bound.i = getelementptr inbounds i8* %60, i64 12
+  %81 = bitcast i8* %low_bound.i to i32*
+  store i32 %retval.0.i.i, i32* %81, align 4, !tbaa !32
+  %operands270.i = getelementptr inbounds %union.tree_node* %cond_node.addr.0.i, i64 0, i32 0, i32 2
+  %arrayidx271.i = bitcast i32* %operands270.i to %union.tree_node**
+  %82 = load %union.tree_node** %arrayidx271.i, align 8, !tbaa !1
+  %code273.i = getelementptr inbounds %union.tree_node* %82, i64 0, i32 0, i32 0, i32 2
+  %bf.load274.i = load i32* %code273.i, align 8
+  %bf.clear275.i = and i32 %bf.load274.i, 255
+  %cmp276.i = icmp eq i32 %bf.clear275.i, 34
+  br i1 %cmp276.i, label %land.lhs.true278.i, label %if.else313.i
+
+land.lhs.true278.i:                               ; preds = %get_low_bound.exit.i
+  %name283.i = getelementptr inbounds %union.tree_node* %82, i64 0, i32 0, i32 8
+  %83 = load %union.tree_node** %name283.i, align 8, !tbaa !46
+  %id285.i = getelementptr inbounds %union.tree_node* %83, i64 0, i32 0, i32 1
+  %84 = getelementptr inbounds i8** %id285.i, i64 1
+  %85 = load i8** %84, align 8, !tbaa !48
+  %cmp288.i = icmp eq i8* %85, %66
+  br i1 %cmp288.i, label %if.then290.i, label %if.else313.i
+
+if.then290.i:                                     ; preds = %land.lhs.true278.i
+  %arrayidx293.i = getelementptr inbounds i32* %operands270.i, i64 2
+  %86 = bitcast i32* %arrayidx293.i to %union.tree_node**
+  %87 = load %union.tree_node** %86, align 8, !tbaa !1
+  %code295.i = getelementptr inbounds %union.tree_node* %87, i64 0, i32 0, i32 0, i32 2
+  %bf.load296.i = load i32* %code295.i, align 8
+  %bf.clear297.i = and i32 %bf.load296.i, 255
+  %cmp298.i = icmp eq i32 %bf.clear297.i, 25
+  br i1 %cmp298.i, label %if.then300.i, label %if.else.i
+
+if.then300.i:                                     ; preds = %if.then290.i
+  %int_cst305.i = getelementptr inbounds %union.tree_node* %87, i64 0, i32 0, i32 2
+  %low306.i = bitcast i32* %int_cst305.i to i64*
+  %88 = load i64* %low306.i, align 8, !tbaa !22
+  %conv307.i = trunc i64 %88 to i32
+  %high_bound.i = getelementptr inbounds i8* %60, i64 16
+  %89 = bitcast i8* %high_bound.i to i32*
+  store i32 %conv307.i, i32* %89, align 4, !tbaa !33
+  br label %find_induction_variable.exit
+
+if.else.i:                                        ; preds = %if.then290.i
+  %90 = lshr i32 %71, 31
+  %91 = add i32 %90, 2147483647
+  %high_bound311.i = getelementptr inbounds i8* %60, i64 16
+  %92 = bitcast i8* %high_bound311.i to i32*
+  store i32 %91, i32* %92, align 4, !tbaa !33
+  br label %find_induction_variable.exit
+
+if.else313.i:                                     ; preds = %land.lhs.true278.i, %get_low_bound.exit.i
+  %arrayidx316.i = getelementptr inbounds i32* %operands270.i, i64 2
+  %93 = bitcast i32* %arrayidx316.i to %union.tree_node**
+  %94 = load %union.tree_node** %93, align 8, !tbaa !1
+  %code318.i = getelementptr inbounds %union.tree_node* %94, i64 0, i32 0, i32 0, i32 2
+  %bf.load319.i = load i32* %code318.i, align 8
+  %bf.clear320.i = and i32 %bf.load319.i, 255
+  %cmp321.i = icmp eq i32 %bf.clear320.i, 34
+  br i1 %cmp321.i, label %land.lhs.true323.i, label %find_induction_variable.exit
+
+land.lhs.true323.i:                               ; preds = %if.else313.i
+  %name328.i = getelementptr inbounds %union.tree_node* %94, i64 0, i32 0, i32 8
+  %95 = load %union.tree_node** %name328.i, align 8, !tbaa !46
+  %id330.i = getelementptr inbounds %union.tree_node* %95, i64 0, i32 0, i32 1
+  %96 = getelementptr inbounds i8** %id330.i, i64 1
+  %97 = load i8** %96, align 8, !tbaa !48
+  %cmp333.i = icmp eq i8* %97, %66
+  br i1 %cmp333.i, label %if.then335.i, label %find_induction_variable.exit
+
+if.then335.i:                                     ; preds = %land.lhs.true323.i
+  %cmp343.i = icmp eq i32 %bf.clear275.i, 25
+  br i1 %cmp343.i, label %if.then345.i, label %if.else354.i
+
+if.then345.i:                                     ; preds = %if.then335.i
+  %int_cst350.i = getelementptr inbounds %union.tree_node* %82, i64 0, i32 0, i32 2
+  %low351.i = bitcast i32* %int_cst350.i to i64*
+  %98 = load i64* %low351.i, align 8, !tbaa !22
+  %conv352.i = trunc i64 %98 to i32
+  %high_bound353.i = getelementptr inbounds i8* %60, i64 16
+  %99 = bitcast i8* %high_bound353.i to i32*
+  store i32 %conv352.i, i32* %99, align 4, !tbaa !33
+  br label %find_induction_variable.exit
+
+if.else354.i:                                     ; preds = %if.then335.i
+  %100 = lshr i32 %71, 31
+  %101 = add i32 %100, 2147483647
+  %high_bound359.i = getelementptr inbounds i8* %60, i64 16
+  %102 = bitcast i8* %high_bound359.i to i32*
+  store i32 %101, i32* %102, align 4, !tbaa !33
+  br label %find_induction_variable.exit
+
+find_induction_variable.exit:                     ; preds = %if.then300.i, %if.else.i, %if.else313.i, %land.lhs.true323.i, %if.then345.i, %if.else354.i
+  %next.i300 = getelementptr inbounds i8* %60, i64 24
+  %103 = bitcast i8* %next.i300 to %struct.induction**
+  store %struct.induction* null, %struct.induction** %103, align 8, !tbaa !54
+  br label %if.end23
+
+if.then22:                                        ; preds = %add_loop.exit, %while.end155.i, %land.lhs.true171.i
+  %status = getelementptr inbounds i8* %11, i64 20
+  %104 = bitcast i8* %status to i32*
+  store i32 1, i32* %104, align 4, !tbaa !28
+  br label %if.end23
+
+if.end23:                                         ; preds = %find_induction_variable.exit, %if.then22
+  %arrayidx26 = getelementptr inbounds i32* %operands12, i64 6
+  %105 = bitcast i32* %arrayidx26 to %union.tree_node**
+  %106 = load %union.tree_node** %105, align 8, !tbaa !1
+  call fastcc void @build_def_use(%union.tree_node* %106, i32 0)
+  %107 = load i32* @build_def_use.nloop, align 4, !tbaa !16
+  %dec = add nsw i32 %107, -1
+  store i32 %dec, i32* @build_def_use.nloop, align 4, !tbaa !16
+  store %union.tree_node* null, %union.tree_node** @build_def_use.current_loop, align 8, !tbaa !1
+  %chain28 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.bb29:                                          ; preds = %while.body
+  %108 = load %struct.loop** @build_def_use.loop_def, align 8, !tbaa !1
+  %tobool30 = icmp eq %struct.loop* %108, null
+  %operands49.phi.trans.insert = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx50.phi.trans.insert = bitcast i32* %operands49.phi.trans.insert to %union.tree_node**
+  %.pre315 = load %union.tree_node** %arrayidx50.phi.trans.insert, align 8, !tbaa !1
+  br i1 %tobool30, label %if.end47, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %sw.bb29
+  %code35 = getelementptr inbounds %union.tree_node* %.pre315, i64 0, i32 0, i32 0, i32 2
+  %bf.load36 = load i32* %code35, align 8
+  %bf.clear37 = and i32 %bf.load36, 255
+  %cmp38 = icmp eq i32 %bf.clear37, 34
+  br i1 %cmp38, label %land.lhs.true39, label %if.end47
+
+land.lhs.true39:                                  ; preds = %land.lhs.true
+  %outer_loop = getelementptr inbounds %struct.loop* %108, i64 0, i32 0
+  %109 = load %union.tree_node** %outer_loop, align 8, !tbaa !8
+  %name = getelementptr inbounds %union.tree_node* %.pre315, i64 0, i32 0, i32 8
+  %110 = load %union.tree_node** %name, align 8, !tbaa !46
+  %id = getelementptr inbounds %union.tree_node* %110, i64 0, i32 0, i32 1
+  %111 = getelementptr inbounds i8** %id, i64 1
+  %112 = load i8** %111, align 8, !tbaa !48
+  %113 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %data.i = getelementptr inbounds %struct.varray_head_tag* %113, i64 0, i32 4
+  %arrayidx.i = bitcast %union.varray_data_tag* %data.i to i8**
+  %loop_ptr.0.in34.i = load i8** %arrayidx.i, align 8
+  %tobool35.i = icmp eq i8* %loop_ptr.0.in34.i, null
+  br i1 %tobool35.i, label %if.end47, label %land.rhs.lr.ph.i
+
+land.rhs.lr.ph.i:                                 ; preds = %land.lhs.true39
+  %num_elements.i = getelementptr inbounds %struct.varray_head_tag* %113, i64 0, i32 0
+  %114 = load i64* %num_elements.i, align 8, !tbaa !5
+  %115 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %num_elements9.i = getelementptr inbounds %struct.varray_head_tag* %115, i64 0, i32 0
+  %generic20.i = bitcast %union.varray_data_tag* %data.i to [1 x i8*]*
+  br label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.inc17.i, %land.rhs.lr.ph.i
+  %loop_ptr.0.in40.i = phi i8* [ %loop_ptr.0.in34.i, %land.rhs.lr.ph.i ], [ %loop_ptr.0.in.i, %for.inc17.i ]
+  %loop_idx.036.i = phi i32 [ 0, %land.rhs.lr.ph.i ], [ %inc.i, %for.inc17.i ]
+  %conv.i = zext i32 %loop_idx.036.i to i64
+  %cmp.i = icmp ult i64 %conv.i, %114
+  br i1 %cmp.i, label %for.body.i, label %if.end47
+
+for.body.i:                                       ; preds = %land.rhs.i
+  %outer_loop2.i = bitcast i8* %loop_ptr.0.in40.i to %union.tree_node**
+  %116 = load %union.tree_node** %outer_loop2.i, align 8, !tbaa !8
+  %cmp3.i = icmp eq %union.tree_node* %116, %109
+  br i1 %cmp3.i, label %if.then.i, label %for.inc17.i
+
+if.then.i:                                        ; preds = %for.body.i
+  %ind.i = getelementptr inbounds i8* %loop_ptr.0.in40.i, i64 32
+  %117 = bitcast i8* %ind.i to %struct.induction**
+  %ind_ptr.031.i = load %struct.induction** %117, align 8
+  %tobool632.i = icmp eq %struct.induction* %ind_ptr.031.i, null
+  br i1 %tobool632.i, label %for.inc17.i, label %land.rhs7.lr.ph.i
+
+land.rhs7.lr.ph.i:                                ; preds = %if.then.i
+  %118 = load i64* %num_elements9.i, align 8, !tbaa !5
+  %cmp10.i = icmp eq i64 %118, 0
+  br i1 %cmp10.i, label %for.inc17.i, label %for.body13.i
+
+for.cond5.i:                                      ; preds = %for.body13.i
+  %next.i = getelementptr inbounds %struct.induction* %ind_ptr.033.i, i64 0, i32 4
+  %ind_ptr.0.i = load %struct.induction** %next.i, align 8
+  %tobool6.i = icmp eq %struct.induction* %ind_ptr.0.i, null
+  br i1 %tobool6.i, label %for.inc17.i, label %for.body13.i
+
+for.body13.i:                                     ; preds = %land.rhs7.lr.ph.i, %for.cond5.i
+  %ind_ptr.033.i = phi %struct.induction* [ %ind_ptr.0.i, %for.cond5.i ], [ %ind_ptr.031.i, %land.rhs7.lr.ph.i ]
+  %variable.i = getelementptr inbounds %struct.induction* %ind_ptr.033.i, i64 0, i32 0
+  %119 = load i8** %variable.i, align 8, !tbaa !30
+  %call.i = call i32 @strcmp(i8* %119, i8* %112) #4
+  %tobool14.i = icmp eq i32 %call.i, 0
+  br i1 %tobool14.i, label %have_induction_variable.exit, label %for.cond5.i
+
+for.inc17.i:                                      ; preds = %for.cond5.i, %land.rhs7.lr.ph.i, %if.then.i, %for.body.i
+  %inc.i = add i32 %loop_idx.036.i, 1
+  %idxprom18.i = zext i32 %inc.i to i64
+  %arrayidx21.i = getelementptr inbounds [1 x i8*]* %generic20.i, i64 0, i64 %idxprom18.i
+  %loop_ptr.0.in.i = load i8** %arrayidx21.i, align 8
+  %tobool.i = icmp eq i8* %loop_ptr.0.in.i, null
+  br i1 %tobool.i, label %if.end47, label %land.rhs.i
+
+have_induction_variable.exit:                     ; preds = %for.body13.i
+  %add.i = add i32 %loop_idx.036.i, 1
+  %cmp44 = icmp sgt i32 %add.i, -1
+  br i1 %cmp44, label %if.then45, label %if.end47
+
+if.then45:                                        ; preds = %have_induction_variable.exit
+  %status46 = getelementptr inbounds %struct.loop* %108, i64 0, i32 3
+  store i32 1, i32* %status46, align 4, !tbaa !28
+  br label %if.end47
+
+if.end47:                                         ; preds = %for.inc17.i, %land.rhs.i, %sw.bb29, %land.lhs.true39, %if.then45, %have_induction_variable.exit, %land.lhs.true
+  %operands49 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %code52 = getelementptr inbounds %union.tree_node* %.pre315, i64 0, i32 0, i32 0, i32 2
+  %bf.load53 = load i32* %code52, align 8
+  %bf.clear54 = and i32 %bf.load53, 255
+  switch i32 %bf.clear54, label %if.end68 [
+    i32 43, label %if.then64
+    i32 41, label %if.then64
+  ]
+
+if.then64:                                        ; preds = %if.end47, %if.end47
+  call fastcc void @build_def_use(%union.tree_node* %.pre315, i32 0)
+  br label %if.end68
+
+if.end68:                                         ; preds = %if.end47, %if.then64
+  %arrayidx71 = getelementptr inbounds i32* %operands49, i64 2
+  %120 = bitcast i32* %arrayidx71 to %union.tree_node**
+  %121 = load %union.tree_node** %120, align 8, !tbaa !1
+  call fastcc void @build_def_use(%union.tree_node* %121, i32 1)
+  %chain73 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.bb74:                                          ; preds = %while.body
+  %operands76 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx77 = getelementptr inbounds i32* %operands76, i64 2
+  %122 = bitcast i32* %arrayidx77 to %union.tree_node**
+  %123 = load %union.tree_node** %122, align 8, !tbaa !1
+  %tobool78 = icmp eq %union.tree_node* %123, null
+  br i1 %tobool78, label %while.end, label %lor.lhs.false79
+
+lor.lhs.false79:                                  ; preds = %sw.bb74
+  %code84 = getelementptr inbounds %union.tree_node* %123, i64 0, i32 0, i32 0, i32 2
+  %bf.load85 = load i32* %code84, align 8
+  %bf.clear86 = and i32 %bf.load85, 255
+  %cmp87 = icmp eq i32 %bf.clear86, 43
+  br i1 %cmp87, label %sw.bb93, label %while.end
+
+sw.bb93:                                          ; preds = %while.body, %lor.lhs.false79
+  %node.1 = phi %union.tree_node* [ %123, %lor.lhs.false79 ], [ %node.0310, %while.body ]
+  %124 = load i32* @build_def_use.nloop, align 4, !tbaa !16
+  %tobool94 = icmp eq i32 %124, 0
+  br i1 %tobool94, label %while.end, label %if.then95
+
+if.then95:                                        ; preds = %sw.bb93
+  store i8 0, i8* %null_string, align 1, !tbaa !15
+  %125 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %elements_used = getelementptr inbounds %struct.varray_head_tag* %125, i64 0, i32 1
+  %126 = load i64* %elements_used, align 8, !tbaa !34
+  %num_elements = getelementptr inbounds %struct.varray_head_tag* %125, i64 0, i32 0
+  %127 = load i64* %num_elements, align 8, !tbaa !5
+  %cmp96 = icmp ult i64 %126, %127
+  br i1 %cmp96, label %if.end100, label %if.then97
+
+if.then97:                                        ; preds = %if.then95
+  %mul = shl i64 %127, 1
+  %call99 = call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %125, i64 %mul) #4
+  store %struct.varray_head_tag* %call99, %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  br label %if.end100
+
+if.end100:                                        ; preds = %if.then95, %if.then97
+  %call101 = call noalias i8* @xmalloc(i64 56) #4
+  %128 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %elements_used102 = getelementptr inbounds %struct.varray_head_tag* %128, i64 0, i32 1
+  %129 = load i64* %elements_used102, align 8, !tbaa !34
+  %inc103 = add i64 %129, 1
+  store i64 %inc103, i64* %elements_used102, align 8, !tbaa !34
+  %data = getelementptr inbounds %struct.varray_head_tag* %128, i64 0, i32 4
+  %generic = bitcast %union.varray_data_tag* %data to [1 x i8*]*
+  %arrayidx104 = getelementptr inbounds [1 x i8*]* %generic, i64 0, i64 %129
+  store i8* %call101, i8** %arrayidx104, align 8, !tbaa !1
+  %130 = load i32* @build_def_use.du_idx, align 4, !tbaa !16
+  %inc105 = add nsw i32 %130, 1
+  store i32 %inc105, i32* @build_def_use.du_idx, align 4, !tbaa !16
+  %idxprom = sext i32 %130 to i64
+  %131 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %data106 = getelementptr inbounds %struct.varray_head_tag* %131, i64 0, i32 4
+  %generic107 = bitcast %union.varray_data_tag* %data106 to [1 x i8*]*
+  %arrayidx108 = getelementptr inbounds [1 x i8*]* %generic107, i64 0, i64 %idxprom
+  %132 = load i8** %arrayidx108, align 8, !tbaa !1
+  %133 = bitcast i8* %132 to %struct.def_use*
+  %type = getelementptr inbounds i8* %132, i64 32
+  %134 = bitcast i8* %type to i32*
+  store i32 %du_type, i32* %134, align 4, !tbaa !17
+  %status109 = getelementptr inbounds i8* %132, i64 36
+  %135 = bitcast i8* %status109 to i32*
+  store i32 1, i32* %135, align 4, !tbaa !13
+  %136 = load %union.tree_node** @build_def_use.outer_loop, align 8, !tbaa !1
+  %outer_loop110 = bitcast i8* %132 to %union.tree_node**
+  store %union.tree_node* %136, %union.tree_node** %outer_loop110, align 8, !tbaa !27
+  %137 = load %union.tree_node** @build_def_use.current_loop, align 8, !tbaa !1
+  %containing_loop = getelementptr inbounds i8* %132, i64 8
+  %138 = bitcast i8* %containing_loop to %union.tree_node**
+  store %union.tree_node* %137, %union.tree_node** %138, align 8, !tbaa !55
+  %expression = getelementptr inbounds i8* %132, i64 16
+  %139 = bitcast i8* %expression to %union.tree_node**
+  store %union.tree_node* %node.1, %union.tree_node** %139, align 8, !tbaa !35
+  %variable = getelementptr inbounds i8* %132, i64 24
+  %140 = bitcast i8* %variable to i8**
+  store i8* %null_string, i8** %140, align 8, !tbaa !56
+  %next = getelementptr inbounds i8* %132, i64 40
+  %141 = bitcast i8* %next to %struct.def_use**
+  call void @llvm.memset.p0i8.i64(i8* %next, i8 0, i64 16, i32 8, i1 false)
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %if.end100
+  %array_ref.0 = phi %union.tree_node* [ %node.1, %if.end100 ], [ %142, %for.inc ]
+  %code112 = getelementptr inbounds %union.tree_node* %array_ref.0, i64 0, i32 0, i32 0, i32 2
+  %bf.load113 = load i32* %code112, align 8
+  %bf.clear114 = and i32 %bf.load113, 255
+  switch i32 %bf.clear114, label %if.end143 [
+    i32 43, label %for.inc
+    i32 39, label %if.then124
+  ]
+
+for.inc:                                          ; preds = %for.cond
+  %operands117 = getelementptr inbounds %union.tree_node* %array_ref.0, i64 0, i32 0, i32 2
+  %arrayidx118 = bitcast i32* %operands117 to %union.tree_node**
+  %142 = load %union.tree_node** %arrayidx118, align 8, !tbaa !1
+  br label %for.cond
+
+if.then124:                                       ; preds = %for.cond
+  %operands126 = getelementptr inbounds %union.tree_node* %array_ref.0, i64 0, i32 0, i32 2
+  %arrayidx127 = getelementptr inbounds i32* %operands126, i64 2
+  %143 = bitcast i32* %arrayidx127 to %union.tree_node**
+  %144 = load %union.tree_node** %143, align 8, !tbaa !1
+  %code129 = getelementptr inbounds %union.tree_node* %144, i64 0, i32 0, i32 0, i32 2
+  %bf.load130 = load i32* %code129, align 8
+  %bf.clear131 = and i32 %bf.load130, 255
+  %cmp132 = icmp eq i32 %bf.clear131, 37
+  br i1 %cmp132, label %land.lhs.true133, label %while.end
+
+land.lhs.true133:                                 ; preds = %if.then124
+  %type135 = getelementptr inbounds %union.tree_node* %144, i64 0, i32 0, i32 0, i32 1
+  %145 = load %union.tree_node** %type135, align 8, !tbaa !57
+  %code137 = getelementptr inbounds %union.tree_node* %145, i64 0, i32 0, i32 0, i32 2
+  %bf.load138 = load i32* %code137, align 8
+  %bf.clear139 = and i32 %bf.load138, 255
+  %cmp140 = icmp eq i32 %bf.clear139, 18
+  br i1 %cmp140, label %if.end143, label %while.end
+
+if.end143:                                        ; preds = %for.cond, %land.lhs.true133
+  %array_ref.1 = phi %union.tree_node* [ %144, %land.lhs.true133 ], [ %array_ref.0, %for.cond ]
+  %cmp145306 = icmp sgt i32 %130, -1
+  br i1 %cmp145306, label %land.rhs.lr.ph, label %for.end161
+
+land.rhs.lr.ph:                                   ; preds = %if.end143
+  %name147 = getelementptr inbounds %union.tree_node* %array_ref.1, i64 0, i32 0, i32 8
+  %146 = load %union.tree_node** %name147, align 8, !tbaa !46
+  %id149 = getelementptr inbounds %union.tree_node* %146, i64 0, i32 0, i32 1
+  %147 = getelementptr inbounds i8** %id149, i64 1
+  %148 = load i8** %147, align 8, !tbaa !48
+  %149 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %data152 = getelementptr inbounds %struct.varray_head_tag* %149, i64 0, i32 4
+  %generic153 = bitcast %union.varray_data_tag* %data152 to [1 x i8*]*
+  br label %land.rhs
+
+for.cond144:                                      ; preds = %land.rhs
+  %150 = trunc i64 %indvars.iv.next to i32
+  %cmp145 = icmp slt i32 %150, %inc105
+  br i1 %cmp145, label %land.rhs, label %for.end161
+
+land.rhs:                                         ; preds = %land.rhs.lr.ph, %for.cond144
+  %indvars.iv = phi i64 [ 0, %land.rhs.lr.ph ], [ %indvars.iv.next, %for.cond144 ]
+  %arrayidx154 = getelementptr inbounds [1 x i8*]* %generic153, i64 0, i64 %indvars.iv
+  %151 = load i8** %arrayidx154, align 8, !tbaa !1
+  %variable155 = getelementptr inbounds i8* %151, i64 24
+  %152 = bitcast i8* %variable155 to i8**
+  %153 = load i8** %152, align 8, !tbaa !56
+  %call156 = call i32 @strcmp(i8* %148, i8* %153) #4
+  %tobool157 = icmp eq i32 %call156, 0
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  br i1 %tobool157, label %land.rhs.for.end161_crit_edge, label %for.cond144
+
+land.rhs.for.end161_crit_edge:                    ; preds = %land.rhs
+  %154 = trunc i64 %indvars.iv to i32
+  br label %for.end161
+
+for.end161:                                       ; preds = %for.cond144, %land.rhs.for.end161_crit_edge, %if.end143
+  %i.0.lcssa = phi i32 [ %154, %land.rhs.for.end161_crit_edge ], [ 0, %if.end143 ], [ %150, %for.cond144 ]
+  %cmp162 = icmp eq i32 %i.0.lcssa, %inc105
+  br i1 %cmp162, label %if.else, label %if.then163
+
+if.then163:                                       ; preds = %for.end161
+  %idxprom164 = sext i32 %i.0.lcssa to i64
+  %155 = load %struct.varray_head_tag** @def_use_chain, align 8, !tbaa !1
+  %data165 = getelementptr inbounds %struct.varray_head_tag* %155, i64 0, i32 4
+  %generic166 = bitcast %union.varray_data_tag* %data165 to [1 x i8*]*
+  %arrayidx167 = getelementptr inbounds [1 x i8*]* %generic166, i64 0, i64 %idxprom164
+  %156 = load i8** %arrayidx167, align 8, !tbaa !1
+  %157 = bitcast i8* %156 to %struct.def_use*
+  br label %for.cond168
+
+for.cond168:                                      ; preds = %for.cond168, %if.then163
+  %tmp_duc.0 = phi %struct.def_use* [ %157, %if.then163 ], [ %158, %for.cond168 ]
+  %next169 = getelementptr inbounds %struct.def_use* %tmp_duc.0, i64 0, i32 6
+  %158 = load %struct.def_use** %next169, align 8, !tbaa !42
+  %tobool170 = icmp eq %struct.def_use* %158, null
+  br i1 %tobool170, label %for.end174, label %for.cond168
+
+for.end174:                                       ; preds = %for.cond168
+  store %struct.def_use* %133, %struct.def_use** %next169, align 8, !tbaa !42
+  br label %if.end177
+
+if.else:                                          ; preds = %for.end161
+  store %struct.def_use* null, %struct.def_use** %141, align 8, !tbaa !42
+  br label %if.end177
+
+if.end177:                                        ; preds = %if.else, %for.end174
+  %name179 = getelementptr inbounds %union.tree_node* %array_ref.1, i64 0, i32 0, i32 8
+  %159 = load %union.tree_node** %name179, align 8, !tbaa !46
+  %id181 = getelementptr inbounds %union.tree_node* %159, i64 0, i32 0, i32 1
+  %160 = getelementptr inbounds i8** %id181, i64 1
+  %161 = load i8** %160, align 8, !tbaa !48
+  store i8* %161, i8** %140, align 8, !tbaa !56
+  br label %while.end
+
+sw.bb185:                                         ; preds = %while.body, %while.body
+  %chain187 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.bb188:                                         ; preds = %while.body
+  %operands190 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx191 = bitcast i32* %operands190 to %union.tree_node**
+  %162 = load %union.tree_node** %arrayidx191, align 8, !tbaa !1
+  %code193 = getelementptr inbounds %union.tree_node* %162, i64 0, i32 0, i32 0, i32 2
+  %bf.load194 = load i32* %code193, align 8
+  %bf.clear195 = and i32 %bf.load194, 255
+  %cmp196 = icmp eq i32 %bf.clear195, 48
+  br i1 %cmp196, label %if.then197, label %if.end201
+
+if.then197:                                       ; preds = %sw.bb188
+  call fastcc void @build_def_use(%union.tree_node* %162, i32 0)
+  br label %if.end201
+
+if.end201:                                        ; preds = %if.then197, %sw.bb188
+  %chain203 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+sw.default:                                       ; preds = %while.body
+  %idxprom208279 = zext i32 %bf.clear to i64
+  %arrayidx209 = getelementptr inbounds [256 x i8]* @tree_code_type, i64 0, i64 %idxprom208279
+  %163 = load i8* %arrayidx209, align 1, !tbaa !15
+  %cmp210 = icmp eq i8 %163, 50
+  br i1 %cmp210, label %if.then212, label %while.end
+
+if.then212:                                       ; preds = %sw.default
+  %operands214 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 2
+  %arrayidx215 = bitcast i32* %operands214 to %union.tree_node**
+  %164 = load %union.tree_node** %arrayidx215, align 8, !tbaa !1
+  call fastcc void @build_def_use(%union.tree_node* %164, i32 1)
+  %arrayidx218 = getelementptr inbounds i32* %operands214, i64 2
+  %165 = bitcast i32* %arrayidx218 to %union.tree_node**
+  %166 = load %union.tree_node** %165, align 8, !tbaa !1
+  call fastcc void @build_def_use(%union.tree_node* %166, i32 1)
+  %chain220 = getelementptr inbounds %union.tree_node* %node.0310, i64 0, i32 0, i32 0, i32 0
+  br label %while.cond.backedge
+
+while.cond.backedge:                              ; preds = %if.then212, %if.end201, %sw.bb185, %if.end68, %if.end23, %sw.bb4, %sw.bb2, %sw.bb
+  %node.0.be.in = phi %union.tree_node** [ %chain220, %if.then212 ], [ %chain203, %if.end201 ], [ %chain187, %sw.bb185 ], [ %chain73, %if.end68 ], [ %chain28, %if.end23 ], [ %chain6, %sw.bb4 ], [ %chain, %sw.bb2 ], [ %arrayidx, %sw.bb ]
+  %node.0.be = load %union.tree_node** %node.0.be.in, align 8
+  %tobool = icmp eq %union.tree_node* %node.0.be, null
+  br i1 %tobool, label %while.end, label %while.body
+
+while.end:                                        ; preds = %sw.default, %while.cond.backedge, %if.end177, %sw.bb93, %if.then124, %land.lhs.true133, %sw.bb74, %lor.lhs.false79, %while.cond.preheader
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #2
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @search_dependence(%union.tree_node* readonly %node) #3 {
+entry:
+  %0 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %tobool = icmp eq %struct.varray_head_tag* %0, null
+  br i1 %tobool, label %return, label %if.then
+
+if.then:                                          ; preds = %entry
+  %code = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 0, i32 2
+  %bf.load = load i32* %code, align 8
+  %bf.clear = and i32 %bf.load, 255
+  %cmp = icmp eq i32 %bf.clear, 41
+  br i1 %cmp, label %land.lhs.true, label %if.end
+
+land.lhs.true:                                    ; preds = %if.then
+  %operands = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx = getelementptr inbounds i32* %operands, i64 2
+  %1 = bitcast i32* %arrayidx to %union.tree_node**
+  %2 = load %union.tree_node** %1, align 8, !tbaa !1
+  %tobool1 = icmp eq %union.tree_node* %2, null
+  br i1 %tobool1, label %if.end, label %land.lhs.true2
+
+land.lhs.true2:                                   ; preds = %land.lhs.true
+  %code7 = getelementptr inbounds %union.tree_node* %2, i64 0, i32 0, i32 0, i32 2
+  %bf.load8 = load i32* %code7, align 8
+  %bf.clear9 = and i32 %bf.load8, 255
+  %cmp10 = icmp eq i32 %bf.clear9, 43
+  %.node = select i1 %cmp10, %union.tree_node* %2, %union.tree_node* %node
+  br label %if.end
+
+if.end:                                           ; preds = %land.lhs.true2, %land.lhs.true, %if.then
+  %node.addr.0 = phi %union.tree_node* [ %node, %land.lhs.true ], [ %node, %if.then ], [ %.node, %land.lhs.true2 ]
+  %data = getelementptr inbounds %struct.varray_head_tag* %0, i64 0, i32 4
+  %arrayidx15 = bitcast %union.varray_data_tag* %data to i8**
+  %dep_ptr.0.in42 = load i8** %arrayidx15, align 8
+  %tobool1643 = icmp eq i8* %dep_ptr.0.in42, null
+  br i1 %tobool1643, label %return, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %if.end
+  %3 = load %union.tree_node** @dest_to_remember, align 8, !tbaa !1
+  %generic28 = bitcast %union.varray_data_tag* %data to [1 x i8*]*
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.inc
+  %indvars.iv = phi i64 [ 0, %for.body.lr.ph ], [ %indvars.iv.next, %for.inc ]
+  %dep_ptr.0.in45 = phi i8* [ %dep_ptr.0.in42, %for.body.lr.ph ], [ %dep_ptr.0.in, %for.inc ]
+  %source = bitcast i8* %dep_ptr.0.in45 to %union.tree_node**
+  %4 = load %union.tree_node** %source, align 8, !tbaa !36
+  %cmp17 = icmp eq %union.tree_node* %node.addr.0, %4
+  %5 = trunc i64 %indvars.iv to i32
+  br i1 %cmp17, label %land.lhs.true18, label %lor.lhs.false
+
+land.lhs.true18:                                  ; preds = %for.body
+  %destination = getelementptr inbounds i8* %dep_ptr.0.in45, i64 8
+  %6 = bitcast i8* %destination to %union.tree_node**
+  %7 = load %union.tree_node** %6, align 8, !tbaa !38
+  %cmp19 = icmp eq %union.tree_node* %3, %7
+  br i1 %cmp19, label %if.then25, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %land.lhs.true18, %for.body
+  %tobool21 = icmp eq %union.tree_node* %4, null
+  br i1 %tobool21, label %land.lhs.true22, label %for.inc
+
+land.lhs.true22:                                  ; preds = %lor.lhs.false
+  %destination23 = getelementptr inbounds i8* %dep_ptr.0.in45, i64 8
+  %8 = bitcast i8* %destination23 to %union.tree_node**
+  %9 = load %union.tree_node** %8, align 8, !tbaa !38
+  %cmp24 = icmp eq %union.tree_node* %node.addr.0, %9
+  br i1 %cmp24, label %if.then25, label %for.inc
+
+if.then25:                                        ; preds = %land.lhs.true22, %land.lhs.true18
+  %add = add nsw i32 %5, 1
+  br label %return
+
+for.inc:                                          ; preds = %lor.lhs.false, %land.lhs.true22
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %arrayidx29 = getelementptr inbounds [1 x i8*]* %generic28, i64 0, i64 %indvars.iv
+  %dep_ptr.0.in = load i8** %arrayidx29, align 8
+  %tobool16 = icmp eq i8* %dep_ptr.0.in, null
+  br i1 %tobool16, label %return, label %for.body
+
+return:                                           ; preds = %for.inc, %if.end, %entry, %if.then25
+  %retval.0 = phi i32 [ %add, %if.then25 ], [ 0, %entry ], [ 0, %if.end ], [ 0, %for.inc ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define void @remember_dest_for_dependence(%union.tree_node* %node) #0 {
+entry:
+  %tobool = icmp eq %union.tree_node* %node, null
+  br i1 %tobool, label %if.end15, label %if.then
+
+if.then:                                          ; preds = %entry
+  %code = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 0, i32 2
+  %bf.load = load i32* %code, align 8
+  %bf.clear = and i32 %bf.load, 255
+  %cmp = icmp eq i32 %bf.clear, 41
+  br i1 %cmp, label %land.lhs.true, label %if.end
+
+land.lhs.true:                                    ; preds = %if.then
+  %operands = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx = getelementptr inbounds i32* %operands, i64 2
+  %0 = bitcast i32* %arrayidx to %union.tree_node**
+  %1 = load %union.tree_node** %0, align 8, !tbaa !1
+  %tobool1 = icmp eq %union.tree_node* %1, null
+  br i1 %tobool1, label %if.end, label %land.lhs.true2
+
+land.lhs.true2:                                   ; preds = %land.lhs.true
+  %code7 = getelementptr inbounds %union.tree_node* %1, i64 0, i32 0, i32 0, i32 2
+  %bf.load8 = load i32* %code7, align 8
+  %bf.clear9 = and i32 %bf.load8, 255
+  %cmp10 = icmp eq i32 %bf.clear9, 43
+  %.node = select i1 %cmp10, %union.tree_node* %1, %union.tree_node* %node
+  br label %if.end
+
+if.end:                                           ; preds = %land.lhs.true2, %land.lhs.true, %if.then
+  %node.addr.0 = phi %union.tree_node* [ %node, %land.lhs.true ], [ %node, %if.then ], [ %.node, %land.lhs.true2 ]
+  store %union.tree_node* %node.addr.0, %union.tree_node** @dest_to_remember, align 8, !tbaa !1
+  br label %if.end15
+
+if.end15:                                         ; preds = %entry, %if.end
+  ret void
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @have_dependence_p(%struct.rtx_def* nocapture readonly %dest_rtx, %struct.rtx_def* nocapture readonly %src_rtx, i32* nocapture readnone %direction, i32* nocapture readnone %distance) #3 {
+entry:
+  %arrayidx = getelementptr inbounds %struct.rtx_def* %dest_rtx, i64 0, i32 1, i64 3
+  %rtx = bitcast %union.rtunion_def* %arrayidx to %struct.rtx_def**
+  %0 = load %struct.rtx_def** %rtx, align 8, !tbaa !1
+  %arrayidx2 = getelementptr inbounds %struct.rtx_def* %0, i64 0, i32 1, i64 0
+  %rtx3 = bitcast %union.rtunion_def* %arrayidx2 to %struct.rtx_def**
+  %1 = load %struct.rtx_def** %rtx3, align 8, !tbaa !1
+  %2 = getelementptr inbounds %struct.rtx_def* %1, i64 0, i32 0
+  %bf.load = load i32* %2, align 8
+  %bf.clear = and i32 %bf.load, 65535
+  %cmp = icmp eq i32 %bf.clear, 66
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %rtwint = getelementptr inbounds %struct.rtx_def* %1, i64 0, i32 1, i64 2, i32 0
+  %3 = load i64* %rtwint, align 8, !tbaa !58
+  %sub = add nsw i64 %3, 4294967295
+  %conv = trunc i64 %sub to i32
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %dest_idx.0 = phi i32 [ %conv, %if.then ], [ 0, %entry ]
+  %arrayidx13 = getelementptr inbounds %struct.rtx_def* %src_rtx, i64 0, i32 1, i64 3
+  %rtx14 = bitcast %union.rtunion_def* %arrayidx13 to %struct.rtx_def**
+  %4 = load %struct.rtx_def** %rtx14, align 8, !tbaa !1
+  %arrayidx16 = getelementptr inbounds %struct.rtx_def* %4, i64 0, i32 1, i64 1
+  %rtx17 = bitcast %union.rtunion_def* %arrayidx16 to %struct.rtx_def**
+  %5 = load %struct.rtx_def** %rtx17, align 8, !tbaa !1
+  %6 = getelementptr inbounds %struct.rtx_def* %5, i64 0, i32 0
+  %bf.load18 = load i32* %6, align 8
+  %bf.clear19 = and i32 %bf.load18, 65535
+  %cmp20 = icmp eq i32 %bf.clear19, 66
+  br i1 %cmp20, label %if.then22, label %if.end34
+
+if.then22:                                        ; preds = %if.end
+  %rtwint31 = getelementptr inbounds %struct.rtx_def* %5, i64 0, i32 1, i64 2, i32 0
+  %7 = load i64* %rtwint31, align 8, !tbaa !58
+  %sub32 = add nsw i64 %7, 4294967295
+  %conv33 = trunc i64 %sub32 to i32
+  br label %if.end34
+
+if.end34:                                         ; preds = %if.then22, %if.end
+  %src_idx.0 = phi i32 [ %conv33, %if.then22 ], [ 0, %if.end ]
+  %8 = and i32 %src_idx.0, %dest_idx.0
+  %9 = icmp sgt i32 %8, -1
+  br i1 %9, label %return, label %if.end40
+
+if.end40:                                         ; preds = %if.end34
+  %sub41 = sub nsw i32 0, %dest_idx.0
+  %idxprom = sext i32 %sub41 to i64
+  %10 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %data = getelementptr inbounds %struct.varray_head_tag* %10, i64 0, i32 4
+  %generic = bitcast %union.varray_data_tag* %data to [1 x i8*]*
+  %arrayidx42 = getelementptr inbounds [1 x i8*]* %generic, i64 0, i64 %idxprom
+  %11 = load i8** %arrayidx42, align 8, !tbaa !1
+  %tobool61 = icmp eq i8* %11, null
+  br i1 %tobool61, label %return, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %if.end40
+  %sub43 = sub nsw i32 0, %src_idx.0
+  %12 = bitcast i8* %11 to %struct.dependence*
+  %idxprom44 = sext i32 %sub43 to i64
+  %arrayidx47 = getelementptr inbounds [1 x i8*]* %generic, i64 0, i64 %idxprom44
+  %13 = load i8** %arrayidx47, align 8, !tbaa !1
+  %14 = bitcast i8* %13 to %struct.dependence*
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.inc
+  %dep_ptr.062 = phi %struct.dependence* [ %12, %for.body.lr.ph ], [ %15, %for.inc ]
+  %cmp48 = icmp eq %struct.dependence* %dep_ptr.062, %14
+  br i1 %cmp48, label %return, label %for.inc
+
+for.inc:                                          ; preds = %for.body
+  %next = getelementptr inbounds %struct.dependence* %dep_ptr.062, i64 0, i32 5
+  %15 = load %struct.dependence** %next, align 8, !tbaa !39
+  %tobool = icmp eq %struct.dependence* %15, null
+  br i1 %tobool, label %return, label %for.body
+
+return:                                           ; preds = %for.body, %for.inc, %if.end40, %if.end34
+  %retval.0 = phi i32 [ 0, %if.end34 ], [ 0, %if.end40 ], [ 1, %for.body ], [ 0, %for.inc ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define void @end_dependence_analysis() #0 {
+entry:
+  %0 = load %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  %tobool = icmp eq %struct.varray_head_tag* %0, null
+  br i1 %tobool, label %do.end, label %if.then
+
+if.then:                                          ; preds = %entry
+  %1 = bitcast %struct.varray_head_tag* %0 to i8*
+  tail call void @free(i8* %1)
+  store %struct.varray_head_tag* null, %struct.varray_head_tag** @dep_chain, align 8, !tbaa !1
+  br label %do.end
+
+do.end:                                           ; preds = %entry, %if.then
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #4
+
+declare %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag*, i64) #1
+
+declare noalias i8* @xmalloc(i64) #1
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.end(i64, i8* nocapture) #4
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #4
+
+; Function Attrs: nounwind uwtable
+define internal fastcc i32 @get_one_coefficient(%union.tree_node* nocapture readonly %node, %struct.subscript* %coefficients, %struct.def_use* readonly %du, i32* %type) #0 {
+entry:
+  %tree_op_code = alloca i32, align 4
+  %code = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 0, i32 2
+  %bf.load = load i32* %code, align 8
+  %bf.clear = and i32 %bf.load, 255
+  %tobool = icmp eq i32* %type, null
+  br i1 %tobool, label %if.end, label %if.then
+
+if.then:                                          ; preds = %entry
+  store i32 %bf.clear, i32* %type, align 4, !tbaa !15
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %if.then
+  switch i32 %bf.clear, label %return [
+    i32 34, label %if.then1
+    i32 25, label %if.then15
+    i32 116, label %if.then20
+    i32 59, label %if.then25
+    i32 60, label %if.then47
+    i32 61, label %if.then69
+  ]
+
+if.then1:                                         ; preds = %if.end
+  %outer_loop = getelementptr inbounds %struct.def_use* %du, i64 0, i32 0
+  %0 = load %union.tree_node** %outer_loop, align 8, !tbaa !27
+  %name = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 8
+  %1 = load %union.tree_node** %name, align 8, !tbaa !46
+  %id = getelementptr inbounds %union.tree_node* %1, i64 0, i32 0, i32 1
+  %2 = getelementptr inbounds i8** %id, i64 1
+  %3 = load i8** %2, align 8, !tbaa !48
+  %4 = load %struct.varray_head_tag** @loop_chain, align 8, !tbaa !1
+  %data.i = getelementptr inbounds %struct.varray_head_tag* %4, i64 0, i32 4
+  %arrayidx.i = bitcast %union.varray_data_tag* %data.i to i8**
+  %loop_ptr.0.in34.i = load i8** %arrayidx.i, align 8
+  %tobool35.i = icmp eq i8* %loop_ptr.0.in34.i, null
+  br i1 %tobool35.i, label %return, label %land.rhs.lr.ph.i
+
+land.rhs.lr.ph.i:                                 ; preds = %if.then1
+  %num_elements.i = getelementptr inbounds %struct.varray_head_tag* %4, i64 0, i32 0
+  %5 = load i64* %num_elements.i, align 8, !tbaa !5
+  %6 = load %struct.varray_head_tag** @induction_chain, align 8, !tbaa !1
+  %num_elements9.i = getelementptr inbounds %struct.varray_head_tag* %6, i64 0, i32 0
+  %generic20.i = bitcast %union.varray_data_tag* %data.i to [1 x i8*]*
+  br label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.inc17.i, %land.rhs.lr.ph.i
+  %loop_ptr.0.in40.i = phi i8* [ %loop_ptr.0.in34.i, %land.rhs.lr.ph.i ], [ %loop_ptr.0.in.i, %for.inc17.i ]
+  %loop_idx.036.i = phi i32 [ 0, %land.rhs.lr.ph.i ], [ %inc.i, %for.inc17.i ]
+  %conv.i = zext i32 %loop_idx.036.i to i64
+  %cmp.i = icmp ult i64 %conv.i, %5
+  br i1 %cmp.i, label %for.body.i, label %return
+
+for.body.i:                                       ; preds = %land.rhs.i
+  %outer_loop2.i = bitcast i8* %loop_ptr.0.in40.i to %union.tree_node**
+  %7 = load %union.tree_node** %outer_loop2.i, align 8, !tbaa !8
+  %cmp3.i = icmp eq %union.tree_node* %7, %0
+  br i1 %cmp3.i, label %if.then.i, label %for.inc17.i
+
+if.then.i:                                        ; preds = %for.body.i
+  %ind.i = getelementptr inbounds i8* %loop_ptr.0.in40.i, i64 32
+  %8 = bitcast i8* %ind.i to %struct.induction**
+  %ind_ptr.031.i = load %struct.induction** %8, align 8
+  %tobool632.i = icmp eq %struct.induction* %ind_ptr.031.i, null
+  br i1 %tobool632.i, label %for.inc17.i, label %land.rhs7.lr.ph.i
+
+land.rhs7.lr.ph.i:                                ; preds = %if.then.i
+  %9 = load i64* %num_elements9.i, align 8, !tbaa !5
+  %cmp10.i = icmp eq i64 %9, 0
+  br i1 %cmp10.i, label %for.inc17.i, label %for.body13.i
+
+for.cond5.i:                                      ; preds = %for.body13.i
+  %next.i = getelementptr inbounds %struct.induction* %ind_ptr.033.i, i64 0, i32 4
+  %ind_ptr.0.i = load %struct.induction** %next.i, align 8
+  %tobool6.i = icmp eq %struct.induction* %ind_ptr.0.i, null
+  br i1 %tobool6.i, label %for.inc17.i, label %for.body13.i
+
+for.body13.i:                                     ; preds = %land.rhs7.lr.ph.i, %for.cond5.i
+  %ind_ptr.033.i = phi %struct.induction* [ %ind_ptr.0.i, %for.cond5.i ], [ %ind_ptr.031.i, %land.rhs7.lr.ph.i ]
+  %variable.i = getelementptr inbounds %struct.induction* %ind_ptr.033.i, i64 0, i32 0
+  %10 = load i8** %variable.i, align 8, !tbaa !30
+  %call.i = call i32 @strcmp(i8* %10, i8* %3) #4
+  %tobool14.i = icmp eq i32 %call.i, 0
+  br i1 %tobool14.i, label %have_induction_variable.exit, label %for.cond5.i
+
+for.inc17.i:                                      ; preds = %for.cond5.i, %land.rhs7.lr.ph.i, %if.then.i, %for.body.i
+  %inc.i = add i32 %loop_idx.036.i, 1
+  %idxprom18.i = zext i32 %inc.i to i64
+  %arrayidx21.i = getelementptr inbounds [1 x i8*]* %generic20.i, i64 0, i64 %idxprom18.i
+  %loop_ptr.0.in.i = load i8** %arrayidx21.i, align 8
+  %tobool.i = icmp eq i8* %loop_ptr.0.in.i, null
+  br i1 %tobool.i, label %return, label %land.rhs.i
+
+have_induction_variable.exit:                     ; preds = %for.body13.i
+  %add.i = add i32 %loop_idx.036.i, 1
+  %cmp2 = icmp sgt i32 %add.i, -1
+  br i1 %cmp2, label %if.then3, label %return
+
+if.then3:                                         ; preds = %have_induction_variable.exit
+  %position = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 0
+  store i32 %add.i, i32* %position, align 4, !tbaa !18
+  %variable = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 3
+  store i8* %3, i8** %variable, align 8, !tbaa !29
+  %coefficient = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 1
+  store i32 1, i32* %coefficient, align 4, !tbaa !20
+  %offset = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 2
+  %11 = load i32* %offset, align 4, !tbaa !21
+  %cmp9 = icmp eq i32 %11, -2147483648
+  br i1 %cmp9, label %if.then10, label %return
+
+if.then10:                                        ; preds = %if.then3
+  store i32 0, i32* %offset, align 4, !tbaa !21
+  br label %return
+
+if.then15:                                        ; preds = %if.end
+  %int_cst16 = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %low = bitcast i32* %int_cst16 to i64*
+  %12 = load i64* %low, align 8, !tbaa !22
+  %conv = trunc i64 %12 to i32
+  br label %return
+
+if.then20:                                        ; preds = %if.end
+  %operands = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx = bitcast i32* %operands to %union.tree_node**
+  %13 = load %union.tree_node** %arrayidx, align 8, !tbaa !1
+  %call21 = call fastcc i32 @get_one_coefficient(%union.tree_node* %13, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  br label %return
+
+if.then25:                                        ; preds = %if.end
+  %operands27 = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx28 = bitcast i32* %operands27 to %union.tree_node**
+  %14 = load %union.tree_node** %arrayidx28, align 8, !tbaa !1
+  %call29 = call fastcc i32 @get_one_coefficient(%union.tree_node* %14, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  %15 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp30 = icmp eq i32 %15, 25
+  br i1 %cmp30, label %if.then32, label %if.end34
+
+if.then32:                                        ; preds = %if.then25
+  %offset33 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 2
+  store i32 %call29, i32* %offset33, align 4, !tbaa !21
+  br label %if.end34
+
+if.end34:                                         ; preds = %if.then32, %if.then25
+  %arrayidx37 = getelementptr inbounds i32* %operands27, i64 2
+  %16 = bitcast i32* %arrayidx37 to %union.tree_node**
+  %17 = load %union.tree_node** %16, align 8, !tbaa !1
+  %call38 = call fastcc i32 @get_one_coefficient(%union.tree_node* %17, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  %18 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp39 = icmp eq i32 %18, 25
+  br i1 %cmp39, label %if.then41, label %return
+
+if.then41:                                        ; preds = %if.end34
+  %offset42 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 2
+  store i32 %call38, i32* %offset42, align 4, !tbaa !21
+  br label %return
+
+if.then47:                                        ; preds = %if.end
+  %operands49 = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx50 = bitcast i32* %operands49 to %union.tree_node**
+  %19 = load %union.tree_node** %arrayidx50, align 8, !tbaa !1
+  %call51 = call fastcc i32 @get_one_coefficient(%union.tree_node* %19, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  %20 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp52 = icmp eq i32 %20, 25
+  br i1 %cmp52, label %if.then54, label %if.end56
+
+if.then54:                                        ; preds = %if.then47
+  %offset55 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 2
+  store i32 %call51, i32* %offset55, align 4, !tbaa !21
+  br label %if.end56
+
+if.end56:                                         ; preds = %if.then54, %if.then47
+  %arrayidx59 = getelementptr inbounds i32* %operands49, i64 2
+  %21 = bitcast i32* %arrayidx59 to %union.tree_node**
+  %22 = load %union.tree_node** %21, align 8, !tbaa !1
+  %call60 = call fastcc i32 @get_one_coefficient(%union.tree_node* %22, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  %23 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp61 = icmp eq i32 %23, 25
+  br i1 %cmp61, label %if.then63, label %return
+
+if.then63:                                        ; preds = %if.end56
+  %sub = sub nsw i32 0, %call60
+  %offset64 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 2
+  store i32 %sub, i32* %offset64, align 4, !tbaa !21
+  br label %return
+
+if.then69:                                        ; preds = %if.end
+  %operands71 = getelementptr inbounds %union.tree_node* %node, i64 0, i32 0, i32 2
+  %arrayidx72 = bitcast i32* %operands71 to %union.tree_node**
+  %24 = load %union.tree_node** %arrayidx72, align 8, !tbaa !1
+  %call73 = call fastcc i32 @get_one_coefficient(%union.tree_node* %24, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  %25 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp74 = icmp eq i32 %25, 34
+  %arrayidx80 = getelementptr inbounds i32* %operands71, i64 2
+  %26 = bitcast i32* %arrayidx80 to %union.tree_node**
+  %27 = load %union.tree_node** %26, align 8, !tbaa !1
+  %call81 = call fastcc i32 @get_one_coefficient(%union.tree_node* %27, %struct.subscript* %coefficients, %struct.def_use* %du, i32* %tree_op_code)
+  br i1 %cmp74, label %if.then87, label %if.else89
+
+if.then87:                                        ; preds = %if.then69
+  %coefficient88 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 1
+  store i32 %call81, i32* %coefficient88, align 4, !tbaa !20
+  br label %return
+
+if.else89:                                        ; preds = %if.then69
+  %28 = load i32* %tree_op_code, align 4, !tbaa !15
+  %cmp82 = icmp eq i32 %28, 34
+  br i1 %cmp82, label %if.then91, label %return
+
+if.then91:                                        ; preds = %if.else89
+  %coefficient92 = getelementptr inbounds %struct.subscript* %coefficients, i64 0, i32 1
+  store i32 %call73, i32* %coefficient92, align 4, !tbaa !20
+  br label %return
+
+return:                                           ; preds = %for.inc17.i, %land.rhs.i, %if.else89, %if.then1, %if.then87, %if.then91, %if.end, %if.end56, %if.then63, %if.end34, %if.then41, %have_induction_variable.exit, %if.then10, %if.then3, %if.then20, %if.then15
+  %retval.0 = phi i32 [ %conv, %if.then15 ], [ %call21, %if.then20 ], [ %add.i, %if.then3 ], [ %add.i, %if.then10 ], [ %add.i, %have_induction_variable.exit ], [ 0, %if.then41 ], [ 0, %if.end34 ], [ 0, %if.then63 ], [ 0, %if.end56 ], [ 0, %if.end ], [ 0, %if.else89 ], [ 0, %if.then91 ], [ 0, %if.then87 ], [ -1, %if.then1 ], [ -1, %land.rhs.i ], [ -1, %for.inc17.i ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind readonly
+declare i32 @strcmp(i8* nocapture, i8* nocapture) #5
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind }
+attributes #5 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !7, i64 0}
+!6 = metadata !{metadata !"varray_head_tag", metadata !7, i64 0, metadata !7, i64 8, metadata !7, i64 16, metadata !2, i64 24, metadata !3, i64 32}
+!7 = metadata !{metadata !"long", metadata !3, i64 0}
+!8 = metadata !{metadata !9, metadata !2, i64 0}
+!9 = metadata !{metadata !"loop", metadata !2, i64 0, metadata !2, i64 8, metadata !10, i64 16, metadata !3, i64 20, metadata !2, i64 24, metadata !2, i64 32}
+!10 = metadata !{metadata !"int", metadata !3, i64 0}
+!11 = metadata !{metadata !9, metadata !10, i64 16}
+!12 = metadata !{metadata !9, metadata !2, i64 24}
+!13 = metadata !{metadata !14, metadata !3, i64 36}
+!14 = metadata !{metadata !"def_use", metadata !2, i64 0, metadata !2, i64 8, metadata !2, i64 16, metadata !2, i64 24, metadata !3, i64 32, metadata !3, i64 36, metadata !2, i64 40, metadata !2, i64 48}
+!15 = metadata !{metadata !3, metadata !3, i64 0}
+!16 = metadata !{metadata !10, metadata !10, i64 0}
+!17 = metadata !{metadata !14, metadata !3, i64 32}
+!18 = metadata !{metadata !19, metadata !10, i64 0}
+!19 = metadata !{metadata !"subscript", metadata !10, i64 0, metadata !10, i64 4, metadata !10, i64 8, metadata !2, i64 16, metadata !2, i64 24}
+!20 = metadata !{metadata !19, metadata !10, i64 4}
+!21 = metadata !{metadata !19, metadata !10, i64 8}
+!22 = metadata !{metadata !23, metadata !26, i64 32}
+!23 = metadata !{metadata !"tree_int_cst", metadata !24, i64 0, metadata !2, i64 24, metadata !25, i64 32}
+!24 = metadata !{metadata !"tree_common", metadata !2, i64 0, metadata !2, i64 8, metadata !3, i64 16, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 17, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 18, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19, metadata !10, i64 19}
+!25 = metadata !{metadata !"", metadata !26, i64 0, metadata !26, i64 8}
+!26 = metadata !{metadata !"long long", metadata !3, i64 0}
+!27 = metadata !{metadata !14, metadata !2, i64 0}
+!28 = metadata !{metadata !9, metadata !3, i64 20}
+!29 = metadata !{metadata !19, metadata !2, i64 16}
+!30 = metadata !{metadata !31, metadata !2, i64 0}
+!31 = metadata !{metadata !"induction", metadata !2, i64 0, metadata !10, i64 8, metadata !10, i64 12, metadata !10, i64 16, metadata !2, i64 24}
+!32 = metadata !{metadata !31, metadata !10, i64 12}
+!33 = metadata !{metadata !31, metadata !10, i64 16}
+!34 = metadata !{metadata !6, metadata !7, i64 8}
+!35 = metadata !{metadata !14, metadata !2, i64 16}
+!36 = metadata !{metadata !37, metadata !2, i64 0}
+!37 = metadata !{metadata !"dependence", metadata !2, i64 0, metadata !2, i64 8, metadata !3, i64 16, metadata !3, i64 20, metadata !3, i64 72, metadata !2, i64 128}
+!38 = metadata !{metadata !37, metadata !2, i64 8}
+!39 = metadata !{metadata !37, metadata !2, i64 128}
+!40 = metadata !{metadata !37, metadata !3, i64 16}
+!41 = metadata !{metadata !14, metadata !2, i64 48}
+!42 = metadata !{metadata !14, metadata !2, i64 40}
+!43 = metadata !{metadata !44, metadata !2, i64 32}
+!44 = metadata !{metadata !"tree_list", metadata !24, i64 0, metadata !2, i64 24, metadata !2, i64 32}
+!45 = metadata !{metadata !9, metadata !2, i64 8}
+!46 = metadata !{metadata !47, metadata !2, i64 72}
+!47 = metadata !{metadata !"tree_decl", metadata !24, i64 0, metadata !2, i64 24, metadata !10, i64 32, metadata !10, i64 36, metadata !2, i64 40, metadata !3, i64 48, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 49, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 50, metadata !10, i64 51, metadata !10, i64 51, metadata !10, i64 51, metadata !10, i64 51, metadata !10, i64 51, metadata !3, i64 51, metadata !10, i64 51, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 52, metadata !10, i64 53, metadata !10, i64 53, metadata !10, i64 53, metadata !10, i64 53, metadata !10, i64 53, metadata !3, i64 56, metadata !2, i64 64, metadata !2, i64 72, metadata !2, i64 80, metadata !2, i64 88, metadata !2, i64 96, metadata !2, i64 104, metadata !2, i64 112, metadata !2, i64 120, metadata !2, i64 128, metadata !2, i64 136, metadata !2, i64 144, metadata !2, i64 152, metadata !3, i64 160, metadata !2, i64 168, metadata !2, i64 176, metadata !2, i64 184, metadata !26, i64 192, metadata !2, i64 200}
+!48 = metadata !{metadata !49, metadata !2, i64 32}
+!49 = metadata !{metadata !"tree_identifier", metadata !24, i64 0, metadata !50, i64 24}
+!50 = metadata !{metadata !"ht_identifier", metadata !10, i64 0, metadata !2, i64 8}
+!51 = metadata !{metadata !9, metadata !2, i64 32}
+!52 = metadata !{metadata !31, metadata !10, i64 8}
+!53 = metadata !{metadata !24, metadata !2, i64 0}
+!54 = metadata !{metadata !31, metadata !2, i64 24}
+!55 = metadata !{metadata !14, metadata !2, i64 8}
+!56 = metadata !{metadata !14, metadata !2, i64 24}
+!57 = metadata !{metadata !24, metadata !2, i64 8}
+!58 = metadata !{metadata !26, metadata !26, i64 0}

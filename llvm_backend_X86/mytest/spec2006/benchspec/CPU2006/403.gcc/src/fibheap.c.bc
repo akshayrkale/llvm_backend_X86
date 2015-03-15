@@ -1,0 +1,886 @@
+; ModuleID = 'fibheap.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.fibheap = type { i64, %struct.fibnode*, %struct.fibnode* }
+%struct.fibnode = type { %struct.fibnode*, %struct.fibnode*, %struct.fibnode*, %struct.fibnode*, i64, i8*, i32 }
+
+; Function Attrs: nounwind uwtable
+define noalias %struct.fibheap* @fibheap_new() #0 {
+entry:
+  %call = tail call noalias i8* @xcalloc(i64 1, i64 24) #4
+  %0 = bitcast i8* %call to %struct.fibheap*
+  ret %struct.fibheap* %0
+}
+
+declare noalias i8* @xcalloc(i64, i64) #1
+
+; Function Attrs: nounwind uwtable
+define %struct.fibnode* @fibheap_insert(%struct.fibheap* nocapture %heap, i64 %key, i8* %data) #0 {
+entry:
+  %call.i = tail call noalias i8* @xcalloc(i64 1, i64 56) #4
+  %0 = bitcast i8* %call.i to %struct.fibnode*
+  %left.i = getelementptr inbounds i8* %call.i, i64 16
+  %1 = bitcast i8* %left.i to %struct.fibnode**
+  store %struct.fibnode* %0, %struct.fibnode** %1, align 8, !tbaa !1
+  %right.i = getelementptr inbounds i8* %call.i, i64 24
+  %2 = bitcast i8* %right.i to %struct.fibnode**
+  store %struct.fibnode* %0, %struct.fibnode** %2, align 8, !tbaa !8
+  %data1 = getelementptr inbounds i8* %call.i, i64 40
+  %3 = bitcast i8* %data1 to i8**
+  store i8* %data, i8** %3, align 8, !tbaa !9
+  %key2 = getelementptr inbounds i8* %call.i, i64 32
+  %4 = bitcast i8* %key2 to i64*
+  store i64 %key, i64* %4, align 8, !tbaa !10
+  %root.i = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  %5 = load %struct.fibnode** %root.i, align 8, !tbaa !11
+  %cmp.i = icmp eq %struct.fibnode* %5, null
+  br i1 %cmp.i, label %if.then.i, label %if.end.i
+
+if.then.i:                                        ; preds = %entry
+  store %struct.fibnode* %0, %struct.fibnode** %root.i, align 8, !tbaa !11
+  store %struct.fibnode* %0, %struct.fibnode** %1, align 8, !tbaa !1
+  store %struct.fibnode* %0, %struct.fibnode** %2, align 8, !tbaa !8
+  br label %fibheap_ins_root.exit
+
+if.end.i:                                         ; preds = %entry
+  %right.i.i = getelementptr inbounds %struct.fibnode* %5, i64 0, i32 3
+  %6 = load %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %cmp.i.i = icmp eq %struct.fibnode* %6, %5
+  br i1 %cmp.i.i, label %if.then.i.i, label %if.else.i.i
+
+if.then.i.i:                                      ; preds = %if.end.i
+  store %struct.fibnode* %0, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left.i.i = getelementptr inbounds %struct.fibnode* %5, i64 0, i32 2
+  store %struct.fibnode* %0, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %5, %struct.fibnode** %2, align 8, !tbaa !8
+  store %struct.fibnode* %5, %struct.fibnode** %1, align 8, !tbaa !1
+  br label %fibheap_ins_root.exit
+
+if.else.i.i:                                      ; preds = %if.end.i
+  store %struct.fibnode* %6, %struct.fibnode** %2, align 8, !tbaa !8
+  %7 = load %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left7.i.i = getelementptr inbounds %struct.fibnode* %7, i64 0, i32 2
+  store %struct.fibnode* %0, %struct.fibnode** %left7.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %0, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  store %struct.fibnode* %5, %struct.fibnode** %1, align 8, !tbaa !1
+  br label %fibheap_ins_root.exit
+
+fibheap_ins_root.exit:                            ; preds = %if.then.i, %if.then.i.i, %if.else.i.i
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %8 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp = icmp eq %struct.fibnode* %8, null
+  br i1 %cmp, label %if.then, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %fibheap_ins_root.exit
+  %key5 = getelementptr inbounds %struct.fibnode* %8, i64 0, i32 4
+  %9 = load i64* %key5, align 8, !tbaa !10
+  %cmp6 = icmp sgt i64 %9, %key
+  br i1 %cmp6, label %if.then, label %if.end
+
+if.then:                                          ; preds = %lor.lhs.false, %fibheap_ins_root.exit
+  store %struct.fibnode* %0, %struct.fibnode** %min, align 8, !tbaa !13
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %lor.lhs.false
+  %nodes = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 0
+  %10 = load i64* %nodes, align 8, !tbaa !14
+  %inc = add i64 %10, 1
+  store i64 %inc, i64* %nodes, align 8, !tbaa !14
+  ret %struct.fibnode* %0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i8* @fibheap_min(%struct.fibheap* nocapture readonly %heap) #2 {
+entry:
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %0 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp = icmp eq %struct.fibnode* %0, null
+  br i1 %cmp, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %data = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 5
+  %1 = load i8** %data, align 8, !tbaa !9
+  br label %return
+
+return:                                           ; preds = %entry, %if.end
+  %retval.0 = phi i8* [ %1, %if.end ], [ null, %entry ]
+  ret i8* %retval.0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i64 @fibheap_min_key(%struct.fibheap* nocapture readonly %heap) #2 {
+entry:
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %0 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp = icmp eq %struct.fibnode* %0, null
+  br i1 %cmp, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %key = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 4
+  %1 = load i64* %key, align 8, !tbaa !10
+  br label %return
+
+return:                                           ; preds = %entry, %if.end
+  %retval.0 = phi i64 [ %1, %if.end ], [ 0, %entry ]
+  ret i64 %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define %struct.fibheap* @fibheap_union(%struct.fibheap* %heapa, %struct.fibheap* %heapb) #0 {
+entry:
+  %root = getelementptr inbounds %struct.fibheap* %heapa, i64 0, i32 2
+  %0 = load %struct.fibnode** %root, align 8, !tbaa !11
+  %cmp = icmp eq %struct.fibnode* %0, null
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %1 = bitcast %struct.fibheap* %heapa to i8*
+  tail call void @free(i8* %1)
+  br label %return
+
+if.end:                                           ; preds = %entry
+  %root1 = getelementptr inbounds %struct.fibheap* %heapb, i64 0, i32 2
+  %2 = load %struct.fibnode** %root1, align 8, !tbaa !11
+  %cmp2 = icmp eq %struct.fibnode* %2, null
+  br i1 %cmp2, label %if.then3, label %if.end4
+
+if.then3:                                         ; preds = %if.end
+  %3 = bitcast %struct.fibheap* %heapb to i8*
+  tail call void @free(i8* %3)
+  br label %return
+
+if.end4:                                          ; preds = %if.end
+  %left = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 2
+  %4 = load %struct.fibnode** %left, align 8, !tbaa !1
+  %right = getelementptr inbounds %struct.fibnode* %4, i64 0, i32 3
+  store %struct.fibnode* %2, %struct.fibnode** %right, align 8, !tbaa !8
+  %left5 = getelementptr inbounds %struct.fibnode* %2, i64 0, i32 2
+  %5 = load %struct.fibnode** %left5, align 8, !tbaa !1
+  %right6 = getelementptr inbounds %struct.fibnode* %5, i64 0, i32 3
+  store %struct.fibnode* %0, %struct.fibnode** %right6, align 8, !tbaa !8
+  store %struct.fibnode* %5, %struct.fibnode** %left, align 8, !tbaa !1
+  store %struct.fibnode* %4, %struct.fibnode** %left5, align 8, !tbaa !1
+  %nodes = getelementptr inbounds %struct.fibheap* %heapb, i64 0, i32 0
+  %6 = load i64* %nodes, align 8, !tbaa !14
+  %nodes11 = getelementptr inbounds %struct.fibheap* %heapa, i64 0, i32 0
+  %7 = load i64* %nodes11, align 8, !tbaa !14
+  %add = add i64 %7, %6
+  store i64 %add, i64* %nodes11, align 8, !tbaa !14
+  %min = getelementptr inbounds %struct.fibheap* %heapb, i64 0, i32 1
+  %8 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %min12 = getelementptr inbounds %struct.fibheap* %heapa, i64 0, i32 1
+  %9 = load %struct.fibnode** %min12, align 8, !tbaa !13
+  %.idx = getelementptr %struct.fibnode* %8, i64 0, i32 4
+  %.idx.val = load i64* %.idx, align 8, !tbaa !10
+  %.idx37 = getelementptr %struct.fibnode* %9, i64 0, i32 4
+  %.idx37.val = load i64* %.idx37, align 8, !tbaa !10
+  %cmp.i = icmp slt i64 %.idx.val, %.idx37.val
+  br i1 %cmp.i, label %if.then14, label %if.end17
+
+if.then14:                                        ; preds = %if.end4
+  store %struct.fibnode* %8, %struct.fibnode** %min12, align 8, !tbaa !13
+  br label %if.end17
+
+if.end17:                                         ; preds = %if.end4, %if.then14
+  %10 = bitcast %struct.fibheap* %heapb to i8*
+  tail call void @free(i8* %10)
+  br label %return
+
+return:                                           ; preds = %if.end17, %if.then3, %if.then
+  %retval.0 = phi %struct.fibheap* [ %heapb, %if.then ], [ %heapa, %if.then3 ], [ %heapa, %if.end17 ]
+  ret %struct.fibheap* %retval.0
+}
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #3
+
+; Function Attrs: nounwind uwtable
+define i8* @fibheap_extract_min(%struct.fibheap* nocapture %heap) #0 {
+entry:
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %0 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp = icmp eq %struct.fibnode* %0, null
+  br i1 %cmp, label %if.end, label %if.then
+
+if.then:                                          ; preds = %entry
+  %call = tail call fastcc %struct.fibnode* @fibheap_extr_min_node(%struct.fibheap* %heap)
+  %data = getelementptr inbounds %struct.fibnode* %call, i64 0, i32 5
+  %1 = load i8** %data, align 8, !tbaa !9
+  %2 = bitcast %struct.fibnode* %call to i8*
+  tail call void @free(i8* %2)
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %if.then
+  %ret.0 = phi i8* [ %1, %if.then ], [ null, %entry ]
+  ret i8* %ret.0
+}
+
+; Function Attrs: nounwind uwtable
+define internal fastcc %struct.fibnode* @fibheap_extr_min_node(%struct.fibheap* nocapture %heap) #0 {
+entry:
+  %a.i = alloca [65 x %struct.fibnode*], align 16
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %0 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %child = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 1
+  %1 = load %struct.fibnode** %child, align 8, !tbaa !15
+  %2 = icmp eq %struct.fibnode* %1, null
+  br i1 %2, label %for.end, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %entry
+  %root.i = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  %.pre = load %struct.fibnode** %root.i, align 8, !tbaa !11
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.cond.backedge
+  %3 = phi %struct.fibnode* [ %.pre, %for.body.lr.ph ], [ %5, %for.cond.backedge ]
+  %orig.043 = phi %struct.fibnode* [ null, %for.body.lr.ph ], [ %x.0.orig.0, %for.cond.backedge ]
+  %x.042 = phi %struct.fibnode* [ %1, %for.body.lr.ph ], [ %4, %for.cond.backedge ]
+  %cmp2 = icmp eq %struct.fibnode* %orig.043, null
+  %x.0.orig.0 = select i1 %cmp2, %struct.fibnode* %x.042, %struct.fibnode* %orig.043
+  %right = getelementptr inbounds %struct.fibnode* %x.042, i64 0, i32 3
+  %4 = load %struct.fibnode** %right, align 8, !tbaa !8
+  %parent = getelementptr inbounds %struct.fibnode* %x.042, i64 0, i32 0
+  store %struct.fibnode* null, %struct.fibnode** %parent, align 8, !tbaa !16
+  %cmp.i = icmp eq %struct.fibnode* %3, null
+  br i1 %cmp.i, label %if.then.i, label %if.end.i
+
+if.then.i:                                        ; preds = %for.body
+  store %struct.fibnode* %x.042, %struct.fibnode** %root.i, align 8, !tbaa !11
+  %left.i = getelementptr inbounds %struct.fibnode* %x.042, i64 0, i32 2
+  store %struct.fibnode* %x.042, %struct.fibnode** %left.i, align 8, !tbaa !1
+  store %struct.fibnode* %x.042, %struct.fibnode** %right, align 8, !tbaa !8
+  br label %for.cond.backedge
+
+for.cond.backedge:                                ; preds = %if.then.i, %if.then.i.i, %if.else.i.i
+  %5 = phi %struct.fibnode* [ %x.042, %if.then.i ], [ %3, %if.then.i.i ], [ %3, %if.else.i.i ]
+  %cmp = icmp ne %struct.fibnode* %4, %x.0.orig.0
+  %cmp1 = icmp ne %struct.fibnode* %4, null
+  %or.cond = and i1 %cmp, %cmp1
+  br i1 %or.cond, label %for.body, label %for.end
+
+if.end.i:                                         ; preds = %for.body
+  %right.i.i = getelementptr inbounds %struct.fibnode* %3, i64 0, i32 3
+  %6 = load %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %cmp.i.i = icmp eq %struct.fibnode* %6, %3
+  br i1 %cmp.i.i, label %if.then.i.i, label %if.else.i.i
+
+if.then.i.i:                                      ; preds = %if.end.i
+  store %struct.fibnode* %x.042, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left.i.i = getelementptr inbounds %struct.fibnode* %3, i64 0, i32 2
+  store %struct.fibnode* %x.042, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %3, %struct.fibnode** %right, align 8, !tbaa !8
+  %left3.i.i = getelementptr inbounds %struct.fibnode* %x.042, i64 0, i32 2
+  store %struct.fibnode* %3, %struct.fibnode** %left3.i.i, align 8, !tbaa !1
+  br label %for.cond.backedge
+
+if.else.i.i:                                      ; preds = %if.end.i
+  store %struct.fibnode* %6, %struct.fibnode** %right, align 8, !tbaa !8
+  %7 = load %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left7.i.i = getelementptr inbounds %struct.fibnode* %7, i64 0, i32 2
+  store %struct.fibnode* %x.042, %struct.fibnode** %left7.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %x.042, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left9.i.i = getelementptr inbounds %struct.fibnode* %x.042, i64 0, i32 2
+  store %struct.fibnode* %3, %struct.fibnode** %left9.i.i, align 8, !tbaa !1
+  br label %for.cond.backedge
+
+for.end:                                          ; preds = %for.cond.backedge, %entry
+  %left.i32 = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 2
+  %8 = load %struct.fibnode** %left.i32, align 8, !tbaa !1
+  %cmp.i33 = icmp eq %struct.fibnode* %8, %0
+  br i1 %cmp.i33, label %if.then.i35, label %if.else.i
+
+if.then.i35:                                      ; preds = %for.end
+  %root.i34 = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  store %struct.fibnode* null, %struct.fibnode** %root.i34, align 8, !tbaa !11
+  br label %fibheap_rem_root.exit
+
+if.else.i:                                        ; preds = %for.end
+  %parent.i.i = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 0
+  %9 = load %struct.fibnode** %parent.i.i, align 8, !tbaa !16
+  %cmp2.i.i = icmp eq %struct.fibnode* %9, null
+  br i1 %cmp2.i.i, label %fibnode_remove.exit.i, label %land.lhs.true.i.i
+
+land.lhs.true.i.i:                                ; preds = %if.else.i
+  %child.i.i36 = getelementptr inbounds %struct.fibnode* %9, i64 0, i32 1
+  %10 = load %struct.fibnode** %child.i.i36, align 8, !tbaa !15
+  %cmp4.i.i = icmp eq %struct.fibnode* %10, %0
+  br i1 %cmp4.i.i, label %if.then5.i.i, label %fibnode_remove.exit.i
+
+if.then5.i.i:                                     ; preds = %land.lhs.true.i.i
+  store %struct.fibnode* %8, %struct.fibnode** %child.i.i36, align 8, !tbaa !15
+  br label %fibnode_remove.exit.i
+
+fibnode_remove.exit.i:                            ; preds = %if.then5.i.i, %land.lhs.true.i.i, %if.else.i
+  %right.i.i37 = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 3
+  %11 = load %struct.fibnode** %right.i.i37, align 8, !tbaa !8
+  %left10.i.i = getelementptr inbounds %struct.fibnode* %11, i64 0, i32 2
+  store %struct.fibnode* %8, %struct.fibnode** %left10.i.i, align 8, !tbaa !1
+  %12 = load %struct.fibnode** %left.i32, align 8, !tbaa !1
+  %right13.i.i = getelementptr inbounds %struct.fibnode* %12, i64 0, i32 3
+  store %struct.fibnode* %11, %struct.fibnode** %right13.i.i, align 8, !tbaa !8
+  store %struct.fibnode* null, %struct.fibnode** %parent.i.i, align 8, !tbaa !16
+  store %struct.fibnode* %0, %struct.fibnode** %left.i32, align 8, !tbaa !1
+  store %struct.fibnode* %0, %struct.fibnode** %right.i.i37, align 8, !tbaa !8
+  %root1.i = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  store %struct.fibnode* %8, %struct.fibnode** %root1.i, align 8, !tbaa !11
+  br label %fibheap_rem_root.exit
+
+fibheap_rem_root.exit:                            ; preds = %if.then.i35, %fibnode_remove.exit.i
+  %13 = phi %struct.fibnode* [ null, %if.then.i35 ], [ %8, %fibnode_remove.exit.i ]
+  %nodes = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 0
+  %14 = load i64* %nodes, align 8, !tbaa !14
+  %dec = add i64 %14, -1
+  store i64 %dec, i64* %nodes, align 8, !tbaa !14
+  %cmp4 = icmp eq i64 %dec, 0
+  br i1 %cmp4, label %if.then5, label %if.else
+
+if.then5:                                         ; preds = %fibheap_rem_root.exit
+  store %struct.fibnode* null, %struct.fibnode** %min, align 8, !tbaa !13
+  br label %if.end9
+
+if.else:                                          ; preds = %fibheap_rem_root.exit
+  %right7 = getelementptr inbounds %struct.fibnode* %0, i64 0, i32 3
+  %15 = load %struct.fibnode** %right7, align 8, !tbaa !8
+  store %struct.fibnode* %15, %struct.fibnode** %min, align 8, !tbaa !13
+  %16 = bitcast [65 x %struct.fibnode*]* %a.i to i8*
+  call void @llvm.lifetime.start(i64 520, i8* %16) #4
+  call void @llvm.memset.p0i8.i64(i8* %16, i8 0, i64 520, i32 16, i1 false) #4
+  %root.i26 = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  %cmp105.i = icmp eq %struct.fibnode* %13, null
+  br i1 %cmp105.i, label %while.end14.i, label %while.body.i
+
+while.body.i:                                     ; preds = %if.else, %while.end.i
+  %17 = phi %struct.fibnode* [ %33, %while.end.i ], [ %13, %if.else ]
+  %left.i.i27 = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 2
+  %18 = load %struct.fibnode** %left.i.i27, align 8, !tbaa !1
+  %cmp.i.i28 = icmp eq %struct.fibnode* %18, %17
+  br i1 %cmp.i.i28, label %fibheap_rem_root.exit.i, label %if.else.i.i29
+
+if.else.i.i29:                                    ; preds = %while.body.i
+  %parent.i.i.i = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 0
+  %19 = load %struct.fibnode** %parent.i.i.i, align 8, !tbaa !16
+  %cmp2.i.i.i = icmp eq %struct.fibnode* %19, null
+  br i1 %cmp2.i.i.i, label %fibnode_remove.exit.i.i, label %land.lhs.true.i.i.i
+
+land.lhs.true.i.i.i:                              ; preds = %if.else.i.i29
+  %child.i.i.i = getelementptr inbounds %struct.fibnode* %19, i64 0, i32 1
+  %20 = load %struct.fibnode** %child.i.i.i, align 8, !tbaa !15
+  %cmp4.i.i.i = icmp eq %struct.fibnode* %20, %17
+  br i1 %cmp4.i.i.i, label %if.then5.i.i.i, label %fibnode_remove.exit.i.i
+
+if.then5.i.i.i:                                   ; preds = %land.lhs.true.i.i.i
+  store %struct.fibnode* %18, %struct.fibnode** %child.i.i.i, align 8, !tbaa !15
+  br label %fibnode_remove.exit.i.i
+
+fibnode_remove.exit.i.i:                          ; preds = %if.then5.i.i.i, %land.lhs.true.i.i.i, %if.else.i.i29
+  %right.i.i.i = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 3
+  %21 = load %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  %left10.i.i.i = getelementptr inbounds %struct.fibnode* %21, i64 0, i32 2
+  store %struct.fibnode* %18, %struct.fibnode** %left10.i.i.i, align 8, !tbaa !1
+  %22 = load %struct.fibnode** %left.i.i27, align 8, !tbaa !1
+  %right13.i.i.i = getelementptr inbounds %struct.fibnode* %22, i64 0, i32 3
+  store %struct.fibnode* %21, %struct.fibnode** %right13.i.i.i, align 8, !tbaa !8
+  store %struct.fibnode* null, %struct.fibnode** %parent.i.i.i, align 8, !tbaa !16
+  store %struct.fibnode* %17, %struct.fibnode** %left.i.i27, align 8, !tbaa !1
+  store %struct.fibnode* %17, %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  br label %fibheap_rem_root.exit.i
+
+fibheap_rem_root.exit.i:                          ; preds = %fibnode_remove.exit.i.i, %while.body.i
+  %storemerge.i = phi %struct.fibnode* [ %18, %fibnode_remove.exit.i.i ], [ null, %while.body.i ]
+  store %struct.fibnode* %storemerge.i, %struct.fibnode** %root.i26, align 8, !tbaa !11
+  %degree.i = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 6
+  %bf.load.i = load i32* %degree.i, align 8
+  %bf.clear.i = and i32 %bf.load.i, 2147483647
+  %idxprom98107.i = zext i32 %bf.clear.i to i64
+  %arrayidx99.i = getelementptr inbounds [65 x %struct.fibnode*]* %a.i, i64 0, i64 %idxprom98107.i
+  %23 = load %struct.fibnode** %arrayidx99.i, align 8, !tbaa !17
+  %cmp3100.i = icmp eq %struct.fibnode* %23, null
+  br i1 %cmp3100.i, label %while.end.i, label %while.body5.lr.ph.i
+
+while.body5.lr.ph.i:                              ; preds = %fibheap_rem_root.exit.i
+  %24 = zext i32 %bf.load.i to i64
+  %25 = and i64 %24, 2147483647
+  br label %while.body5.i
+
+while.body5.i:                                    ; preds = %fibheap_link.exit.i, %while.body5.lr.ph.i
+  %indvars.iv109.i = phi i64 [ %25, %while.body5.lr.ph.i ], [ %indvars.iv.next110.i, %fibheap_link.exit.i ]
+  %26 = phi %struct.fibnode* [ %23, %while.body5.lr.ph.i ], [ %32, %fibheap_link.exit.i ]
+  %arrayidx103.i = phi %struct.fibnode** [ %arrayidx99.i, %while.body5.lr.ph.i ], [ %arrayidx.i, %fibheap_link.exit.i ]
+  %x.0102.i = phi %struct.fibnode* [ %17, %while.body5.lr.ph.i ], [ %.x.0.i, %fibheap_link.exit.i ]
+  %x.0.idx.i = getelementptr %struct.fibnode* %x.0102.i, i64 0, i32 4
+  %x.0.idx.val.i = load i64* %x.0.idx.i, align 8, !tbaa !10
+  %.idx.i = getelementptr %struct.fibnode* %26, i64 0, i32 4
+  %.idx.val.i = load i64* %.idx.i, align 8, !tbaa !10
+  %27 = icmp sgt i64 %x.0.idx.val.i, %.idx.val.i
+  %.x.0.i = select i1 %27, %struct.fibnode* %26, %struct.fibnode* %x.0102.i
+  %x.0..i = select i1 %27, %struct.fibnode* %x.0102.i, %struct.fibnode* %26
+  %child.i.i = getelementptr inbounds %struct.fibnode* %.x.0.i, i64 0, i32 1
+  %28 = load %struct.fibnode** %child.i.i, align 8, !tbaa !15
+  %cmp.i75.i = icmp eq %struct.fibnode* %28, null
+  br i1 %cmp.i75.i, label %if.then.i76.i, label %if.else.i80.i
+
+if.then.i76.i:                                    ; preds = %while.body5.i
+  store %struct.fibnode* %x.0..i, %struct.fibnode** %child.i.i, align 8, !tbaa !15
+  br label %fibheap_link.exit.i
+
+if.else.i80.i:                                    ; preds = %while.body5.i
+  %left.i77.i = getelementptr inbounds %struct.fibnode* %28, i64 0, i32 2
+  %29 = load %struct.fibnode** %left.i77.i, align 8, !tbaa !1
+  %right.i.i78.i = getelementptr inbounds %struct.fibnode* %29, i64 0, i32 3
+  %30 = load %struct.fibnode** %right.i.i78.i, align 8, !tbaa !8
+  %cmp.i.i79.i = icmp eq %struct.fibnode* %30, %29
+  br i1 %cmp.i.i79.i, label %if.then.i.i84.i, label %if.else.i.i88.i
+
+if.then.i.i84.i:                                  ; preds = %if.else.i80.i
+  store %struct.fibnode* %x.0..i, %struct.fibnode** %right.i.i78.i, align 8, !tbaa !8
+  %left.i.i81.i = getelementptr inbounds %struct.fibnode* %29, i64 0, i32 2
+  store %struct.fibnode* %x.0..i, %struct.fibnode** %left.i.i81.i, align 8, !tbaa !1
+  %right2.i.i82.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 3
+  store %struct.fibnode* %29, %struct.fibnode** %right2.i.i82.i, align 8, !tbaa !8
+  %left3.i.i83.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 2
+  store %struct.fibnode* %29, %struct.fibnode** %left3.i.i83.i, align 8, !tbaa !1
+  br label %fibheap_link.exit.i
+
+if.else.i.i88.i:                                  ; preds = %if.else.i80.i
+  %right5.i.i85.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 3
+  store %struct.fibnode* %30, %struct.fibnode** %right5.i.i85.i, align 8, !tbaa !8
+  %31 = load %struct.fibnode** %right.i.i78.i, align 8, !tbaa !8
+  %left7.i.i86.i = getelementptr inbounds %struct.fibnode* %31, i64 0, i32 2
+  store %struct.fibnode* %x.0..i, %struct.fibnode** %left7.i.i86.i, align 8, !tbaa !1
+  store %struct.fibnode* %x.0..i, %struct.fibnode** %right.i.i78.i, align 8, !tbaa !8
+  %left9.i.i87.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 2
+  store %struct.fibnode* %29, %struct.fibnode** %left9.i.i87.i, align 8, !tbaa !1
+  br label %fibheap_link.exit.i
+
+fibheap_link.exit.i:                              ; preds = %if.else.i.i88.i, %if.then.i.i84.i, %if.then.i76.i
+  %parent3.i.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 0
+  store %struct.fibnode* %.x.0.i, %struct.fibnode** %parent3.i.i, align 8, !tbaa !16
+  %degree.i.i = getelementptr inbounds %struct.fibnode* %.x.0.i, i64 0, i32 6
+  %bf.load.i.i = load i32* %degree.i.i, align 8
+  %inc.i.i = add i32 %bf.load.i.i, 1
+  %bf.value.i.i = and i32 %inc.i.i, 2147483647
+  %bf.clear5.i.i = and i32 %bf.load.i.i, -2147483648
+  %bf.set.i.i = or i32 %bf.value.i.i, %bf.clear5.i.i
+  store i32 %bf.set.i.i, i32* %degree.i.i, align 8
+  %mark.i.i = getelementptr inbounds %struct.fibnode* %x.0..i, i64 0, i32 6
+  %bf.load6.i.i = load i32* %mark.i.i, align 8
+  %bf.clear7.i.i = and i32 %bf.load6.i.i, 2147483647
+  store i32 %bf.clear7.i.i, i32* %mark.i.i, align 8
+  store %struct.fibnode* null, %struct.fibnode** %arrayidx103.i, align 8, !tbaa !17
+  %indvars.iv.next110.i = add nuw nsw i64 %indvars.iv109.i, 1
+  %arrayidx.i = getelementptr inbounds [65 x %struct.fibnode*]* %a.i, i64 0, i64 %indvars.iv.next110.i
+  %32 = load %struct.fibnode** %arrayidx.i, align 8, !tbaa !17
+  %cmp3.i = icmp eq %struct.fibnode* %32, null
+  br i1 %cmp3.i, label %while.end.i, label %while.body5.i
+
+while.end.i:                                      ; preds = %fibheap_link.exit.i, %fibheap_rem_root.exit.i
+  %arrayidx.lcssa.i = phi %struct.fibnode** [ %arrayidx99.i, %fibheap_rem_root.exit.i ], [ %arrayidx.i, %fibheap_link.exit.i ]
+  %x.0.lcssa.i = phi %struct.fibnode* [ %17, %fibheap_rem_root.exit.i ], [ %.x.0.i, %fibheap_link.exit.i ]
+  store %struct.fibnode* %x.0.lcssa.i, %struct.fibnode** %arrayidx.lcssa.i, align 8, !tbaa !17
+  %33 = load %struct.fibnode** %root.i26, align 8, !tbaa !11
+  %cmp.i30 = icmp eq %struct.fibnode* %33, null
+  br i1 %cmp.i30, label %while.end14.i, label %while.body.i
+
+while.end14.i:                                    ; preds = %while.end.i, %if.else
+  store %struct.fibnode* null, %struct.fibnode** %min, align 8, !tbaa !13
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.inc.i, %while.end14.i
+  %34 = phi %struct.fibnode* [ null, %while.end14.i ], [ %40, %for.inc.i ]
+  %35 = phi %struct.fibnode* [ null, %while.end14.i ], [ %41, %for.inc.i ]
+  %indvars.iv.i = phi i64 [ 0, %while.end14.i ], [ %indvars.iv.next.i, %for.inc.i ]
+  %arrayidx18.i = getelementptr inbounds [65 x %struct.fibnode*]* %a.i, i64 0, i64 %indvars.iv.i
+  %36 = load %struct.fibnode** %arrayidx18.i, align 8, !tbaa !17
+  %cmp19.i = icmp eq %struct.fibnode* %36, null
+  br i1 %cmp19.i, label %for.inc.i, label %if.then21.i
+
+if.then21.i:                                      ; preds = %for.body.i
+  %cmp.i70.i = icmp eq %struct.fibnode* %35, null
+  br i1 %cmp.i70.i, label %if.then.i72.i, label %if.end.i74.i
+
+if.then.i72.i:                                    ; preds = %if.then21.i
+  store %struct.fibnode* %36, %struct.fibnode** %root.i26, align 8, !tbaa !11
+  %left.i71.i = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 2
+  store %struct.fibnode* %36, %struct.fibnode** %left.i71.i, align 8, !tbaa !1
+  %right.i.i31 = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 3
+  store %struct.fibnode* %36, %struct.fibnode** %right.i.i31, align 8, !tbaa !8
+  br label %fibheap_ins_root.exit.i
+
+if.end.i74.i:                                     ; preds = %if.then21.i
+  %right.i.i73.i = getelementptr inbounds %struct.fibnode* %35, i64 0, i32 3
+  %37 = load %struct.fibnode** %right.i.i73.i, align 8, !tbaa !8
+  %cmp.i.i.i = icmp eq %struct.fibnode* %37, %35
+  br i1 %cmp.i.i.i, label %if.then.i.i.i, label %if.else.i.i.i
+
+if.then.i.i.i:                                    ; preds = %if.end.i74.i
+  store %struct.fibnode* %36, %struct.fibnode** %right.i.i73.i, align 8, !tbaa !8
+  %left.i.i.i = getelementptr inbounds %struct.fibnode* %35, i64 0, i32 2
+  store %struct.fibnode* %36, %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  %right2.i.i.i = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 3
+  store %struct.fibnode* %35, %struct.fibnode** %right2.i.i.i, align 8, !tbaa !8
+  %left3.i.i.i = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 2
+  store %struct.fibnode* %35, %struct.fibnode** %left3.i.i.i, align 8, !tbaa !1
+  br label %fibheap_ins_root.exit.i
+
+if.else.i.i.i:                                    ; preds = %if.end.i74.i
+  %right5.i.i.i = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 3
+  store %struct.fibnode* %37, %struct.fibnode** %right5.i.i.i, align 8, !tbaa !8
+  %38 = load %struct.fibnode** %right.i.i73.i, align 8, !tbaa !8
+  %left7.i.i.i = getelementptr inbounds %struct.fibnode* %38, i64 0, i32 2
+  store %struct.fibnode* %36, %struct.fibnode** %left7.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %36, %struct.fibnode** %right.i.i73.i, align 8, !tbaa !8
+  %left9.i.i.i = getelementptr inbounds %struct.fibnode* %36, i64 0, i32 2
+  store %struct.fibnode* %35, %struct.fibnode** %left9.i.i.i, align 8, !tbaa !1
+  br label %fibheap_ins_root.exit.i
+
+fibheap_ins_root.exit.i:                          ; preds = %if.else.i.i.i, %if.then.i.i.i, %if.then.i72.i
+  %39 = phi %struct.fibnode* [ %36, %if.then.i72.i ], [ %35, %if.then.i.i.i ], [ %35, %if.else.i.i.i ]
+  %cmp25.i = icmp eq %struct.fibnode* %34, null
+  %.pre.i = load %struct.fibnode** %arrayidx18.i, align 8, !tbaa !17
+  br i1 %cmp25.i, label %if.then33.i, label %lor.lhs.false.i
+
+lor.lhs.false.i:                                  ; preds = %fibheap_ins_root.exit.i
+  %.idx66.i = getelementptr %struct.fibnode* %.pre.i, i64 0, i32 4
+  %.idx66.val.i = load i64* %.idx66.i, align 8, !tbaa !10
+  %.idx67.i = getelementptr %struct.fibnode* %34, i64 0, i32 4
+  %.idx67.val.i = load i64* %.idx67.i, align 8, !tbaa !10
+  %cmp.i68.i = icmp slt i64 %.idx66.val.i, %.idx67.val.i
+  br i1 %cmp.i68.i, label %if.then33.i, label %for.inc.i
+
+if.then33.i:                                      ; preds = %lor.lhs.false.i, %fibheap_ins_root.exit.i
+  store %struct.fibnode* %.pre.i, %struct.fibnode** %min, align 8, !tbaa !13
+  br label %for.inc.i
+
+for.inc.i:                                        ; preds = %if.then33.i, %lor.lhs.false.i, %for.body.i
+  %40 = phi %struct.fibnode* [ %34, %lor.lhs.false.i ], [ %34, %for.body.i ], [ %.pre.i, %if.then33.i ]
+  %41 = phi %struct.fibnode* [ %39, %lor.lhs.false.i ], [ %35, %for.body.i ], [ %39, %if.then33.i ]
+  %indvars.iv.next.i = add nuw nsw i64 %indvars.iv.i, 1
+  %exitcond.i = icmp eq i64 %indvars.iv.next.i, 65
+  br i1 %exitcond.i, label %if.end9, label %for.body.i
+
+if.end9:                                          ; preds = %for.inc.i, %if.then5
+  ret %struct.fibnode* %0
+}
+
+; Function Attrs: nounwind uwtable
+define i8* @fibheap_replace_key_data(%struct.fibheap* nocapture %heap, %struct.fibnode* %node, i64 %key, i8* %data) #0 {
+entry:
+  %node.idx47 = getelementptr %struct.fibnode* %node, i64 0, i32 4
+  %node.idx47.val = load i64* %node.idx47, align 8, !tbaa !10
+  %0 = icmp slt i64 %node.idx47.val, %key
+  br i1 %0, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %data1 = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 5
+  %1 = load i8** %data1, align 8, !tbaa !9
+  store i8* %data, i8** %data1, align 8, !tbaa !9
+  store i64 %key, i64* %node.idx47, align 8, !tbaa !10
+  %parent = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 0
+  %2 = load %struct.fibnode** %parent, align 8, !tbaa !16
+  %sext = shl i64 %node.idx47.val, 32
+  %conv5 = ashr exact i64 %sext, 32
+  %cmp6 = icmp eq i64 %conv5, %key
+  br i1 %cmp6, label %return, label %if.end9
+
+if.end9:                                          ; preds = %if.end
+  %cmp10 = icmp eq %struct.fibnode* %2, null
+  br i1 %cmp10, label %if.end16, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %if.end9
+  %.idx = getelementptr %struct.fibnode* %2, i64 0, i32 4
+  %.idx.val = load i64* %.idx, align 8, !tbaa !10
+  %3 = icmp slt i64 %.idx.val, %key
+  br i1 %3, label %if.end16, label %land.lhs.true.i.i
+
+land.lhs.true.i.i:                                ; preds = %land.lhs.true
+  %left.i.i = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 2
+  %4 = load %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  %child.i.i = getelementptr inbounds %struct.fibnode* %2, i64 0, i32 1
+  %5 = load %struct.fibnode** %child.i.i, align 8, !tbaa !15
+  %cmp4.i.i51 = icmp eq %struct.fibnode* %5, %node
+  br i1 %cmp4.i.i51, label %if.then5.i.i, label %fibnode_remove.exit.i
+
+if.then5.i.i:                                     ; preds = %land.lhs.true.i.i
+  %cmp.i.i49 = icmp eq %struct.fibnode* %4, %node
+  %..i.i50 = select i1 %cmp.i.i49, %struct.fibnode* null, %struct.fibnode* %4
+  store %struct.fibnode* %..i.i50, %struct.fibnode** %child.i.i, align 8, !tbaa !15
+  br label %fibnode_remove.exit.i
+
+fibnode_remove.exit.i:                            ; preds = %if.then5.i.i, %land.lhs.true.i.i
+  %right.i.i = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 3
+  %6 = load %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %left10.i.i = getelementptr inbounds %struct.fibnode* %6, i64 0, i32 2
+  store %struct.fibnode* %4, %struct.fibnode** %left10.i.i, align 8, !tbaa !1
+  %7 = load %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  %right13.i.i = getelementptr inbounds %struct.fibnode* %7, i64 0, i32 3
+  store %struct.fibnode* %6, %struct.fibnode** %right13.i.i, align 8, !tbaa !8
+  store %struct.fibnode* null, %struct.fibnode** %parent, align 8, !tbaa !16
+  store %struct.fibnode* %node, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %node, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %degree.i = getelementptr inbounds %struct.fibnode* %2, i64 0, i32 6
+  %bf.load.i52 = load i32* %degree.i, align 8
+  %dec.i = add i32 %bf.load.i52, 2147483647
+  %bf.value.i = and i32 %dec.i, 2147483647
+  %bf.clear2.i = and i32 %bf.load.i52, -2147483648
+  %bf.set.i53 = or i32 %bf.value.i, %bf.clear2.i
+  store i32 %bf.set.i53, i32* %degree.i, align 8
+  %root.i.i = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 2
+  %8 = load %struct.fibnode** %root.i.i, align 8, !tbaa !11
+  %cmp.i9.i = icmp eq %struct.fibnode* %8, null
+  br i1 %cmp.i9.i, label %if.then.i.i, label %if.end.i.i56
+
+if.then.i.i:                                      ; preds = %fibnode_remove.exit.i
+  store %struct.fibnode* %node, %struct.fibnode** %root.i.i, align 8, !tbaa !11
+  store %struct.fibnode* %node, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %node, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  br label %fibheap_cut.exit
+
+if.end.i.i56:                                     ; preds = %fibnode_remove.exit.i
+  %right.i.i.i54 = getelementptr inbounds %struct.fibnode* %8, i64 0, i32 3
+  %9 = load %struct.fibnode** %right.i.i.i54, align 8, !tbaa !8
+  %cmp.i.i.i55 = icmp eq %struct.fibnode* %9, %8
+  br i1 %cmp.i.i.i55, label %if.then.i.i.i58, label %if.else.i.i.i
+
+if.then.i.i.i58:                                  ; preds = %if.end.i.i56
+  store %struct.fibnode* %node, %struct.fibnode** %right.i.i.i54, align 8, !tbaa !8
+  %left.i.i.i57 = getelementptr inbounds %struct.fibnode* %8, i64 0, i32 2
+  store %struct.fibnode* %node, %struct.fibnode** %left.i.i.i57, align 8, !tbaa !1
+  store %struct.fibnode* %8, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  store %struct.fibnode* %8, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  br label %fibheap_cut.exit
+
+if.else.i.i.i:                                    ; preds = %if.end.i.i56
+  store %struct.fibnode* %9, %struct.fibnode** %right.i.i, align 8, !tbaa !8
+  %10 = load %struct.fibnode** %right.i.i.i54, align 8, !tbaa !8
+  %left7.i.i.i = getelementptr inbounds %struct.fibnode* %10, i64 0, i32 2
+  store %struct.fibnode* %node, %struct.fibnode** %left7.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %node, %struct.fibnode** %right.i.i.i54, align 8, !tbaa !8
+  store %struct.fibnode* %8, %struct.fibnode** %left.i.i, align 8, !tbaa !1
+  br label %fibheap_cut.exit
+
+fibheap_cut.exit:                                 ; preds = %if.then.i.i, %if.then.i.i.i58, %if.else.i.i.i
+  store %struct.fibnode* null, %struct.fibnode** %parent, align 8, !tbaa !16
+  %mark.i59 = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 6
+  %bf.load4.i = load i32* %mark.i59, align 8
+  %bf.clear5.i = and i32 %bf.load4.i, 2147483647
+  store i32 %bf.clear5.i, i32* %mark.i59, align 8
+  %parent8.i = getelementptr inbounds %struct.fibnode* %2, i64 0, i32 0
+  %11 = load %struct.fibnode** %parent8.i, align 8, !tbaa !16
+  %cmp9.i = icmp eq %struct.fibnode* %11, null
+  br i1 %cmp9.i, label %if.end16, label %while.body.i
+
+while.body.i:                                     ; preds = %fibheap_cut.exit, %fibheap_cut.exit.i
+  %12 = phi %struct.fibnode* [ %20, %fibheap_cut.exit.i ], [ %11, %fibheap_cut.exit ]
+  %parent11.i = phi %struct.fibnode** [ %parent.i, %fibheap_cut.exit.i ], [ %parent8.i, %fibheap_cut.exit ]
+  %y.addr.010.i = phi %struct.fibnode* [ %12, %fibheap_cut.exit.i ], [ %2, %fibheap_cut.exit ]
+  %mark.i = getelementptr inbounds %struct.fibnode* %y.addr.010.i, i64 0, i32 6
+  %bf.load.i = load i32* %mark.i, align 8
+  %cmp1.i = icmp sgt i32 %bf.load.i, -1
+  br i1 %cmp1.i, label %if.then.i, label %land.lhs.true.i.i.i
+
+if.then.i:                                        ; preds = %while.body.i
+  %bf.set.i = or i32 %bf.load.i, -2147483648
+  store i32 %bf.set.i, i32* %mark.i, align 8
+  br label %if.end16
+
+land.lhs.true.i.i.i:                              ; preds = %while.body.i
+  %left.i.i.i = getelementptr inbounds %struct.fibnode* %y.addr.010.i, i64 0, i32 2
+  %13 = load %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  %child.i.i.i = getelementptr inbounds %struct.fibnode* %12, i64 0, i32 1
+  %14 = load %struct.fibnode** %child.i.i.i, align 8, !tbaa !15
+  %cmp4.i.i.i = icmp eq %struct.fibnode* %14, %y.addr.010.i
+  br i1 %cmp4.i.i.i, label %if.then5.i.i.i, label %fibnode_remove.exit.i.i
+
+if.then5.i.i.i:                                   ; preds = %land.lhs.true.i.i.i
+  %cmp.i.i.i = icmp eq %struct.fibnode* %13, %y.addr.010.i
+  %..i.i.i = select i1 %cmp.i.i.i, %struct.fibnode* null, %struct.fibnode* %13
+  store %struct.fibnode* %..i.i.i, %struct.fibnode** %child.i.i.i, align 8, !tbaa !15
+  br label %fibnode_remove.exit.i.i
+
+fibnode_remove.exit.i.i:                          ; preds = %if.then5.i.i.i, %land.lhs.true.i.i.i
+  %right.i.i.i = getelementptr inbounds %struct.fibnode* %y.addr.010.i, i64 0, i32 3
+  %15 = load %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  %left10.i.i.i = getelementptr inbounds %struct.fibnode* %15, i64 0, i32 2
+  store %struct.fibnode* %13, %struct.fibnode** %left10.i.i.i, align 8, !tbaa !1
+  %16 = load %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  %right13.i.i.i = getelementptr inbounds %struct.fibnode* %16, i64 0, i32 3
+  store %struct.fibnode* %15, %struct.fibnode** %right13.i.i.i, align 8, !tbaa !8
+  store %struct.fibnode* null, %struct.fibnode** %parent11.i, align 8, !tbaa !16
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  %degree.i.i = getelementptr inbounds %struct.fibnode* %12, i64 0, i32 6
+  %bf.load.i.i = load i32* %degree.i.i, align 8
+  %dec.i.i = add i32 %bf.load.i.i, 2147483647
+  %bf.value.i.i = and i32 %dec.i.i, 2147483647
+  %bf.clear2.i.i = and i32 %bf.load.i.i, -2147483648
+  %bf.set.i.i = or i32 %bf.value.i.i, %bf.clear2.i.i
+  store i32 %bf.set.i.i, i32* %degree.i.i, align 8
+  %17 = load %struct.fibnode** %root.i.i, align 8, !tbaa !11
+  %cmp.i9.i.i = icmp eq %struct.fibnode* %17, null
+  br i1 %cmp.i9.i.i, label %if.then.i.i.i, label %if.end.i.i.i
+
+if.then.i.i.i:                                    ; preds = %fibnode_remove.exit.i.i
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %root.i.i, align 8, !tbaa !11
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  br label %fibheap_cut.exit.i
+
+if.end.i.i.i:                                     ; preds = %fibnode_remove.exit.i.i
+  %right.i.i.i.i = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 3
+  %18 = load %struct.fibnode** %right.i.i.i.i, align 8, !tbaa !8
+  %cmp.i.i.i.i = icmp eq %struct.fibnode* %18, %17
+  br i1 %cmp.i.i.i.i, label %if.then.i.i.i.i, label %if.else.i.i.i.i
+
+if.then.i.i.i.i:                                  ; preds = %if.end.i.i.i
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %right.i.i.i.i, align 8, !tbaa !8
+  %left.i.i.i.i = getelementptr inbounds %struct.fibnode* %17, i64 0, i32 2
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %left.i.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %17, %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  store %struct.fibnode* %17, %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  br label %fibheap_cut.exit.i
+
+if.else.i.i.i.i:                                  ; preds = %if.end.i.i.i
+  store %struct.fibnode* %18, %struct.fibnode** %right.i.i.i, align 8, !tbaa !8
+  %19 = load %struct.fibnode** %right.i.i.i.i, align 8, !tbaa !8
+  %left7.i.i.i.i = getelementptr inbounds %struct.fibnode* %19, i64 0, i32 2
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %left7.i.i.i.i, align 8, !tbaa !1
+  store %struct.fibnode* %y.addr.010.i, %struct.fibnode** %right.i.i.i.i, align 8, !tbaa !8
+  store %struct.fibnode* %17, %struct.fibnode** %left.i.i.i, align 8, !tbaa !1
+  br label %fibheap_cut.exit.i
+
+fibheap_cut.exit.i:                               ; preds = %if.else.i.i.i.i, %if.then.i.i.i.i, %if.then.i.i.i
+  store %struct.fibnode* null, %struct.fibnode** %parent11.i, align 8, !tbaa !16
+  %bf.load4.i.i = load i32* %mark.i, align 8
+  %bf.clear5.i.i = and i32 %bf.load4.i.i, 2147483647
+  store i32 %bf.clear5.i.i, i32* %mark.i, align 8
+  %parent.i = getelementptr inbounds %struct.fibnode* %12, i64 0, i32 0
+  %20 = load %struct.fibnode** %parent.i, align 8, !tbaa !16
+  %cmp.i48 = icmp eq %struct.fibnode* %20, null
+  br i1 %cmp.i48, label %if.end16, label %while.body.i
+
+if.end16:                                         ; preds = %fibheap_cut.exit.i, %land.lhs.true, %if.then.i, %fibheap_cut.exit, %if.end9
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %21 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %node.idx45.val = load i64* %node.idx47, align 8, !tbaa !10
+  %.idx46 = getelementptr %struct.fibnode* %21, i64 0, i32 4
+  %.idx46.val = load i64* %.idx46, align 8, !tbaa !10
+  %22 = icmp sgt i64 %node.idx45.val, %.idx46.val
+  br i1 %22, label %return, label %if.then20
+
+if.then20:                                        ; preds = %if.end16
+  store %struct.fibnode* %node, %struct.fibnode** %min, align 8, !tbaa !13
+  br label %return
+
+return:                                           ; preds = %if.end16, %entry, %if.then20, %if.end
+  %retval.0 = phi i8* [ %1, %if.end ], [ %1, %if.then20 ], [ null, %entry ], [ %1, %if.end16 ]
+  ret i8* %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define i8* @fibheap_replace_data(%struct.fibheap* nocapture %heap, %struct.fibnode* %node, i8* %data) #0 {
+entry:
+  %key = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 4
+  %0 = load i64* %key, align 8, !tbaa !10
+  %call = tail call i8* @fibheap_replace_key_data(%struct.fibheap* %heap, %struct.fibnode* %node, i64 %0, i8* %data)
+  ret i8* %call
+}
+
+; Function Attrs: nounwind uwtable
+define i64 @fibheap_replace_key(%struct.fibheap* nocapture %heap, %struct.fibnode* %node, i64 %key) #0 {
+entry:
+  %key1 = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 4
+  %0 = load i64* %key1, align 8, !tbaa !10
+  %data = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 5
+  %1 = load i8** %data, align 8, !tbaa !9
+  %call = tail call i8* @fibheap_replace_key_data(%struct.fibheap* %heap, %struct.fibnode* %node, i64 %key, i8* %1)
+  %sext = shl i64 %0, 32
+  %conv2 = ashr exact i64 %sext, 32
+  ret i64 %conv2
+}
+
+; Function Attrs: nounwind uwtable
+define i8* @fibheap_delete_node(%struct.fibheap* nocapture %heap, %struct.fibnode* %node) #0 {
+entry:
+  %data = getelementptr inbounds %struct.fibnode* %node, i64 0, i32 5
+  %0 = load i8** %data, align 8, !tbaa !9
+  %call.i = tail call i8* @fibheap_replace_key_data(%struct.fibheap* %heap, %struct.fibnode* %node, i64 -9223372036854775808, i8* %0) #4
+  %min.i = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %1 = load %struct.fibnode** %min.i, align 8, !tbaa !13
+  %cmp.i = icmp eq %struct.fibnode* %1, null
+  br i1 %cmp.i, label %fibheap_extract_min.exit, label %if.then.i
+
+if.then.i:                                        ; preds = %entry
+  %call.i4 = tail call fastcc %struct.fibnode* @fibheap_extr_min_node(%struct.fibheap* %heap) #4
+  %2 = bitcast %struct.fibnode* %call.i4 to i8*
+  tail call void @free(i8* %2) #4
+  br label %fibheap_extract_min.exit
+
+fibheap_extract_min.exit:                         ; preds = %entry, %if.then.i
+  ret i8* %0
+}
+
+; Function Attrs: nounwind uwtable
+define void @fibheap_delete(%struct.fibheap* nocapture %heap) #0 {
+entry:
+  %min = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 1
+  %0 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp2 = icmp eq %struct.fibnode* %0, null
+  br i1 %cmp2, label %while.end, label %while.body
+
+while.body:                                       ; preds = %entry, %while.body
+  %call = tail call fastcc %struct.fibnode* @fibheap_extr_min_node(%struct.fibheap* %heap)
+  %1 = bitcast %struct.fibnode* %call to i8*
+  tail call void @free(i8* %1)
+  %2 = load %struct.fibnode** %min, align 8, !tbaa !13
+  %cmp = icmp eq %struct.fibnode* %2, null
+  br i1 %cmp, label %while.end, label %while.body
+
+while.end:                                        ; preds = %while.body, %entry
+  %3 = bitcast %struct.fibheap* %heap to i8*
+  tail call void @free(i8* %3)
+  ret void
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @fibheap_empty(%struct.fibheap* nocapture readonly %heap) #2 {
+entry:
+  %nodes = getelementptr inbounds %struct.fibheap* %heap, i64 0, i32 0
+  %0 = load i64* %nodes, align 8, !tbaa !14
+  %cmp = icmp eq i64 %0, 0
+  %conv = zext i1 %cmp to i32
+  ret i32 %conv
+}
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #4
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #4
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 16}
+!2 = metadata !{metadata !"fibnode", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !6, i64 32, metadata !3, i64 40, metadata !7, i64 48, metadata !7, i64 51}
+!3 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"long", metadata !4, i64 0}
+!7 = metadata !{metadata !"int", metadata !4, i64 0}
+!8 = metadata !{metadata !2, metadata !3, i64 24}
+!9 = metadata !{metadata !2, metadata !3, i64 40}
+!10 = metadata !{metadata !2, metadata !6, i64 32}
+!11 = metadata !{metadata !12, metadata !3, i64 16}
+!12 = metadata !{metadata !"fibheap", metadata !6, i64 0, metadata !3, i64 8, metadata !3, i64 16}
+!13 = metadata !{metadata !12, metadata !3, i64 8}
+!14 = metadata !{metadata !12, metadata !6, i64 0}
+!15 = metadata !{metadata !2, metadata !3, i64 8}
+!16 = metadata !{metadata !2, metadata !3, i64 0}
+!17 = metadata !{metadata !3, metadata !3, i64 0}

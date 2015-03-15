@@ -1,0 +1,865 @@
+; ModuleID = 'conflict.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.varray_head_tag = type { i64, i64, i64, i8*, %union.varray_data_tag }
+%union.varray_data_tag = type { [1 x %struct.const_equiv_data] }
+%struct.const_equiv_data = type { %struct.rtx_def*, i32 }
+%struct.rtx_def = type { i32, [1 x %union.rtunion_def] }
+%union.rtunion_def = type { i64 }
+%struct.conflict_graph_def = type { %struct.htab*, i32, %struct.conflict_graph_arc_def**, %struct.obstack }
+%struct.htab = type { i32 (i8*)*, i32 (i8*, i8*)*, void (i8*)*, i8**, i64, i64, i64, i32, i32, i32 }
+%struct.conflict_graph_arc_def = type { %struct.conflict_graph_arc_def*, %struct.conflict_graph_arc_def*, i32, i32 }
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+%struct._IO_FILE = type opaque
+%struct.bitmap_head_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32 }
+%struct.bitmap_element_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32, [2 x i64] }
+%struct.partition_def = type { i32, [1 x %struct.partition_elem] }
+%struct.partition_elem = type { i32, %struct.partition_elem*, i32 }
+%struct.basic_block_def = type { %struct.rtx_def*, %struct.rtx_def*, %union.tree_node*, %union.tree_node*, %struct.edge_def*, %struct.edge_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, i8*, i32, i32, i64, i32, i32 }
+%union.tree_node = type opaque
+%struct.edge_def = type { %struct.edge_def*, %struct.edge_def*, %struct.basic_block_def*, %struct.basic_block_def*, %struct.rtx_def*, i8*, i32, i32, i64 }
+
+@.str = private unnamed_addr constant [11 x i8] c"conflict.c\00", align 1
+@__FUNCTION__.conflict_graph_add = private unnamed_addr constant [19 x i8] c"conflict_graph_add\00", align 1
+@.str1 = private unnamed_addr constant [12 x i8] c"Conflicts:\0A\00", align 1
+@n_basic_blocks = external global i32
+@basic_block_info = external global %struct.varray_head_tag*
+@rtx_class = external constant [153 x i8]
+@.str2 = private unnamed_addr constant [5 x i8] c" %d:\00", align 1
+@__FUNCTION__.print_conflict = private unnamed_addr constant [15 x i8] c"print_conflict\00", align 1
+@.str3 = private unnamed_addr constant [4 x i8] c" %d\00", align 1
+
+; Function Attrs: nounwind uwtable
+define %struct.conflict_graph_def* @conflict_graph_new(i32 %num_regs) #0 {
+entry:
+  %call = tail call noalias i8* @xmalloc(i64 112) #4
+  %0 = bitcast i8* %call to %struct.conflict_graph_def*
+  %num_regs1 = getelementptr inbounds i8* %call, i64 8
+  %1 = bitcast i8* %num_regs1 to i32*
+  store i32 %num_regs, i32* %1, align 4, !tbaa !1
+  %call2 = tail call %struct.htab* @htab_create(i64 64, i32 (i8*)* @arc_hash, i32 (i8*, i8*)* @arc_eq, void (i8*)* null) #4
+  %arc_hash_table = bitcast i8* %call to %struct.htab**
+  store %struct.htab* %call2, %struct.htab** %arc_hash_table, align 8, !tbaa !9
+  %arc_obstack = getelementptr inbounds i8* %call, i64 24
+  %2 = bitcast i8* %arc_obstack to %struct.obstack*
+  %call3 = tail call i32 @_obstack_begin(%struct.obstack* %2, i32 0, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #4
+  %conv = sext i32 %num_regs to i64
+  %mul = shl nsw i64 %conv, 3
+  %call4 = tail call noalias i8* @xmalloc(i64 %mul) #4
+  %3 = bitcast i8* %call4 to %struct.conflict_graph_arc_def**
+  %neighbor_heads = getelementptr inbounds i8* %call, i64 16
+  %4 = bitcast i8* %neighbor_heads to %struct.conflict_graph_arc_def***
+  store %struct.conflict_graph_arc_def** %3, %struct.conflict_graph_arc_def*** %4, align 8, !tbaa !10
+  tail call void @llvm.memset.p0i8.i64(i8* %call4, i8 0, i64 %mul, i32 8, i1 false)
+  ret %struct.conflict_graph_def* %0
+}
+
+declare noalias i8* @xmalloc(i64) #1
+
+declare %struct.htab* @htab_create(i64, i32 (i8*)*, i32 (i8*, i8*)*, void (i8*)*) #1
+
+; Function Attrs: nounwind readonly uwtable
+define internal i32 @arc_hash(i8* nocapture readonly %arcp) #2 {
+entry:
+  %larger = getelementptr inbounds i8* %arcp, i64 20
+  %0 = bitcast i8* %larger to i32*
+  %1 = load i32* %0, align 4, !tbaa !11
+  %sub = add nsw i32 %1, -1
+  %mul = mul nsw i32 %sub, %1
+  %div = sdiv i32 %mul, 2
+  %smaller = getelementptr inbounds i8* %arcp, i64 16
+  %2 = bitcast i8* %smaller to i32*
+  %3 = load i32* %2, align 4, !tbaa !13
+  %add = add nsw i32 %3, %div
+  ret i32 %add
+}
+
+; Function Attrs: nounwind readonly uwtable
+define internal i32 @arc_eq(i8* nocapture readonly %arcp1, i8* nocapture readonly %arcp2) #2 {
+entry:
+  %smaller = getelementptr inbounds i8* %arcp1, i64 16
+  %0 = bitcast i8* %smaller to i32*
+  %1 = load i32* %0, align 4, !tbaa !13
+  %smaller1 = getelementptr inbounds i8* %arcp2, i64 16
+  %2 = bitcast i8* %smaller1 to i32*
+  %3 = load i32* %2, align 4, !tbaa !13
+  %cmp = icmp eq i32 %1, %3
+  br i1 %cmp, label %land.rhs, label %land.end
+
+land.rhs:                                         ; preds = %entry
+  %larger = getelementptr inbounds i8* %arcp1, i64 20
+  %4 = bitcast i8* %larger to i32*
+  %5 = load i32* %4, align 4, !tbaa !11
+  %larger2 = getelementptr inbounds i8* %arcp2, i64 20
+  %6 = bitcast i8* %larger2 to i32*
+  %7 = load i32* %6, align 4, !tbaa !11
+  %cmp3 = icmp eq i32 %5, %7
+  br label %land.end
+
+land.end:                                         ; preds = %land.rhs, %entry
+  %8 = phi i1 [ false, %entry ], [ %cmp3, %land.rhs ]
+  %land.ext = zext i1 %8 to i32
+  ret i32 %land.ext
+}
+
+declare i32 @_obstack_begin(%struct.obstack*, i32, i32, i8* (i64)*, void (i8*)*) #1
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #3
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #4
+
+; Function Attrs: nounwind uwtable
+define void @conflict_graph_delete(%struct.conflict_graph_def* %graph) #0 {
+entry:
+  %arc_obstack = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3
+  tail call void @obstack_free(%struct.obstack* %arc_obstack, i8* null) #4
+  %arc_hash_table = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 0
+  %0 = load %struct.htab** %arc_hash_table, align 8, !tbaa !9
+  tail call void @htab_delete(%struct.htab* %0) #4
+  %neighbor_heads = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 2
+  %1 = load %struct.conflict_graph_arc_def*** %neighbor_heads, align 8, !tbaa !10
+  %2 = bitcast %struct.conflict_graph_arc_def** %1 to i8*
+  tail call void @free(i8* %2)
+  %3 = bitcast %struct.conflict_graph_def* %graph to i8*
+  tail call void @free(i8* %3)
+  ret void
+}
+
+declare void @obstack_free(%struct.obstack*, i8*) #1
+
+declare void @htab_delete(%struct.htab*) #1
+
+; Function Attrs: nounwind uwtable
+define i32 @conflict_graph_add(%struct.conflict_graph_def* %graph, i32 %reg1, i32 %reg2) #0 {
+entry:
+  %dummy = alloca %struct.conflict_graph_arc_def, align 8
+  %cmp = icmp slt i32 %reg1, %reg2
+  %cond = select i1 %cmp, i32 %reg1, i32 %reg2
+  %cmp1 = icmp sgt i32 %reg1, %reg2
+  %cond5 = select i1 %cmp1, i32 %reg1, i32 %reg2
+  %cmp6 = icmp eq i32 %reg1, %reg2
+  br i1 %cmp6, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  call void @fancy_abort(i8* getelementptr inbounds ([11 x i8]* @.str, i64 0, i64 0), i32 207, i8* getelementptr inbounds ([19 x i8]* @__FUNCTION__.conflict_graph_add, i64 0, i64 0)) #6
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %smaller7 = getelementptr inbounds %struct.conflict_graph_arc_def* %dummy, i64 0, i32 2
+  store i32 %cond, i32* %smaller7, align 8, !tbaa !13
+  %larger8 = getelementptr inbounds %struct.conflict_graph_arc_def* %dummy, i64 0, i32 3
+  store i32 %cond5, i32* %larger8, align 4, !tbaa !11
+  %arc_hash_table = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 0
+  %0 = load %struct.htab** %arc_hash_table, align 8, !tbaa !9
+  %1 = bitcast %struct.conflict_graph_arc_def* %dummy to i8*
+  %call = call i8** @htab_find_slot(%struct.htab* %0, i8* %1, i32 1) #4
+  %2 = load i8** %call, align 8, !tbaa !14
+  %cmp9 = icmp eq i8* %2, null
+  br i1 %cmp9, label %if.end11, label %return
+
+if.end11:                                         ; preds = %if.end
+  %chunk_limit = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 4
+  %3 = load i8** %chunk_limit, align 8, !tbaa !15
+  %next_free = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 3
+  %4 = load i8** %next_free, align 8, !tbaa !16
+  %sub.ptr.lhs.cast = ptrtoint i8* %3 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %4 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %cmp12 = icmp slt i64 %sub.ptr.sub, 24
+  br i1 %cmp12, label %if.then14, label %if.end15
+
+if.then14:                                        ; preds = %if.end11
+  %arc_obstack = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3
+  call void @_obstack_newchunk(%struct.obstack* %arc_obstack, i32 24) #4
+  %.pre = load i8** %next_free, align 8, !tbaa !16
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.then14, %if.end11
+  %5 = phi i8* [ %.pre, %if.then14 ], [ %4, %if.end11 ]
+  %add.ptr = getelementptr inbounds i8* %5, i64 24
+  store i8* %add.ptr, i8** %next_free, align 8, !tbaa !16
+  %object_base = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 2
+  %6 = load i8** %object_base, align 8, !tbaa !17
+  %cmp20 = icmp eq i8* %add.ptr, %6
+  br i1 %cmp20, label %if.then22, label %if.end23
+
+if.then22:                                        ; preds = %if.end15
+  %maybe_empty_object = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 10
+  %bf.load = load i8* %maybe_empty_object, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %maybe_empty_object, align 8
+  br label %if.end23
+
+if.end23:                                         ; preds = %if.then22, %if.end15
+  %sub.ptr.lhs.cast25 = ptrtoint i8* %add.ptr to i64
+  %alignment_mask = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 6
+  %7 = load i32* %alignment_mask, align 4, !tbaa !18
+  %conv27 = sext i32 %7 to i64
+  %add = add nsw i64 %conv27, %sub.ptr.lhs.cast25
+  %neg = xor i32 %7, -1
+  %conv29 = sext i32 %neg to i64
+  %and = and i64 %add, %conv29
+  %add.ptr30 = getelementptr inbounds i8* null, i64 %and
+  store i8* %add.ptr30, i8** %next_free, align 8, !tbaa !16
+  %chunk = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 3, i32 1
+  %8 = load %struct._obstack_chunk** %chunk, align 8, !tbaa !19
+  %sub.ptr.lhs.cast33 = ptrtoint i8* %add.ptr30 to i64
+  %sub.ptr.rhs.cast34 = ptrtoint %struct._obstack_chunk* %8 to i64
+  %sub.ptr.sub35 = sub i64 %sub.ptr.lhs.cast33, %sub.ptr.rhs.cast34
+  %9 = load i8** %chunk_limit, align 8, !tbaa !15
+  %sub.ptr.lhs.cast38 = ptrtoint i8* %9 to i64
+  %sub.ptr.sub40 = sub i64 %sub.ptr.lhs.cast38, %sub.ptr.rhs.cast34
+  %cmp41 = icmp sgt i64 %sub.ptr.sub35, %sub.ptr.sub40
+  br i1 %cmp41, label %if.then43, label %if.end46
+
+if.then43:                                        ; preds = %if.end23
+  store i8* %9, i8** %next_free, align 8, !tbaa !16
+  br label %if.end46
+
+if.end46:                                         ; preds = %if.then43, %if.end23
+  %10 = phi i8* [ %9, %if.then43 ], [ %add.ptr30, %if.end23 ]
+  store i8* %10, i8** %object_base, align 8, !tbaa !17
+  %11 = bitcast i8* %6 to %struct.conflict_graph_arc_def*
+  %smaller50 = getelementptr inbounds i8* %6, i64 16
+  %12 = bitcast i8* %smaller50 to i32*
+  store i32 %cond, i32* %12, align 4, !tbaa !13
+  %larger51 = getelementptr inbounds i8* %6, i64 20
+  %13 = bitcast i8* %larger51 to i32*
+  store i32 %cond5, i32* %13, align 4, !tbaa !11
+  %idxprom = sext i32 %cond to i64
+  %neighbor_heads = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 2
+  %14 = load %struct.conflict_graph_arc_def*** %neighbor_heads, align 8, !tbaa !10
+  %arrayidx = getelementptr inbounds %struct.conflict_graph_arc_def** %14, i64 %idxprom
+  %15 = load %struct.conflict_graph_arc_def** %arrayidx, align 8, !tbaa !14
+  %smaller_next = bitcast i8* %6 to %struct.conflict_graph_arc_def**
+  store %struct.conflict_graph_arc_def* %15, %struct.conflict_graph_arc_def** %smaller_next, align 8, !tbaa !20
+  store %struct.conflict_graph_arc_def* %11, %struct.conflict_graph_arc_def** %arrayidx, align 8, !tbaa !14
+  %idxprom55 = sext i32 %cond5 to i64
+  %16 = load %struct.conflict_graph_arc_def*** %neighbor_heads, align 8, !tbaa !10
+  %arrayidx57 = getelementptr inbounds %struct.conflict_graph_arc_def** %16, i64 %idxprom55
+  %17 = load %struct.conflict_graph_arc_def** %arrayidx57, align 8, !tbaa !14
+  %larger_next = getelementptr inbounds i8* %6, i64 8
+  %18 = bitcast i8* %larger_next to %struct.conflict_graph_arc_def**
+  store %struct.conflict_graph_arc_def* %17, %struct.conflict_graph_arc_def** %18, align 8, !tbaa !21
+  store %struct.conflict_graph_arc_def* %11, %struct.conflict_graph_arc_def** %arrayidx57, align 8, !tbaa !14
+  store i8* %6, i8** %call, align 8, !tbaa !14
+  br label %return
+
+return:                                           ; preds = %if.end, %if.end46
+  %retval.0 = phi i32 [ 1, %if.end46 ], [ 0, %if.end ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: noreturn
+declare void @fancy_abort(i8*, i32, i8*) #5
+
+declare i8** @htab_find_slot(%struct.htab*, i8*, i32) #1
+
+declare void @_obstack_newchunk(%struct.obstack*, i32) #1
+
+; Function Attrs: nounwind uwtable
+define i32 @conflict_graph_conflict_p(%struct.conflict_graph_def* nocapture readonly %graph, i32 %reg1, i32 %reg2) #0 {
+entry:
+  %arc = alloca %struct.conflict_graph_arc_def, align 8
+  %cmp = icmp slt i32 %reg1, %reg2
+  %cond = select i1 %cmp, i32 %reg1, i32 %reg2
+  %smaller = getelementptr inbounds %struct.conflict_graph_arc_def* %arc, i64 0, i32 2
+  store i32 %cond, i32* %smaller, align 8, !tbaa !13
+  %cmp1 = icmp sgt i32 %reg1, %reg2
+  %cond5 = select i1 %cmp1, i32 %reg1, i32 %reg2
+  %larger = getelementptr inbounds %struct.conflict_graph_arc_def* %arc, i64 0, i32 3
+  store i32 %cond5, i32* %larger, align 4, !tbaa !11
+  %arc_hash_table = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 0
+  %0 = load %struct.htab** %arc_hash_table, align 8, !tbaa !9
+  %1 = bitcast %struct.conflict_graph_arc_def* %arc to i8*
+  %call = call i8* @htab_find(%struct.htab* %0, i8* %1) #4
+  %cmp6 = icmp ne i8* %call, null
+  %conv = zext i1 %cmp6 to i32
+  ret i32 %conv
+}
+
+declare i8* @htab_find(%struct.htab*, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define void @conflict_graph_enum(%struct.conflict_graph_def* nocapture readonly %graph, i32 %reg, i32 (i32, i32, i8*)* nocapture %enum_fn, i8* %extra) #0 {
+entry:
+  %idxprom = sext i32 %reg to i64
+  %neighbor_heads = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 2
+  %0 = load %struct.conflict_graph_arc_def*** %neighbor_heads, align 8, !tbaa !10
+  %arrayidx = getelementptr inbounds %struct.conflict_graph_arc_def** %0, i64 %idxprom
+  %arc.010 = load %struct.conflict_graph_arc_def** %arrayidx, align 8
+  %cmp11 = icmp eq %struct.conflict_graph_arc_def* %arc.010, null
+  br i1 %cmp11, label %while.end, label %while.body
+
+while.body:                                       ; preds = %entry, %if.end
+  %arc.012 = phi %struct.conflict_graph_arc_def* [ %arc.0, %if.end ], [ %arc.010, %entry ]
+  %smaller = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012, i64 0, i32 2
+  %1 = load i32* %smaller, align 4, !tbaa !13
+  %larger = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012, i64 0, i32 3
+  %2 = load i32* %larger, align 4, !tbaa !11
+  %call = tail call i32 %enum_fn(i32 %1, i32 %2, i8* %extra) #4
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %if.end, label %while.end
+
+if.end:                                           ; preds = %while.body
+  %3 = load i32* %larger, align 4, !tbaa !11
+  %cmp2 = icmp sgt i32 %3, %reg
+  %smaller_next = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012, i64 0, i32 0
+  %larger_next = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012, i64 0, i32 1
+  %arc.0.in.be = select i1 %cmp2, %struct.conflict_graph_arc_def** %smaller_next, %struct.conflict_graph_arc_def** %larger_next
+  %arc.0 = load %struct.conflict_graph_arc_def** %arc.0.in.be, align 8
+  %cmp = icmp eq %struct.conflict_graph_arc_def* %arc.0, null
+  br i1 %cmp, label %while.end, label %while.body
+
+while.end:                                        ; preds = %if.end, %while.body, %entry
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @conflict_graph_merge_regs(%struct.conflict_graph_def* %graph, i32 %target, i32 %src) #0 {
+entry:
+  %idxprom = sext i32 %src to i64
+  %neighbor_heads = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 2
+  %0 = load %struct.conflict_graph_arc_def*** %neighbor_heads, align 8, !tbaa !10
+  %arrayidx = getelementptr inbounds %struct.conflict_graph_arc_def** %0, i64 %idxprom
+  %1 = load %struct.conflict_graph_arc_def** %arrayidx, align 8, !tbaa !14
+  %cmp = icmp ne i32 %target, %src
+  %cmp1 = icmp ne %struct.conflict_graph_arc_def* %1, null
+  %or.cond = and i1 %cmp, %cmp1
+  br i1 %or.cond, label %while.body, label %while.end
+
+while.body:                                       ; preds = %entry, %if.end4
+  %arc.0 = phi %struct.conflict_graph_arc_def* [ %arc.1, %if.end4 ], [ %1, %entry ]
+  %smaller = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.0, i64 0, i32 2
+  %2 = load i32* %smaller, align 4, !tbaa !13
+  %cmp2 = icmp eq i32 %2, %src
+  %larger = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.0, i64 0, i32 3
+  br i1 %cmp2, label %if.then3, label %if.end4
+
+if.then3:                                         ; preds = %while.body
+  %3 = load i32* %larger, align 4, !tbaa !11
+  br label %if.end4
+
+if.end4:                                          ; preds = %while.body, %if.then3
+  %other.0 = phi i32 [ %3, %if.then3 ], [ %2, %while.body ]
+  %call = tail call i32 @conflict_graph_add(%struct.conflict_graph_def* %graph, i32 %target, i32 %other.0)
+  %4 = load i32* %larger, align 4, !tbaa !11
+  %cmp6 = icmp sgt i32 %4, %src
+  %smaller_next = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.0, i64 0, i32 0
+  %larger_next = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.0, i64 0, i32 1
+  %arc.1.in = select i1 %cmp6, %struct.conflict_graph_arc_def** %smaller_next, %struct.conflict_graph_arc_def** %larger_next
+  %arc.1 = load %struct.conflict_graph_arc_def** %arc.1.in, align 8
+  %cmp1.old = icmp eq %struct.conflict_graph_arc_def* %arc.1, null
+  br i1 %cmp1.old, label %while.end, label %while.body
+
+while.end:                                        ; preds = %if.end4, %entry
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @conflict_graph_print(%struct.conflict_graph_def* nocapture readonly %graph, %struct._IO_FILE* %fp) #0 {
+entry:
+  %0 = tail call i64 @fwrite(i8* getelementptr inbounds ([12 x i8]* @.str1, i64 0, i64 0), i64 11, i64 1, %struct._IO_FILE* %fp)
+  %num_regs = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 1
+  %1 = load i32* %num_regs, align 4, !tbaa !1
+  %cmp20 = icmp sgt i32 %1, 0
+  br i1 %cmp20, label %for.body.lr.ph, label %for.end
+
+for.body.lr.ph:                                   ; preds = %entry
+  %neighbor_heads.i = getelementptr inbounds %struct.conflict_graph_def* %graph, i64 0, i32 2
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.inc
+  %indvars.iv = phi i64 [ 0, %for.body.lr.ph ], [ %indvars.iv.next, %for.inc ]
+  %2 = load %struct.conflict_graph_arc_def*** %neighbor_heads.i, align 8, !tbaa !10
+  %arrayidx.i = getelementptr inbounds %struct.conflict_graph_arc_def** %2, i64 %indvars.iv
+  %arc.010.i = load %struct.conflict_graph_arc_def** %arrayidx.i, align 8
+  %cmp11.i = icmp eq %struct.conflict_graph_arc_def* %arc.010.i, null
+  br i1 %cmp11.i, label %for.inc, label %while.body.i
+
+while.body.i:                                     ; preds = %for.body, %if.end.i
+  %3 = phi i32 [ %7, %if.end.i ], [ 0, %for.body ]
+  %arc.012.i = phi %struct.conflict_graph_arc_def* [ %arc.0.i, %if.end.i ], [ %arc.010.i, %for.body ]
+  %smaller.i = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012.i, i64 0, i32 2
+  %4 = load i32* %smaller.i, align 4, !tbaa !13
+  %larger.i = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012.i, i64 0, i32 3
+  %5 = load i32* %larger.i, align 4, !tbaa !11
+  %tobool.i11 = icmp eq i32 %3, 0
+  %6 = trunc i64 %indvars.iv to i32
+  br i1 %tobool.i11, label %if.then.i, label %if.end.i14
+
+if.then.i:                                        ; preds = %while.body.i
+  %call.i12 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %fp, i8* getelementptr inbounds ([5 x i8]* @.str2, i64 0, i64 0), i32 %6) #4
+  br label %if.end.i14
+
+if.end.i14:                                       ; preds = %while.body.i, %if.then.i
+  %7 = phi i32 [ 1, %if.then.i ], [ %3, %while.body.i ]
+  %cmp.i13 = icmp eq i32 %6, %4
+  br i1 %cmp.i13, label %if.end.i, label %if.else.i
+
+if.else.i:                                        ; preds = %if.end.i14
+  %cmp8.i = icmp eq i32 %6, %5
+  br i1 %cmp8.i, label %if.end.i, label %if.else10.i
+
+if.else10.i:                                      ; preds = %if.else.i
+  tail call void @fancy_abort(i8* getelementptr inbounds ([11 x i8]* @.str, i64 0, i64 0), i32 356, i8* getelementptr inbounds ([15 x i8]* @__FUNCTION__.print_conflict, i64 0, i64 0)) #6
+  unreachable
+
+if.end.i:                                         ; preds = %if.else.i, %if.end.i14
+  %reg.0.i = phi i32 [ %5, %if.end.i14 ], [ %4, %if.else.i ]
+  %call14.i = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %fp, i8* getelementptr inbounds ([4 x i8]* @.str3, i64 0, i64 0), i32 %reg.0.i) #4
+  %8 = load i32* %larger.i, align 4, !tbaa !11
+  %cmp2.i = icmp sgt i32 %8, %6
+  %smaller_next.i = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012.i, i64 0, i32 0
+  %larger_next.i = getelementptr inbounds %struct.conflict_graph_arc_def* %arc.012.i, i64 0, i32 1
+  %arc.0.in.be.i = select i1 %cmp2.i, %struct.conflict_graph_arc_def** %smaller_next.i, %struct.conflict_graph_arc_def** %larger_next.i
+  %arc.0.i = load %struct.conflict_graph_arc_def** %arc.0.in.be.i, align 8
+  %cmp.i = icmp eq %struct.conflict_graph_arc_def* %arc.0.i, null
+  br i1 %cmp.i, label %conflict_graph_enum.exit, label %while.body.i
+
+conflict_graph_enum.exit:                         ; preds = %if.end.i
+  %tobool = icmp eq i32 %7, 0
+  br i1 %tobool, label %for.inc, label %if.then
+
+if.then:                                          ; preds = %conflict_graph_enum.exit
+  %call4 = tail call i32 @fputc(i32 10, %struct._IO_FILE* %fp) #4
+  br label %for.inc
+
+for.inc:                                          ; preds = %for.body, %conflict_graph_enum.exit, %if.then
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %9 = load i32* %num_regs, align 4, !tbaa !1
+  %10 = trunc i64 %indvars.iv.next to i32
+  %cmp = icmp slt i32 %10, %9
+  br i1 %cmp, label %for.body, label %for.end
+
+for.end:                                          ; preds = %for.inc, %entry
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #3
+
+; Function Attrs: nounwind
+declare i32 @fputc(i32, %struct._IO_FILE* nocapture) #3
+
+; Function Attrs: nounwind uwtable
+define %struct.conflict_graph_def* @conflict_graph_compute(%struct.bitmap_head_def* %regs, %struct.partition_def* nocapture readonly %p) #0 {
+entry:
+  %live_head = alloca %struct.bitmap_head_def, align 8
+  %born_head = alloca %struct.bitmap_head_def, align 8
+  %call = call i32 @max_reg_num() #4
+  %call.i = call noalias i8* @xmalloc(i64 112) #4
+  %0 = bitcast i8* %call.i to %struct.conflict_graph_def*
+  %num_regs1.i = getelementptr inbounds i8* %call.i, i64 8
+  %1 = bitcast i8* %num_regs1.i to i32*
+  store i32 %call, i32* %1, align 4, !tbaa !1
+  %call2.i = call %struct.htab* @htab_create(i64 64, i32 (i8*)* @arc_hash, i32 (i8*, i8*)* @arc_eq, void (i8*)* null) #4
+  %arc_hash_table.i = bitcast i8* %call.i to %struct.htab**
+  store %struct.htab* %call2.i, %struct.htab** %arc_hash_table.i, align 8, !tbaa !9
+  %arc_obstack.i = getelementptr inbounds i8* %call.i, i64 24
+  %2 = bitcast i8* %arc_obstack.i to %struct.obstack*
+  %call3.i = call i32 @_obstack_begin(%struct.obstack* %2, i32 0, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #4
+  %conv.i = sext i32 %call to i64
+  %mul.i = shl nsw i64 %conv.i, 3
+  %call4.i = call noalias i8* @xmalloc(i64 %mul.i) #4
+  %3 = bitcast i8* %call4.i to %struct.conflict_graph_arc_def**
+  %neighbor_heads.i = getelementptr inbounds i8* %call.i, i64 16
+  %4 = bitcast i8* %neighbor_heads.i to %struct.conflict_graph_arc_def***
+  store %struct.conflict_graph_arc_def** %3, %struct.conflict_graph_arc_def*** %4, align 8, !tbaa !10
+  call void @llvm.memset.p0i8.i64(i8* %call4.i, i8 0, i64 %mul.i, i32 8, i1 false) #4
+  %call2 = call %struct.bitmap_head_def* @bitmap_initialize(%struct.bitmap_head_def* %live_head) #4
+  %call3 = call %struct.bitmap_head_def* @bitmap_initialize(%struct.bitmap_head_def* %born_head) #4
+  %5 = load i32* @n_basic_blocks, align 4, !tbaa !22
+  %cmp288 = icmp sgt i32 %5, 0
+  br i1 %cmp288, label %for.body.lr.ph, label %if.then184
+
+for.body.lr.ph:                                   ; preds = %entry
+  %6 = bitcast %struct.bitmap_head_def* %born_head to i8*
+  %first = getelementptr inbounds %struct.bitmap_head_def* %born_head, i64 0, i32 0
+  %first54 = getelementptr inbounds %struct.bitmap_head_def* %live_head, i64 0, i32 0
+  %7 = sext i32 %5 to i64
+  br label %for.body
+
+for.cond.loopexit:                                ; preds = %for.inc176, %for.body
+  %8 = trunc i64 %indvars.iv.next301 to i32
+  %cmp = icmp sgt i32 %8, 0
+  br i1 %cmp, label %for.body, label %if.then184
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.cond.loopexit
+  %indvars.iv300 = phi i64 [ %7, %for.body.lr.ph ], [ %indvars.iv.next301, %for.cond.loopexit ]
+  %indvars.iv.next301 = add nsw i64 %indvars.iv300, -1
+  %9 = load %struct.varray_head_tag** @basic_block_info, align 8, !tbaa !14
+  %data = getelementptr inbounds %struct.varray_head_tag* %9, i64 0, i32 4
+  %bb4 = bitcast %union.varray_data_tag* %data to [1 x %struct.basic_block_def*]*
+  %arrayidx = getelementptr inbounds [1 x %struct.basic_block_def*]* %bb4, i64 0, i64 %indvars.iv.next301
+  %10 = load %struct.basic_block_def** %arrayidx, align 8, !tbaa !14
+  %global_live_at_end = getelementptr inbounds %struct.basic_block_def* %10, i64 0, i32 9
+  %11 = load %struct.bitmap_head_def** %global_live_at_end, align 8, !tbaa !23
+  call void @bitmap_copy(%struct.bitmap_head_def* %live_head, %struct.bitmap_head_def* %11) #4
+  %call5 = call i32 @bitmap_operation(%struct.bitmap_head_def* %live_head, %struct.bitmap_head_def* %live_head, %struct.bitmap_head_def* %regs, i32 0) #4
+  %head6 = getelementptr inbounds %struct.basic_block_def* %10, i64 0, i32 0
+  %12 = load %struct.rtx_def** %head6, align 8, !tbaa !26
+  %end = getelementptr inbounds %struct.basic_block_def* %10, i64 0, i32 1
+  %insn.0283 = load %struct.rtx_def** %end, align 8
+  %cmp9284 = icmp eq %struct.rtx_def* %insn.0283, %12
+  br i1 %cmp9284, label %for.cond.loopexit, label %for.body10
+
+for.body10:                                       ; preds = %for.body, %for.inc176
+  %insn.0285 = phi %struct.rtx_def* [ %insn.0, %for.inc176 ], [ %insn.0283, %for.body ]
+  %13 = getelementptr inbounds %struct.rtx_def* %insn.0285, i64 0, i32 0
+  %bf.load = load i32* %13, align 8
+  %bf.clear = and i32 %bf.load, 65535
+  %idxprom11267 = zext i32 %bf.clear to i64
+  %arrayidx12 = getelementptr inbounds [153 x i8]* @rtx_class, i64 0, i64 %idxprom11267
+  %14 = load i8* %arrayidx12, align 1, !tbaa !27
+  %cmp13 = icmp eq i8 %14, 105
+  br i1 %cmp13, label %if.then, label %for.inc176
+
+if.then:                                          ; preds = %for.body10
+  call void @bitmap_clear(%struct.bitmap_head_def* %born_head) #4
+  %arrayidx15 = getelementptr inbounds %struct.rtx_def* %insn.0285, i64 0, i32 1, i64 3
+  %rtx = bitcast %union.rtunion_def* %arrayidx15 to %struct.rtx_def**
+  %15 = load %struct.rtx_def** %rtx, align 8, !tbaa !14
+  call void @note_stores(%struct.rtx_def* %15, void (%struct.rtx_def*, %struct.rtx_def*, i8*)* @mark_reg, i8* %6) #4
+  %call16 = call i32 @bitmap_operation(%struct.bitmap_head_def* %born_head, %struct.bitmap_head_def* %born_head, %struct.bitmap_head_def* %regs, i32 0) #4
+  %call17 = call i32 @bitmap_operation(%struct.bitmap_head_def* %live_head, %struct.bitmap_head_def* %live_head, %struct.bitmap_head_def* %born_head, i32 1) #4
+  %16 = load %struct.bitmap_element_def** %first, align 8, !tbaa !28
+  %cmp18 = icmp eq %struct.bitmap_element_def* %16, null
+  br i1 %cmp18, label %do.end149, label %for.cond32.preheader.lr.ph
+
+for.cond32.preheader.lr.ph:                       ; preds = %if.then
+  %indx24 = getelementptr inbounds %struct.bitmap_element_def* %16, i64 0, i32 2
+  %17 = load i32* %indx24, align 4, !tbaa !30
+  %cmp25 = icmp eq i32 %17, 0
+  %. = select i1 %cmp25, i32 53, i32 0
+  br label %for.cond32.preheader
+
+for.cond32.preheader:                             ; preds = %for.cond32.preheader.lr.ph, %for.end145
+  %ptr_.1278 = phi %struct.bitmap_element_def* [ %16, %for.cond32.preheader.lr.ph ], [ %33, %for.end145 ]
+  %bit_num_.0277 = phi i32 [ %., %for.cond32.preheader.lr.ph ], [ 0, %for.end145 ]
+  %indx49 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.1278, i64 0, i32 2
+  br label %for.body35
+
+for.body35:                                       ; preds = %if.end142, %for.cond32.preheader
+  %indvars.iv297 = phi i64 [ 0, %for.cond32.preheader ], [ %indvars.iv.next298, %if.end142 ]
+  %bit_num_.1274 = phi i32 [ %bit_num_.0277, %for.cond32.preheader ], [ 0, %if.end142 ]
+  %arrayidx37 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.1278, i64 0, i32 3, i64 %indvars.iv297
+  %18 = load i64* %arrayidx37, align 8, !tbaa !32
+  %cmp38 = icmp eq i64 %18, 0
+  br i1 %cmp38, label %if.end142, label %for.body44.preheader
+
+for.body44.preheader:                             ; preds = %for.body35
+  %19 = shl i64 %indvars.iv297, 6
+  %20 = zext i32 %bit_num_.1274 to i64
+  br label %for.body44
+
+for.body44:                                       ; preds = %for.body44.preheader, %for.inc139
+  %indvars.iv294 = phi i64 [ %20, %for.body44.preheader ], [ %indvars.iv.next295, %for.inc139 ]
+  %bit_num_.2 = phi i32 [ %bit_num_.1274, %for.body44.preheader ], [ %inc140, %for.inc139 ]
+  %word_.0 = phi i64 [ %18, %for.body44.preheader ], [ %word_.1, %for.inc139 ]
+  %shl = shl i64 1, %indvars.iv294
+  %and = and i64 %shl, %word_.0
+  %cmp45 = icmp eq i64 %and, 0
+  br i1 %cmp45, label %for.inc139, label %if.then47
+
+if.then47:                                        ; preds = %for.body44
+  %neg = xor i64 %shl, -1
+  %and48 = and i64 %word_.0, %neg
+  %21 = load %struct.bitmap_element_def** %first54, align 8, !tbaa !28
+  %cmp59 = icmp eq %struct.bitmap_element_def* %21, null
+  br i1 %cmp59, label %do.end, label %for.cond81.preheader.lr.ph
+
+for.cond81.preheader.lr.ph:                       ; preds = %if.then47
+  %22 = trunc i64 %19 to i32
+  %23 = trunc i64 %indvars.iv294 to i32
+  %24 = load i32* %indx49, align 4, !tbaa !30
+  %add = add i32 %23, %22
+  %mul = shl i32 %24, 7
+  %add51 = add i32 %add, %mul
+  %indx72 = getelementptr inbounds %struct.bitmap_element_def* %21, i64 0, i32 2
+  %25 = load i32* %indx72, align 4, !tbaa !30
+  %cmp73 = icmp eq i32 %25, 0
+  %.268 = select i1 %cmp73, i32 53, i32 0
+  %idxprom111 = sext i32 %add51 to i64
+  %class_element = getelementptr inbounds %struct.partition_def* %p, i64 0, i32 1, i64 %idxprom111, i32 0
+  br label %for.cond81.preheader
+
+for.cond81.preheader:                             ; preds = %for.cond81.preheader.lr.ph, %if.end127.1
+  %bit_num_56.0273 = phi i32 [ %.268, %for.cond81.preheader.lr.ph ], [ 0, %if.end127.1 ]
+  %ptr_53.1272 = phi %struct.bitmap_element_def* [ %21, %for.cond81.preheader.lr.ph ], [ %41, %if.end127.1 ]
+  %indx105 = getelementptr inbounds %struct.bitmap_element_def* %ptr_53.1272, i64 0, i32 2
+  %arrayidx88 = getelementptr inbounds %struct.bitmap_element_def* %ptr_53.1272, i64 0, i32 3, i64 0
+  %26 = load i64* %arrayidx88, align 8, !tbaa !32
+  %cmp89 = icmp eq i64 %26, 0
+  br i1 %cmp89, label %if.end127, label %for.body95.preheader
+
+for.body95.preheader:                             ; preds = %for.cond81.preheader
+  %27 = zext i32 %bit_num_56.0273 to i64
+  br label %for.body95
+
+for.body95:                                       ; preds = %for.body95.preheader, %for.inc
+  %indvars.iv = phi i64 [ %27, %for.body95.preheader ], [ %indvars.iv.next, %for.inc ]
+  %bit_num_56.2 = phi i32 [ %bit_num_56.0273, %for.body95.preheader ], [ %inc, %for.inc ]
+  %word_85.0 = phi i64 [ %26, %for.body95.preheader ], [ %word_85.1, %for.inc ]
+  %shl98 = shl i64 1, %indvars.iv
+  %and99 = and i64 %shl98, %word_85.0
+  %cmp100 = icmp eq i64 %and99, 0
+  br i1 %cmp100, label %for.inc, label %if.then102
+
+if.then102:                                       ; preds = %for.body95
+  %neg103 = xor i64 %shl98, -1
+  %and104 = and i64 %word_85.0, %neg103
+  %28 = load i32* %indx105, align 4, !tbaa !30
+  %mul106 = shl i32 %28, 7
+  %29 = trunc i64 %indvars.iv to i32
+  %add109 = add i32 %29, %mul106
+  %30 = load i32* %class_element, align 4, !tbaa !33
+  %idxprom113 = sext i32 %add109 to i64
+  %class_element116 = getelementptr inbounds %struct.partition_def* %p, i64 0, i32 1, i64 %idxprom113, i32 0
+  %31 = load i32* %class_element116, align 4, !tbaa !33
+  %cmp117 = icmp eq i32 %30, %31
+  br i1 %cmp117, label %if.end121, label %if.then119
+
+if.then119:                                       ; preds = %if.then102
+  %call120 = call i32 @conflict_graph_add(%struct.conflict_graph_def* %0, i32 %30, i32 %31)
+  br label %if.end121
+
+if.end121:                                        ; preds = %if.then102, %if.then119
+  %cmp122 = icmp eq i64 %and104, 0
+  br i1 %cmp122, label %if.end127, label %for.inc
+
+for.inc:                                          ; preds = %for.body95, %if.end121
+  %word_85.1 = phi i64 [ %and104, %if.end121 ], [ %word_85.0, %for.body95 ]
+  %inc = add i32 %bit_num_56.2, 1
+  %cmp93.old = icmp ult i32 %inc, 64
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  br i1 %cmp93.old, label %for.body95, label %if.end127
+
+if.end127:                                        ; preds = %for.inc, %if.end121, %for.cond81.preheader
+  %arrayidx88.1 = getelementptr inbounds %struct.bitmap_element_def* %ptr_53.1272, i64 0, i32 3, i64 1
+  %32 = load i64* %arrayidx88.1, align 8, !tbaa !32
+  %cmp89.1 = icmp eq i64 %32, 0
+  br i1 %cmp89.1, label %if.end127.1, label %for.body95.1
+
+do.end:                                           ; preds = %if.end127.1, %if.then47
+  %cmp134 = icmp eq i64 %and48, 0
+  br i1 %cmp134, label %if.end142, label %for.inc139
+
+for.inc139:                                       ; preds = %for.body44, %do.end
+  %word_.1 = phi i64 [ %and48, %do.end ], [ %word_.0, %for.body44 ]
+  %inc140 = add i32 %bit_num_.2, 1
+  %cmp42.old = icmp ult i32 %inc140, 64
+  %indvars.iv.next295 = add nuw nsw i64 %indvars.iv294, 1
+  br i1 %cmp42.old, label %for.body44, label %if.end142
+
+if.end142:                                        ; preds = %for.inc139, %do.end, %for.body35
+  %indvars.iv.next298 = add nuw nsw i64 %indvars.iv297, 1
+  %exitcond = icmp eq i64 %indvars.iv.next298, 2
+  br i1 %exitcond, label %for.end145, label %for.body35
+
+for.end145:                                       ; preds = %if.end142
+  %next147 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.1278, i64 0, i32 0
+  %33 = load %struct.bitmap_element_def** %next147, align 8, !tbaa !35
+  %cmp29 = icmp eq %struct.bitmap_element_def* %33, null
+  br i1 %cmp29, label %do.end149, label %for.cond32.preheader
+
+do.end149:                                        ; preds = %for.end145, %if.then
+  %arrayidx151 = getelementptr inbounds %struct.rtx_def* %insn.0285, i64 0, i32 1, i64 6
+  %link.0.in279 = bitcast %union.rtunion_def* %arrayidx151 to %struct.rtx_def**
+  %link.0280 = load %struct.rtx_def** %link.0.in279, align 8
+  %tobool281 = icmp eq %struct.rtx_def* %link.0280, null
+  br i1 %tobool281, label %for.inc176, label %for.body154
+
+for.body154:                                      ; preds = %do.end149, %for.inc170
+  %link.0282 = phi %struct.rtx_def* [ %link.0, %for.inc170 ], [ %link.0280, %do.end149 ]
+  %34 = getelementptr inbounds %struct.rtx_def* %link.0282, i64 0, i32 0
+  %bf.load155 = load i32* %34, align 8
+  %bf.clear156 = and i32 %bf.load155, 16711680
+  %cmp157 = icmp eq i32 %bf.clear156, 65536
+  br i1 %cmp157, label %if.then159, label %for.inc170
+
+if.then159:                                       ; preds = %for.body154
+  %arrayidx161 = getelementptr inbounds %struct.rtx_def* %link.0282, i64 0, i32 1, i64 0
+  %rtx162 = bitcast %union.rtunion_def* %arrayidx161 to %struct.rtx_def**
+  %35 = load %struct.rtx_def** %rtx162, align 8, !tbaa !14
+  %arrayidx164 = getelementptr inbounds %struct.rtx_def* %35, i64 0, i32 1, i64 0
+  %rtuint = bitcast %union.rtunion_def* %arrayidx164 to i32*
+  %36 = load i32* %rtuint, align 4, !tbaa !22
+  %call165 = call i32 @bitmap_bit_p(%struct.bitmap_head_def* %regs, i32 %36) #4
+  %tobool166 = icmp eq i32 %call165, 0
+  br i1 %tobool166, label %for.inc170, label %if.then167
+
+if.then167:                                       ; preds = %if.then159
+  call void @bitmap_set_bit(%struct.bitmap_head_def* %live_head, i32 %36) #4
+  br label %for.inc170
+
+for.inc170:                                       ; preds = %if.then159, %for.body154, %if.then167
+  %arrayidx172 = getelementptr inbounds %struct.rtx_def* %link.0282, i64 0, i32 1, i64 1
+  %link.0.in = bitcast %union.rtunion_def* %arrayidx172 to %struct.rtx_def**
+  %link.0 = load %struct.rtx_def** %link.0.in, align 8
+  %tobool = icmp eq %struct.rtx_def* %link.0, null
+  br i1 %tobool, label %for.inc176, label %for.body154
+
+for.inc176:                                       ; preds = %for.inc170, %do.end149, %for.body10
+  %arrayidx178 = getelementptr inbounds %struct.rtx_def* %insn.0285, i64 0, i32 1, i64 1
+  %rtx179 = bitcast %union.rtunion_def* %arrayidx178 to %struct.rtx_def**
+  %insn.0 = load %struct.rtx_def** %rtx179, align 8
+  %cmp9 = icmp eq %struct.rtx_def* %insn.0, %12
+  br i1 %cmp9, label %for.cond.loopexit, label %for.body10
+
+if.then184:                                       ; preds = %for.cond.loopexit, %entry
+  call void @bitmap_clear(%struct.bitmap_head_def* %live_head) #4
+  call void @bitmap_clear(%struct.bitmap_head_def* %born_head) #4
+  ret %struct.conflict_graph_def* %0
+
+for.body95.1:                                     ; preds = %if.end127, %for.inc.1
+  %indvars.iv.1 = phi i64 [ %indvars.iv.next.1, %for.inc.1 ], [ 0, %if.end127 ]
+  %bit_num_56.2.1 = phi i32 [ %inc.1, %for.inc.1 ], [ 0, %if.end127 ]
+  %word_85.0.1 = phi i64 [ %word_85.1.1, %for.inc.1 ], [ %32, %if.end127 ]
+  %shl98.1 = shl i64 1, %indvars.iv.1
+  %and99.1 = and i64 %shl98.1, %word_85.0.1
+  %cmp100.1 = icmp eq i64 %and99.1, 0
+  br i1 %cmp100.1, label %for.inc.1, label %if.then102.1
+
+if.then102.1:                                     ; preds = %for.body95.1
+  %neg103.1 = xor i64 %shl98.1, -1
+  %and104.1 = and i64 %word_85.0.1, %neg103.1
+  %37 = load i32* %indx105, align 4, !tbaa !30
+  %mul106.1 = shl i32 %37, 7
+  %38 = trunc i64 %indvars.iv.1 to i32
+  %add108.1 = add i32 %38, 64
+  %add109.1 = add i32 %add108.1, %mul106.1
+  %39 = load i32* %class_element, align 4, !tbaa !33
+  %idxprom113.1 = sext i32 %add109.1 to i64
+  %class_element116.1 = getelementptr inbounds %struct.partition_def* %p, i64 0, i32 1, i64 %idxprom113.1, i32 0
+  %40 = load i32* %class_element116.1, align 4, !tbaa !33
+  %cmp117.1 = icmp eq i32 %39, %40
+  br i1 %cmp117.1, label %if.end121.1, label %if.then119.1
+
+if.then119.1:                                     ; preds = %if.then102.1
+  %call120.1 = call i32 @conflict_graph_add(%struct.conflict_graph_def* %0, i32 %39, i32 %40)
+  br label %if.end121.1
+
+if.end121.1:                                      ; preds = %if.then119.1, %if.then102.1
+  %cmp122.1 = icmp eq i64 %and104.1, 0
+  br i1 %cmp122.1, label %if.end127.1, label %for.inc.1
+
+for.inc.1:                                        ; preds = %if.end121.1, %for.body95.1
+  %word_85.1.1 = phi i64 [ %and104.1, %if.end121.1 ], [ %word_85.0.1, %for.body95.1 ]
+  %inc.1 = add i32 %bit_num_56.2.1, 1
+  %cmp93.old.1 = icmp ult i32 %inc.1, 64
+  %indvars.iv.next.1 = add nuw nsw i64 %indvars.iv.1, 1
+  br i1 %cmp93.old.1, label %for.body95.1, label %if.end127.1
+
+if.end127.1:                                      ; preds = %if.end121.1, %for.inc.1, %if.end127
+  %next132 = getelementptr inbounds %struct.bitmap_element_def* %ptr_53.1272, i64 0, i32 0
+  %41 = load %struct.bitmap_element_def** %next132, align 8, !tbaa !35
+  %cmp78 = icmp eq %struct.bitmap_element_def* %41, null
+  br i1 %cmp78, label %do.end, label %for.cond81.preheader
+}
+
+declare i32 @max_reg_num() #1
+
+declare %struct.bitmap_head_def* @bitmap_initialize(%struct.bitmap_head_def*) #1
+
+declare void @bitmap_copy(%struct.bitmap_head_def*, %struct.bitmap_head_def*) #1
+
+declare i32 @bitmap_operation(%struct.bitmap_head_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, i32) #1
+
+declare void @bitmap_clear(%struct.bitmap_head_def*) #1
+
+declare void @note_stores(%struct.rtx_def*, void (%struct.rtx_def*, %struct.rtx_def*, i8*)*, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define internal void @mark_reg(%struct.rtx_def* nocapture readonly %reg, %struct.rtx_def* nocapture readnone %setter, i8* %data) #0 {
+entry:
+  %0 = bitcast i8* %data to %struct.bitmap_head_def*
+  %1 = getelementptr inbounds %struct.rtx_def* %reg, i64 0, i32 0
+  %bf.load = load i32* %1, align 8
+  %bf.clear = and i32 %bf.load, 65535
+  %cmp = icmp eq i32 %bf.clear, 63
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %arrayidx = getelementptr inbounds %struct.rtx_def* %reg, i64 0, i32 1, i64 0
+  %rtx = bitcast %union.rtunion_def* %arrayidx to %struct.rtx_def**
+  %2 = load %struct.rtx_def** %rtx, align 8, !tbaa !14
+  %.phi.trans.insert = getelementptr inbounds %struct.rtx_def* %2, i64 0, i32 0
+  %bf.load1.pre = load i32* %.phi.trans.insert, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %bf.load1 = phi i32 [ %bf.load1.pre, %if.then ], [ %bf.load, %entry ]
+  %reg.addr.0 = phi %struct.rtx_def* [ %2, %if.then ], [ %reg, %entry ]
+  %bf.clear2 = and i32 %bf.load1, 65535
+  %cmp3 = icmp eq i32 %bf.clear2, 61
+  br i1 %cmp3, label %if.end5, label %return
+
+if.end5:                                          ; preds = %if.end
+  %arrayidx7 = getelementptr inbounds %struct.rtx_def* %reg.addr.0, i64 0, i32 1, i64 0
+  %rtuint = bitcast %union.rtunion_def* %arrayidx7 to i32*
+  %3 = load i32* %rtuint, align 4, !tbaa !22
+  tail call void @bitmap_set_bit(%struct.bitmap_head_def* %0, i32 %3) #4
+  br label %return
+
+return:                                           ; preds = %if.end, %if.end5
+  ret void
+}
+
+declare i32 @bitmap_bit_p(%struct.bitmap_head_def*, i32) #1
+
+declare void @bitmap_set_bit(%struct.bitmap_head_def*, i32) #1
+
+; Function Attrs: nounwind
+declare i64 @fwrite(i8* nocapture, i64, i64, %struct._IO_FILE* nocapture) #4
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind }
+attributes #5 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #6 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !6, i64 8}
+!2 = metadata !{metadata !"conflict_graph_def", metadata !3, i64 0, metadata !6, i64 8, metadata !3, i64 16, metadata !7, i64 24}
+!3 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"int", metadata !4, i64 0}
+!7 = metadata !{metadata !"obstack", metadata !8, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !3, i64 32, metadata !8, i64 40, metadata !6, i64 48, metadata !3, i64 56, metadata !3, i64 64, metadata !3, i64 72, metadata !6, i64 80, metadata !6, i64 80, metadata !6, i64 80}
+!8 = metadata !{metadata !"long", metadata !4, i64 0}
+!9 = metadata !{metadata !2, metadata !3, i64 0}
+!10 = metadata !{metadata !2, metadata !3, i64 16}
+!11 = metadata !{metadata !12, metadata !6, i64 20}
+!12 = metadata !{metadata !"conflict_graph_arc_def", metadata !3, i64 0, metadata !3, i64 8, metadata !6, i64 16, metadata !6, i64 20}
+!13 = metadata !{metadata !12, metadata !6, i64 16}
+!14 = metadata !{metadata !3, metadata !3, i64 0}
+!15 = metadata !{metadata !7, metadata !3, i64 32}
+!16 = metadata !{metadata !7, metadata !3, i64 24}
+!17 = metadata !{metadata !7, metadata !3, i64 16}
+!18 = metadata !{metadata !7, metadata !6, i64 48}
+!19 = metadata !{metadata !7, metadata !3, i64 8}
+!20 = metadata !{metadata !12, metadata !3, i64 0}
+!21 = metadata !{metadata !12, metadata !3, i64 8}
+!22 = metadata !{metadata !6, metadata !6, i64 0}
+!23 = metadata !{metadata !24, metadata !3, i64 72}
+!24 = metadata !{metadata !"basic_block_def", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !3, i64 24, metadata !3, i64 32, metadata !3, i64 40, metadata !3, i64 48, metadata !3, i64 56, metadata !3, i64 64, metadata !3, i64 72, metadata !3, i64 80, metadata !6, i64 88, metadata !6, i64 92, metadata !25, i64 96, metadata !6, i64 104, metadata !6, i64 108}
+!25 = metadata !{metadata !"long long", metadata !4, i64 0}
+!26 = metadata !{metadata !24, metadata !3, i64 0}
+!27 = metadata !{metadata !4, metadata !4, i64 0}
+!28 = metadata !{metadata !29, metadata !3, i64 0}
+!29 = metadata !{metadata !"bitmap_head_def", metadata !3, i64 0, metadata !3, i64 8, metadata !6, i64 16}
+!30 = metadata !{metadata !31, metadata !6, i64 16}
+!31 = metadata !{metadata !"bitmap_element_def", metadata !3, i64 0, metadata !3, i64 8, metadata !6, i64 16, metadata !4, i64 24}
+!32 = metadata !{metadata !25, metadata !25, i64 0}
+!33 = metadata !{metadata !34, metadata !6, i64 0}
+!34 = metadata !{metadata !"partition_elem", metadata !6, i64 0, metadata !3, i64 8, metadata !6, i64 16}
+!35 = metadata !{metadata !31, metadata !3, i64 0}

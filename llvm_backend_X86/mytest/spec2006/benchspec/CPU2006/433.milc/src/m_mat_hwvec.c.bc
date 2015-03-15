@@ -1,0 +1,30 @@
+; ModuleID = 'm_mat_hwvec.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+%struct.complex = type { double, double }
+%struct.half_wilson_vector = type { [2 x %struct.su3_vector] }
+%struct.su3_vector = type { [3 x %struct.complex] }
+
+; Function Attrs: nounwind uwtable
+define void @mult_su3_mat_hwvec(%struct.su3_matrix* %mat, %struct.half_wilson_vector* %src, %struct.half_wilson_vector* %dest) #0 {
+entry:
+  %arrayidx = getelementptr inbounds %struct.half_wilson_vector* %src, i64 0, i32 0, i64 0
+  %arrayidx2 = getelementptr inbounds %struct.half_wilson_vector* %dest, i64 0, i32 0, i64 0
+  tail call void @mult_su3_mat_vec(%struct.su3_matrix* %mat, %struct.su3_vector* %arrayidx, %struct.su3_vector* %arrayidx2) #2
+  %arrayidx4 = getelementptr inbounds %struct.half_wilson_vector* %src, i64 0, i32 0, i64 1
+  %arrayidx6 = getelementptr inbounds %struct.half_wilson_vector* %dest, i64 0, i32 0, i64 1
+  tail call void @mult_su3_mat_vec(%struct.su3_matrix* %mat, %struct.su3_vector* %arrayidx4, %struct.su3_vector* %arrayidx6) #2
+  ret void
+}
+
+declare void @mult_su3_mat_vec(%struct.su3_matrix*, %struct.su3_vector*, %struct.su3_vector*) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}

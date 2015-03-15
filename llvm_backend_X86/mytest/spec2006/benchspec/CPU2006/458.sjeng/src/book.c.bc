@@ -1,0 +1,37 @@
+; ModuleID = 'book.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.move_s = type { i32, i32, i32, i32, i32, i32 }
+
+@dummy = external global %struct.move_s
+
+; Function Attrs: nounwind readnone uwtable
+define i32 @init_book() #0 {
+entry:
+  ret i32 1
+}
+
+; Function Attrs: nounwind uwtable
+define void @choose_book_move(%struct.move_s* noalias nocapture sret %agg.result) #1 {
+entry:
+  %0 = bitcast %struct.move_s* %agg.result to i8*
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %0, i8* bitcast (%struct.move_s* @dummy to i8*), i64 24, i32 4, i1 false), !tbaa.struct !1
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #2
+
+attributes #0 = { nounwind readnone uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{i64 0, i64 4, metadata !2, i64 4, i64 4, metadata !2, i64 8, i64 4, metadata !2, i64 12, i64 4, metadata !2, i64 16, i64 4, metadata !2, i64 20, i64 4, metadata !2}
+!2 = metadata !{metadata !3, metadata !3, i64 0}
+!3 = metadata !{metadata !"int", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}

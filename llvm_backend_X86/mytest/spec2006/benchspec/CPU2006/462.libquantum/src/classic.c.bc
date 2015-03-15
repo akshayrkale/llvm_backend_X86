@@ -1,0 +1,143 @@
+; ModuleID = 'classic.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+; Function Attrs: nounwind readnone uwtable
+define i32 @quantum_ipow(i32 %a, i32 %b) #0 {
+entry:
+  %cmp3 = icmp sgt i32 %b, 0
+  br i1 %cmp3, label %for.body, label %for.end
+
+for.body:                                         ; preds = %entry, %for.body
+  %r.05 = phi i32 [ %mul, %for.body ], [ 1, %entry ]
+  %i.04 = phi i32 [ %inc, %for.body ], [ 0, %entry ]
+  %mul = mul nsw i32 %r.05, %a
+  %inc = add nsw i32 %i.04, 1
+  %exitcond = icmp eq i32 %inc, %b
+  br i1 %exitcond, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.body, %entry
+  %r.0.lcssa = phi i32 [ 1, %entry ], [ %mul, %for.body ]
+  ret i32 %r.0.lcssa
+}
+
+; Function Attrs: nounwind readnone uwtable
+define i32 @quantum_gcd(i32 %u, i32 %v) #0 {
+entry:
+  %tobool3 = icmp eq i32 %v, 0
+  br i1 %tobool3, label %while.end, label %while.body
+
+while.body:                                       ; preds = %entry, %while.body
+  %u.addr.05 = phi i32 [ %v.addr.04, %while.body ], [ %u, %entry ]
+  %v.addr.04 = phi i32 [ %rem, %while.body ], [ %v, %entry ]
+  %rem = srem i32 %u.addr.05, %v.addr.04
+  %tobool = icmp eq i32 %rem, 0
+  br i1 %tobool, label %while.end, label %while.body
+
+while.end:                                        ; preds = %while.body, %entry
+  %u.addr.0.lcssa = phi i32 [ %u, %entry ], [ %v.addr.04, %while.body ]
+  ret i32 %u.addr.0.lcssa
+}
+
+; Function Attrs: nounwind uwtable
+define void @quantum_frac_approx(i32* nocapture %a, i32* nocapture %b, i32 %width) #1 {
+entry:
+  %0 = load i32* %a, align 4, !tbaa !1
+  %conv = sitofp i32 %0 to float
+  %1 = load i32* %b, align 4, !tbaa !1
+  %conv1 = sitofp i32 %1 to float
+  %div = fdiv float %conv, %conv1
+  %shl = shl i32 1, %width
+  %conv20 = fpext float %div to double
+  %mul23 = shl nsw i32 %shl, 1
+  %conv24 = sitofp i32 %mul23 to double
+  %div25 = fdiv double 1.000000e+00, %conv24
+  br label %do.body
+
+do.body:                                          ; preds = %if.end, %entry
+  %g.0 = phi float [ %div, %entry ], [ %conv10, %if.end ]
+  %num2.0 = phi i32 [ 0, %entry ], [ %num1.0, %if.end ]
+  %den2.0 = phi i32 [ 1, %entry ], [ %den1.0, %if.end ]
+  %num1.0 = phi i32 [ 1, %entry ], [ %add14, %if.end ]
+  %den1.0 = phi i32 [ 0, %entry ], [ %add11, %if.end ]
+  %num.0 = phi i32 [ 0, %entry ], [ %add14, %if.end ]
+  %conv2 = fpext float %g.0 to double
+  %add = fadd double %conv2, 5.000000e-06
+  %conv3 = fptosi double %add to i32
+  %mul = mul nsw i32 %den1.0, %conv3
+  %add11 = add nsw i32 %mul, %den2.0
+  %cmp = icmp sgt i32 %add11, %shl
+  br i1 %cmp, label %do.end, label %if.end
+
+if.end:                                           ; preds = %do.body
+  %conv4 = sitofp i32 %conv3 to double
+  %sub = fadd double %conv4, -5.000000e-06
+  %sub6 = fsub double %conv2, %sub
+  %conv7 = fptrunc double %sub6 to float
+  %conv10 = fdiv float 1.000000e+00, %conv7
+  %mul13 = mul nsw i32 %conv3, %num1.0
+  %add14 = add nsw i32 %mul13, %num2.0
+  %conv17 = sitofp i32 %add14 to double
+  %conv18 = sitofp i32 %add11 to double
+  %div19 = fdiv double %conv17, %conv18
+  %sub21 = fsub double %div19, %conv20
+  %call = tail call double @fabs(double %sub21) #3
+  %cmp26 = fcmp ogt double %call, %div25
+  br i1 %cmp26, label %do.body, label %do.end
+
+do.end:                                           ; preds = %do.body, %if.end
+  %num.1 = phi i32 [ %num.0, %do.body ], [ %add14, %if.end ]
+  %den.1 = phi i32 [ %den1.0, %do.body ], [ %add11, %if.end ]
+  store i32 %num.1, i32* %a, align 4, !tbaa !1
+  store i32 %den.1, i32* %b, align 4, !tbaa !1
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare double @fabs(double) #2
+
+; Function Attrs: nounwind readnone uwtable
+define i32 @quantum_getwidth(i32 %n) #0 {
+entry:
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.cond, %entry
+  %i.0 = phi i32 [ 1, %entry ], [ %inc, %for.cond ]
+  %shl = shl i32 1, %i.0
+  %cmp = icmp slt i32 %shl, %n
+  %inc = add nsw i32 %i.0, 1
+  br i1 %cmp, label %for.cond, label %for.end
+
+for.end:                                          ; preds = %for.cond
+  ret i32 %i.0
+}
+
+; Function Attrs: nounwind readnone uwtable
+define i32 @quantum_inverse_mod(i32 %n, i32 %c) #0 {
+entry:
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.cond, %entry
+  %i.0 = phi i32 [ 1, %entry ], [ %inc, %for.cond ]
+  %mul = mul nsw i32 %i.0, %c
+  %rem = srem i32 %mul, %n
+  %cmp = icmp eq i32 %rem, 1
+  %inc = add nsw i32 %i.0, 1
+  br i1 %cmp, label %for.end, label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  ret i32 %i.0
+}
+
+attributes #0 = { nounwind readnone uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readnone "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

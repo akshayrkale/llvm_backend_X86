@@ -1,0 +1,443 @@
+; ModuleID = 'line-map.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct._IO_FILE = type opaque
+%struct.line_maps = type { %struct.line_map*, i32, i32, i32, i32, i8 }
+%struct.line_map = type { i8*, i32, i32, i32, i8, i8 }
+
+@stderr = external constant %struct._IO_FILE*
+@.str = private unnamed_addr constant [44 x i8] c"line-map.c: file \22%s\22 entered but not left\0A\00", align 1
+@.str1 = private unnamed_addr constant [44 x i8] c"line-map.c: file \22%s\22 left but not entered\0A\00", align 1
+@.str2 = private unnamed_addr constant [28 x i8] c"In file included from %s:%u\00", align 1
+@.str3 = private unnamed_addr constant [30 x i8] c",\0A                 from %s:%u\00", align 1
+@.str4 = private unnamed_addr constant [3 x i8] c":\0A\00", align 1
+@.str5 = private unnamed_addr constant [5 x i8] c" %s\0A\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @init_line_maps(%struct.line_maps* nocapture %set) #0 {
+entry:
+  %last_listed = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 3
+  %0 = bitcast %struct.line_maps* %set to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 16, i32 8, i1 false)
+  store i32 -1, i32* %last_listed, align 4, !tbaa !1
+  %trace_includes = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 5
+  store i8 0, i8* %trace_includes, align 1, !tbaa !8
+  %depth = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 4
+  store i32 0, i32* %depth, align 4, !tbaa !9
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @free_line_maps(%struct.line_maps* nocapture readonly %set) #0 {
+entry:
+  %maps = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %0 = load %struct.line_map** %maps, align 8, !tbaa !10
+  %tobool = icmp eq %struct.line_map* %0, null
+  br i1 %tobool, label %if.end, label %if.then
+
+if.then:                                          ; preds = %entry
+  %used = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 2
+  %1 = load i32* %used, align 4, !tbaa !11
+  %idx.ext = zext i32 %1 to i64
+  %add.ptr.sum = add i64 %idx.ext, -1
+  %included_from12 = getelementptr inbounds %struct.line_map* %0, i64 %add.ptr.sum, i32 3
+  %2 = load i32* %included_from12, align 4, !tbaa !12
+  %lnot13 = icmp sgt i32 %2, -1
+  br i1 %lnot13, label %for.body.lr.ph, label %for.end
+
+for.body.lr.ph:                                   ; preds = %if.then
+  %add.ptr2 = getelementptr inbounds %struct.line_map* %0, i64 %add.ptr.sum
+  %3 = load %struct._IO_FILE** @stderr, align 8, !tbaa !14
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.body
+  %included_from15 = phi i32* [ %included_from12, %for.body.lr.ph ], [ %included_from, %for.body ]
+  %map.014 = phi %struct.line_map* [ %add.ptr2, %for.body.lr.ph ], [ %arrayidx, %for.body ]
+  %to_file = getelementptr inbounds %struct.line_map* %map.014, i64 0, i32 0
+  %4 = load i8** %to_file, align 8, !tbaa !15
+  %call = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %3, i8* getelementptr inbounds ([44 x i8]* @.str, i64 0, i64 0), i8* %4) #6
+  %5 = load i32* %included_from15, align 4, !tbaa !12
+  %idxprom = sext i32 %5 to i64
+  %6 = load %struct.line_map** %maps, align 8, !tbaa !10
+  %arrayidx = getelementptr inbounds %struct.line_map* %6, i64 %idxprom
+  %included_from = getelementptr inbounds %struct.line_map* %6, i64 %idxprom, i32 3
+  %7 = load i32* %included_from, align 4, !tbaa !12
+  %lnot = icmp sgt i32 %7, -1
+  br i1 %lnot, label %for.body, label %for.end
+
+for.end:                                          ; preds = %for.body, %if.then
+  %8 = phi %struct.line_map* [ %0, %if.then ], [ %6, %for.body ]
+  %9 = bitcast %struct.line_map* %8 to i8*
+  tail call void @free(i8* %9)
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %for.end
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #1
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #1
+
+; Function Attrs: nounwind uwtable
+define %struct.line_map* @add_line_map(%struct.line_maps* nocapture %set, i32 %reason, i32 %sysp, i32 %from_line, i8* %to_file, i32 %to_line) #0 {
+entry:
+  %used = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 2
+  %0 = load i32* %used, align 4, !tbaa !11
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %if.end, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %entry
+  %sub = add i32 %0, -1
+  %idxprom = zext i32 %sub to i64
+  %maps = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %1 = load %struct.line_map** %maps, align 8, !tbaa !10
+  %from_line2 = getelementptr inbounds %struct.line_map* %1, i64 %idxprom, i32 2
+  %2 = load i32* %from_line2, align 4, !tbaa !16
+  %cmp = icmp ugt i32 %2, %from_line
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %land.lhs.true
+  tail call void @abort() #7
+  unreachable
+
+if.end:                                           ; preds = %entry, %land.lhs.true
+  %allocated = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 1
+  %3 = load i32* %allocated, align 4, !tbaa !17
+  %cmp4 = icmp eq i32 %0, %3
+  br i1 %cmp4, label %if.then5, label %if.end.if.end12_crit_edge
+
+if.end.if.end12_crit_edge:                        ; preds = %if.end
+  %maps15.phi.trans.insert = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %.pre161 = load %struct.line_map** %maps15.phi.trans.insert, align 8, !tbaa !10
+  br label %if.end12
+
+if.then5:                                         ; preds = %if.end
+  %mul = shl i32 %0, 1
+  %add = add i32 %mul, 256
+  store i32 %add, i32* %allocated, align 4, !tbaa !17
+  %maps8 = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %4 = load %struct.line_map** %maps8, align 8, !tbaa !10
+  %5 = bitcast %struct.line_map* %4 to i8*
+  %conv = zext i32 %add to i64
+  %mul10 = mul i64 %conv, 24
+  %call = tail call i8* @xrealloc(i8* %5, i64 %mul10) #5
+  %6 = bitcast i8* %call to %struct.line_map*
+  store %struct.line_map* %6, %struct.line_map** %maps8, align 8, !tbaa !10
+  %.pre = load i32* %used, align 4, !tbaa !11
+  br label %if.end12
+
+if.end12:                                         ; preds = %if.end.if.end12_crit_edge, %if.then5
+  %7 = phi %struct.line_map* [ %6, %if.then5 ], [ %.pre161, %if.end.if.end12_crit_edge ]
+  %8 = phi i32 [ %.pre, %if.then5 ], [ %0, %if.end.if.end12_crit_edge ]
+  %inc = add i32 %8, 1
+  store i32 %inc, i32* %used, align 4, !tbaa !11
+  %idxprom14 = zext i32 %8 to i64
+  %maps15 = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %arrayidx16 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14
+  %depth = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 4
+  %9 = load i32* %depth, align 4, !tbaa !9
+  %cmp17 = icmp eq i32 %9, 0
+  br i1 %cmp17, label %if.end60, label %if.else
+
+if.else:                                          ; preds = %if.end12
+  %cmp20 = icmp eq i32 %reason, 1
+  br i1 %cmp20, label %if.then22, label %if.end60
+
+if.then22:                                        ; preds = %if.else
+  %arrayidx16.sum149 = add i64 %idxprom14, -1
+  %included_from = getelementptr inbounds %struct.line_map* %7, i64 %arrayidx16.sum149, i32 3
+  %10 = load i32* %included_from, align 4, !tbaa !12
+  %cmp23 = icmp slt i32 %10, 0
+  br i1 %cmp23, label %if.end37.thread, label %if.else27
+
+if.end37.thread:                                  ; preds = %if.then22
+  %add.ptr = getelementptr inbounds %struct.line_map* %7, i64 %arrayidx16.sum149
+  br label %if.then39
+
+if.else27:                                        ; preds = %if.then22
+  %idxprom30 = sext i32 %10 to i64
+  %arrayidx32 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom30
+  %tobool33 = icmp eq i8* %to_file, null
+  br i1 %tobool33, label %if.then46, label %if.end37
+
+if.end37:                                         ; preds = %if.else27
+  %to_file34 = getelementptr inbounds %struct.line_map* %arrayidx32, i64 0, i32 0
+  %11 = load i8** %to_file34, align 8, !tbaa !15
+  %call35 = tail call i32 @strcmp(i8* %11, i8* %to_file) #5
+  %tobool36 = icmp eq i32 %call35, 0
+  br i1 %tobool36, label %if.end60, label %if.then39
+
+if.then39:                                        ; preds = %if.end37, %if.end37.thread
+  %from.0153 = phi %struct.line_map* [ %add.ptr, %if.end37.thread ], [ %arrayidx32, %if.end37 ]
+  %reason.addr.0151 = phi i32 [ 2, %if.end37.thread ], [ 1, %if.end37 ]
+  %12 = load %struct._IO_FILE** @stderr, align 8, !tbaa !14
+  %call40 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %12, i8* getelementptr inbounds ([44 x i8]* @.str1, i64 0, i64 0), i8* %to_file) #6
+  br label %if.then46
+
+if.then46:                                        ; preds = %if.else27, %if.then39
+  %reason.addr.0150160 = phi i32 [ %reason.addr.0151, %if.then39 ], [ 1, %if.else27 ]
+  %from.0152159 = phi %struct.line_map* [ %from.0153, %if.then39 ], [ %arrayidx32, %if.else27 ]
+  %to_file47 = getelementptr inbounds %struct.line_map* %from.0152159, i64 0, i32 0
+  %13 = load i8** %to_file47, align 8, !tbaa !15
+  %from_line49 = getelementptr inbounds %struct.line_map* %from.0152159, i64 1, i32 2
+  %14 = load i32* %from_line49, align 4, !tbaa !16
+  %to_line51 = getelementptr inbounds %struct.line_map* %from.0152159, i64 0, i32 1
+  %15 = load i32* %to_line51, align 4, !tbaa !18
+  %from_line53 = getelementptr inbounds %struct.line_map* %from.0152159, i64 0, i32 2
+  %16 = load i32* %from_line53, align 4, !tbaa !16
+  %sub54 = add i32 %15, %14
+  %add55 = sub i32 %sub54, %16
+  %sysp56 = getelementptr inbounds %struct.line_map* %from.0152159, i64 0, i32 5
+  %17 = load i8* %sysp56, align 1, !tbaa !19
+  %conv57 = zext i8 %17 to i32
+  br label %if.end60
+
+if.end60:                                         ; preds = %if.end37, %if.end12, %if.else, %if.then46
+  %sysp.addr.0 = phi i32 [ %conv57, %if.then46 ], [ %sysp, %if.else ], [ %sysp, %if.end12 ], [ %sysp, %if.end37 ]
+  %to_file.addr.0 = phi i8* [ %13, %if.then46 ], [ %to_file, %if.else ], [ %to_file, %if.end12 ], [ %to_file, %if.end37 ]
+  %to_line.addr.0 = phi i32 [ %add55, %if.then46 ], [ %to_line, %if.else ], [ %to_line, %if.end12 ], [ %to_line, %if.end37 ]
+  %reason.addr.1 = phi i32 [ %reason.addr.0150160, %if.then46 ], [ %reason, %if.else ], [ 0, %if.end12 ], [ 1, %if.end37 ]
+  %reason61 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 4
+  %18 = trunc i32 %reason.addr.1 to i8
+  store i8 %18, i8* %reason61, align 4
+  %conv62 = trunc i32 %sysp.addr.0 to i8
+  %sysp63 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 5
+  store i8 %conv62, i8* %sysp63, align 1, !tbaa !19
+  %from_line64 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 2
+  store i32 %from_line, i32* %from_line64, align 4, !tbaa !16
+  %to_file65 = getelementptr inbounds %struct.line_map* %arrayidx16, i64 0, i32 0
+  store i8* %to_file.addr.0, i8** %to_file65, align 8, !tbaa !15
+  %to_line66 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 1
+  store i32 %to_line.addr.0, i32* %to_line66, align 4, !tbaa !18
+  switch i32 %reason.addr.1, label %if.end99 [
+    i32 0, label %if.then69
+    i32 2, label %if.then81
+    i32 1, label %if.then88
+  ]
+
+if.then69:                                        ; preds = %if.end60
+  %19 = load i32* %depth, align 4, !tbaa !9
+  %inc71 = add i32 %19, 1
+  store i32 %inc71, i32* %depth, align 4, !tbaa !9
+  %20 = load i32* %used, align 4, !tbaa !11
+  %sub73 = add i32 %20, -2
+  %included_from74 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 3
+  store i32 %sub73, i32* %included_from74, align 4, !tbaa !12
+  %trace_includes = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 5
+  %21 = load i8* %trace_includes, align 1, !tbaa !8, !range !20
+  %tobool75 = icmp eq i8 %21, 0
+  br i1 %tobool75, label %if.end99, label %if.then76
+
+if.then76:                                        ; preds = %if.then69
+  %tobool2.i = icmp eq i32 %19, 0
+  %22 = load %struct._IO_FILE** @stderr, align 8, !tbaa !14
+  br i1 %tobool2.i, label %trace_include.exit, label %while.body.i
+
+while.body.i:                                     ; preds = %if.then76, %while.body.i
+  %dec3.i = phi i32 [ %dec.i, %while.body.i ], [ %19, %if.then76 ]
+  %call.i = tail call i32 @putc(i32 46, %struct._IO_FILE* %22) #5
+  %dec.i = add i32 %dec3.i, -1
+  %tobool.i = icmp eq i32 %dec.i, 0
+  br i1 %tobool.i, label %trace_include.exit.loopexit, label %while.body.i
+
+trace_include.exit.loopexit:                      ; preds = %while.body.i
+  %.pre162 = load i8** %to_file65, align 8, !tbaa !15
+  br label %trace_include.exit
+
+trace_include.exit:                               ; preds = %trace_include.exit.loopexit, %if.then76
+  %23 = phi i8* [ %.pre162, %trace_include.exit.loopexit ], [ %to_file.addr.0, %if.then76 ]
+  %call1.i = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %22, i8* getelementptr inbounds ([5 x i8]* @.str5, i64 0, i64 0), i8* %23) #6
+  br label %if.end99
+
+if.then81:                                        ; preds = %if.end60
+  %arrayidx16.sum148 = add i64 %idxprom14, -1
+  %included_from83 = getelementptr inbounds %struct.line_map* %7, i64 %arrayidx16.sum148, i32 3
+  %24 = load i32* %included_from83, align 4, !tbaa !12
+  %included_from84 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 3
+  store i32 %24, i32* %included_from84, align 4, !tbaa !12
+  br label %if.end99
+
+if.then88:                                        ; preds = %if.end60
+  %25 = load i32* %depth, align 4, !tbaa !9
+  %dec = add i32 %25, -1
+  store i32 %dec, i32* %depth, align 4, !tbaa !9
+  %arrayidx16.sum = add i64 %idxprom14, -1
+  %included_from91 = getelementptr inbounds %struct.line_map* %7, i64 %arrayidx16.sum, i32 3
+  %26 = load i32* %included_from91, align 4, !tbaa !12
+  %idxprom92 = sext i32 %26 to i64
+  %27 = load %struct.line_map** %maps15, align 8, !tbaa !10
+  %included_from95 = getelementptr inbounds %struct.line_map* %27, i64 %idxprom92, i32 3
+  %28 = load i32* %included_from95, align 4, !tbaa !12
+  %included_from96 = getelementptr inbounds %struct.line_map* %7, i64 %idxprom14, i32 3
+  store i32 %28, i32* %included_from96, align 4, !tbaa !12
+  br label %if.end99
+
+if.end99:                                         ; preds = %if.end60, %if.then69, %if.then81, %if.then88, %trace_include.exit
+  ret %struct.line_map* %arrayidx16
+}
+
+; Function Attrs: noreturn
+declare void @abort() #2
+
+declare i8* @xrealloc(i8*, i64) #3
+
+; Function Attrs: nounwind readonly
+declare i32 @strcmp(i8* nocapture, i8* nocapture) #4
+
+; Function Attrs: nounwind uwtable
+define %struct.line_map* @lookup_line(%struct.line_maps* nocapture readonly %set, i32 %line) #0 {
+entry:
+  %used = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 2
+  %0 = load i32* %used, align 4, !tbaa !11
+  %cmp = icmp eq i32 %0, 0
+  br i1 %cmp, label %if.then, label %while.cond.preheader
+
+while.cond.preheader:                             ; preds = %entry
+  %cmp114 = icmp ugt i32 %0, 1
+  %maps = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %1 = load %struct.line_map** %maps, align 8, !tbaa !10
+  br i1 %cmp114, label %while.body, label %while.end
+
+if.then:                                          ; preds = %entry
+  tail call void @abort() #7
+  unreachable
+
+while.body:                                       ; preds = %while.cond.preheader, %while.body
+  %mx.016 = phi i32 [ %div.mx.0, %while.body ], [ %0, %while.cond.preheader ]
+  %mn.015 = phi i32 [ %mn.0.div, %while.body ], [ 0, %while.cond.preheader ]
+  %add = add i32 %mx.016, %mn.015
+  %div = lshr i32 %add, 1
+  %idxprom = zext i32 %div to i64
+  %from_line = getelementptr inbounds %struct.line_map* %1, i64 %idxprom, i32 2
+  %2 = load i32* %from_line, align 4, !tbaa !16
+  %cmp2 = icmp ugt i32 %2, %line
+  %mn.0.div = select i1 %cmp2, i32 %mn.015, i32 %div
+  %div.mx.0 = select i1 %cmp2, i32 %div, i32 %mx.016
+  %sub = sub i32 %div.mx.0, %mn.0.div
+  %cmp1 = icmp ugt i32 %sub, 1
+  br i1 %cmp1, label %while.body, label %while.cond.while.end_crit_edge
+
+while.cond.while.end_crit_edge:                   ; preds = %while.body
+  %phitmp = zext i32 %mn.0.div to i64
+  br label %while.end
+
+while.end:                                        ; preds = %while.cond.preheader, %while.cond.while.end_crit_edge
+  %mn.0.lcssa = phi i64 [ %phitmp, %while.cond.while.end_crit_edge ], [ 0, %while.cond.preheader ]
+  %arrayidx7 = getelementptr inbounds %struct.line_map* %1, i64 %mn.0.lcssa
+  ret %struct.line_map* %arrayidx7
+}
+
+; Function Attrs: nounwind uwtable
+define void @print_containing_files(%struct.line_maps* nocapture %set, %struct.line_map* nocapture readonly %map) #0 {
+entry:
+  %included_from = getelementptr inbounds %struct.line_map* %map, i64 0, i32 3
+  %0 = load i32* %included_from, align 4, !tbaa !12
+  %cmp = icmp slt i32 %0, 0
+  br i1 %cmp, label %return, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %entry
+  %last_listed = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 3
+  %1 = load i32* %last_listed, align 4, !tbaa !1
+  %cmp2 = icmp eq i32 %1, %0
+  br i1 %cmp2, label %return, label %if.end
+
+if.end:                                           ; preds = %lor.lhs.false
+  store i32 %0, i32* %last_listed, align 4, !tbaa !1
+  %idxprom = sext i32 %0 to i64
+  %maps = getelementptr inbounds %struct.line_maps* %set, i64 0, i32 0
+  %2 = load %struct.line_map** %maps, align 8, !tbaa !10
+  %3 = load %struct._IO_FILE** @stderr, align 8, !tbaa !14
+  %to_file = getelementptr inbounds %struct.line_map* %2, i64 %idxprom, i32 0
+  %4 = load i8** %to_file, align 8, !tbaa !15
+  %arrayidx.sum = add i64 %idxprom, 1
+  %from_line = getelementptr inbounds %struct.line_map* %2, i64 %arrayidx.sum, i32 2
+  %5 = load i32* %from_line, align 4, !tbaa !16
+  %sub = add i32 %5, -1
+  %to_line = getelementptr inbounds %struct.line_map* %2, i64 %idxprom, i32 1
+  %6 = load i32* %to_line, align 4, !tbaa !18
+  %add = add i32 %sub, %6
+  %from_line7 = getelementptr inbounds %struct.line_map* %2, i64 %idxprom, i32 2
+  %7 = load i32* %from_line7, align 4, !tbaa !16
+  %sub8 = sub i32 %add, %7
+  %call = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %3, i8* getelementptr inbounds ([28 x i8]* @.str2, i64 0, i64 0), i8* %4, i32 %sub8) #6
+  %included_from942 = getelementptr inbounds %struct.line_map* %2, i64 %idxprom, i32 3
+  %8 = load i32* %included_from942, align 4, !tbaa !12
+  %lnot43 = icmp sgt i32 %8, -1
+  br i1 %lnot43, label %while.body, label %while.end
+
+while.body:                                       ; preds = %if.end, %while.body
+  %9 = phi i32 [ %15, %while.body ], [ %8, %if.end ]
+  %idxprom12 = sext i32 %9 to i64
+  %10 = load %struct.line_map** %maps, align 8, !tbaa !10
+  %to_file15 = getelementptr inbounds %struct.line_map* %10, i64 %idxprom12, i32 0
+  %11 = load i8** %to_file15, align 8, !tbaa !15
+  %arrayidx14.sum = add i64 %idxprom12, 1
+  %from_line17 = getelementptr inbounds %struct.line_map* %10, i64 %arrayidx14.sum, i32 2
+  %12 = load i32* %from_line17, align 4, !tbaa !16
+  %sub18 = add i32 %12, -1
+  %to_line19 = getelementptr inbounds %struct.line_map* %10, i64 %idxprom12, i32 1
+  %13 = load i32* %to_line19, align 4, !tbaa !18
+  %add20 = add i32 %sub18, %13
+  %from_line21 = getelementptr inbounds %struct.line_map* %10, i64 %idxprom12, i32 2
+  %14 = load i32* %from_line21, align 4, !tbaa !16
+  %sub22 = sub i32 %add20, %14
+  %call23 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %3, i8* getelementptr inbounds ([30 x i8]* @.str3, i64 0, i64 0), i8* %11, i32 %sub22) #6
+  %included_from9 = getelementptr inbounds %struct.line_map* %10, i64 %idxprom12, i32 3
+  %15 = load i32* %included_from9, align 4, !tbaa !12
+  %lnot = icmp sgt i32 %15, -1
+  br i1 %lnot, label %while.body, label %while.end
+
+while.end:                                        ; preds = %while.body, %if.end
+  %16 = tail call i64 @fwrite(i8* getelementptr inbounds ([3 x i8]* @.str4, i64 0, i64 0), i64 2, i64 1, %struct._IO_FILE* %3) #8
+  br label %return
+
+return:                                           ; preds = %entry, %lor.lhs.false, %while.end
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i32 @putc(i32, %struct._IO_FILE* nocapture) #1
+
+; Function Attrs: nounwind
+declare i64 @fwrite(i8* nocapture, i64, i64, %struct._IO_FILE* nocapture) #5
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #5
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { nounwind }
+attributes #6 = { cold nounwind }
+attributes #7 = { noreturn nounwind }
+attributes #8 = { cold }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !6, i64 16}
+!2 = metadata !{metadata !"line_maps", metadata !3, i64 0, metadata !6, i64 8, metadata !6, i64 12, metadata !6, i64 16, metadata !6, i64 20, metadata !7, i64 24}
+!3 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"int", metadata !4, i64 0}
+!7 = metadata !{metadata !"_Bool", metadata !4, i64 0}
+!8 = metadata !{metadata !2, metadata !7, i64 24}
+!9 = metadata !{metadata !2, metadata !6, i64 20}
+!10 = metadata !{metadata !2, metadata !3, i64 0}
+!11 = metadata !{metadata !2, metadata !6, i64 12}
+!12 = metadata !{metadata !13, metadata !6, i64 16}
+!13 = metadata !{metadata !"line_map", metadata !3, i64 0, metadata !6, i64 8, metadata !6, i64 12, metadata !6, i64 16, metadata !4, i64 20, metadata !4, i64 21}
+!14 = metadata !{metadata !3, metadata !3, i64 0}
+!15 = metadata !{metadata !13, metadata !3, i64 0}
+!16 = metadata !{metadata !13, metadata !6, i64 12}
+!17 = metadata !{metadata !2, metadata !6, i64 8}
+!18 = metadata !{metadata !13, metadata !6, i64 8}
+!19 = metadata !{metadata !13, metadata !4, i64 21}
+!20 = metadata !{i8 0, i8 2}

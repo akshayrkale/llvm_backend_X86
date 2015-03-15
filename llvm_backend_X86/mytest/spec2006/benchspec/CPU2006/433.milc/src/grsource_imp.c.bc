@@ -1,0 +1,205 @@
+; ModuleID = 'grsource_imp.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.site = type { i16, i16, i16, i16, i8, i32, %struct.double_prn, i32, [4 x %struct.su3_matrix], [4 x %struct.su3_matrix], [4 x %struct.su3_matrix], [4 x %struct.anti_hermitmat], [4 x double], %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, [4 x %struct.su3_vector], [4 x %struct.su3_vector], %struct.su3_vector, %struct.su3_matrix, %struct.su3_matrix }
+%struct.double_prn = type { i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, double }
+%struct.anti_hermitmat = type { %struct.complex, %struct.complex, %struct.complex, double, double, double, double }
+%struct.complex = type { double, double }
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+
+@lattice = external global %struct.site*
+@sites_on_node = external global i32
+@valid_longlinks = external global i32
+@valid_fatlinks = external global i32
+@.str = private unnamed_addr constant [18 x i8] c"Site %d %d %d %d\0A\00", align 1
+@.str1 = private unnamed_addr constant [16 x i8] c"%d %d\09%e\09%e\09%e\0A\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @grsource_imp(i32 %dest, double %mass, i32 %parity) #0 {
+entry:
+  %0 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp41 = icmp sgt i32 %0, 0
+  br i1 %cmp41, label %for.cond1.preheader.lr.ph, label %for.end12
+
+for.cond1.preheader.lr.ph:                        ; preds = %entry
+  %1 = load %struct.site** @lattice, align 8, !tbaa !5
+  br label %for.cond1.preheader
+
+for.cond1.preheader:                              ; preds = %for.cond1.preheader.lr.ph, %for.cond1.preheader
+  %s.043 = phi %struct.site* [ %1, %for.cond1.preheader.lr.ph ], [ %incdec.ptr, %for.cond1.preheader ]
+  %i.042 = phi i32 [ 0, %for.cond1.preheader.lr.ph ], [ %inc11, %for.cond1.preheader ]
+  %site_prn = getelementptr inbounds %struct.site* %s.043, i64 0, i32 6
+  %call = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %real = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 0, i32 0
+  store double %call, double* %real, align 8, !tbaa !7
+  %call5 = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %imag = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 0, i32 1
+  store double %call5, double* %imag, align 8, !tbaa !10
+  %call.1 = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %real.1 = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 1, i32 0
+  store double %call.1, double* %real.1, align 8, !tbaa !7
+  %call5.1 = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %imag.1 = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 1, i32 1
+  store double %call5.1, double* %imag.1, align 8, !tbaa !10
+  %call.2 = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %real.2 = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 2, i32 0
+  store double %call.2, double* %real.2, align 8, !tbaa !7
+  %call5.2 = tail call double @gaussian_rand_no(%struct.double_prn* %site_prn) #3
+  %imag.2 = getelementptr inbounds %struct.site* %s.043, i64 0, i32 18, i32 0, i64 2, i32 1
+  store double %call5.2, double* %imag.2, align 8, !tbaa !10
+  %inc11 = add nsw i32 %i.042, 1
+  %incdec.ptr = getelementptr inbounds %struct.site* %s.043, i64 1
+  %2 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp = icmp slt i32 %inc11, %2
+  br i1 %cmp, label %for.cond1.preheader, label %for.end12
+
+for.end12:                                        ; preds = %for.cond1.preheader, %entry
+  %3 = load i32* @valid_longlinks, align 4, !tbaa !1
+  %tobool = icmp eq i32 %3, 0
+  br i1 %tobool, label %if.then, label %if.end
+
+if.then:                                          ; preds = %for.end12
+  tail call void (...)* @load_longlinks() #3
+  br label %if.end
+
+if.end:                                           ; preds = %for.end12, %if.then
+  %4 = load i32* @valid_fatlinks, align 4, !tbaa !1
+  %tobool13 = icmp eq i32 %4, 0
+  br i1 %tobool13, label %if.then14, label %if.end15
+
+if.then14:                                        ; preds = %if.end
+  tail call void (...)* @load_fatlinks() #3
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.end, %if.then14
+  tail call void @dslash_fn(i32 2432, i32 %dest, i32 %parity) #3
+  tail call void @scalar_mult_latvec(i32 %dest, double -1.000000e+00, i32 %dest, i32 %parity) #3
+  %mul = fmul double %mass, 2.000000e+00
+  tail call void @scalar_mult_add_latvec(i32 %dest, i32 2432, double %mul, i32 %dest, i32 %parity) #3
+  ret void
+}
+
+declare double @gaussian_rand_no(%struct.double_prn*) #1
+
+declare void @load_longlinks(...) #1
+
+declare void @load_fatlinks(...) #1
+
+declare void @dslash_fn(i32, i32, i32) #1
+
+declare void @scalar_mult_latvec(i32, double, i32, i32) #1
+
+declare void @scalar_mult_add_latvec(i32, i32, double, i32, i32) #1
+
+; Function Attrs: nounwind uwtable
+define void @checkmul_imp(i32 %src, double %mass) #0 {
+entry:
+  tail call void @dslash_fn(i32 %src, i32 2384, i32 3) #3
+  %mul = fmul double %mass, 2.000000e+00
+  tail call void @scalar_mult_add_latvec(i32 2384, i32 %src, double %mul, i32 2384, i32 3) #3
+  %0 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp95 = icmp sgt i32 %0, 0
+  br i1 %cmp95, label %for.body.lr.ph, label %for.end66
+
+for.body.lr.ph:                                   ; preds = %entry
+  %1 = load %struct.site** @lattice, align 8, !tbaa !5
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.body
+  %s.097 = phi %struct.site* [ %1, %for.body.lr.ph ], [ %incdec.ptr, %for.body ]
+  %i.096 = phi i32 [ 0, %for.body.lr.ph ], [ %inc65, %for.body ]
+  %x = getelementptr inbounds %struct.site* %s.097, i64 0, i32 0
+  %2 = load i16* %x, align 2, !tbaa !11
+  %conv17 = sext i16 %2 to i32
+  %y = getelementptr inbounds %struct.site* %s.097, i64 0, i32 1
+  %3 = load i16* %y, align 2, !tbaa !17
+  %conv18 = sext i16 %3 to i32
+  %z = getelementptr inbounds %struct.site* %s.097, i64 0, i32 2
+  %4 = load i16* %z, align 2, !tbaa !18
+  %conv19 = sext i16 %4 to i32
+  %t = getelementptr inbounds %struct.site* %s.097, i64 0, i32 3
+  %5 = load i16* %t, align 2, !tbaa !19
+  %conv20 = sext i16 %5 to i32
+  %call = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([18 x i8]* @.str, i64 0, i64 0), i32 %conv17, i32 %conv18, i32 %conv19, i32 %conv20) #3
+  %real = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 0, i32 0
+  %6 = load double* %real, align 8, !tbaa !7
+  %real30 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 0, i32 0
+  %7 = load double* %real30, align 8, !tbaa !7
+  %sub = fsub double %6, %7
+  %call41 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 0, double %6, double %7, double %sub) #3
+  %imag = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 0, i32 1
+  %8 = load double* %imag, align 8, !tbaa !10
+  %imag50 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 0, i32 1
+  %9 = load double* %imag50, align 8, !tbaa !10
+  %sub61 = fsub double %8, %9
+  %call62 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 0, double %8, double %9, double %sub61) #3
+  %real.1 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 1, i32 0
+  %10 = load double* %real.1, align 8, !tbaa !7
+  %real30.1 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 1, i32 0
+  %11 = load double* %real30.1, align 8, !tbaa !7
+  %sub.1 = fsub double %10, %11
+  %call41.1 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 1, double %10, double %11, double %sub.1) #3
+  %imag.1 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 1, i32 1
+  %12 = load double* %imag.1, align 8, !tbaa !10
+  %imag50.1 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 1, i32 1
+  %13 = load double* %imag50.1, align 8, !tbaa !10
+  %sub61.1 = fsub double %12, %13
+  %call62.1 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 1, double %12, double %13, double %sub61.1) #3
+  %real.2 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 2, i32 0
+  %14 = load double* %real.2, align 8, !tbaa !7
+  %real30.2 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 2, i32 0
+  %15 = load double* %real30.2, align 8, !tbaa !7
+  %sub.2 = fsub double %14, %15
+  %call41.2 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 2, double %14, double %15, double %sub.2) #3
+  %imag.2 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 18, i32 0, i64 2, i32 1
+  %16 = load double* %imag.2, align 8, !tbaa !10
+  %imag50.2 = getelementptr inbounds %struct.site* %s.097, i64 0, i32 17, i32 0, i64 2, i32 1
+  %17 = load double* %imag50.2, align 8, !tbaa !10
+  %sub61.2 = fsub double %16, %17
+  %call62.2 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([16 x i8]* @.str1, i64 0, i64 0), i32 %i.096, i32 2, double %16, double %17, double %sub61.2) #3
+  %putchar = tail call i32 @putchar(i32 10) #3
+  %inc65 = add nsw i32 %i.096, 1
+  %incdec.ptr = getelementptr inbounds %struct.site* %s.097, i64 1
+  %18 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp = icmp slt i32 %inc65, %18
+  br i1 %cmp, label %for.body, label %for.end66
+
+for.end66:                                        ; preds = %for.body, %entry
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i32 @printf(i8* nocapture readonly, ...) #2
+
+; Function Attrs: nounwind
+declare i32 @putchar(i32) #3
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !6, i64 0}
+!6 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!7 = metadata !{metadata !8, metadata !9, i64 0}
+!8 = metadata !{metadata !"", metadata !9, i64 0, metadata !9, i64 8}
+!9 = metadata !{metadata !"double", metadata !3, i64 0}
+!10 = metadata !{metadata !8, metadata !9, i64 8}
+!11 = metadata !{metadata !12, metadata !13, i64 0}
+!12 = metadata !{metadata !"", metadata !13, i64 0, metadata !13, i64 2, metadata !13, i64 4, metadata !13, i64 6, metadata !3, i64 8, metadata !2, i64 12, metadata !14, i64 16, metadata !2, i64 104, metadata !3, i64 112, metadata !3, i64 688, metadata !3, i64 1264, metadata !3, i64 1840, metadata !3, i64 2160, metadata !16, i64 2192, metadata !16, i64 2240, metadata !16, i64 2288, metadata !16, i64 2336, metadata !16, i64 2384, metadata !16, i64 2432, metadata !3, i64 2480, metadata !3, i64 2672, metadata !16, i64 2864, metadata !16, i64 2912, metadata !16, i64 3056}
+!13 = metadata !{metadata !"short", metadata !3, i64 0}
+!14 = metadata !{metadata !"", metadata !15, i64 0, metadata !15, i64 8, metadata !15, i64 16, metadata !15, i64 24, metadata !15, i64 32, metadata !15, i64 40, metadata !15, i64 48, metadata !15, i64 56, metadata !15, i64 64, metadata !15, i64 72, metadata !9, i64 80}
+!15 = metadata !{metadata !"long", metadata !3, i64 0}
+!16 = metadata !{metadata !"", metadata !3, i64 0}
+!17 = metadata !{metadata !12, metadata !13, i64 2}
+!18 = metadata !{metadata !12, metadata !13, i64 4}
+!19 = metadata !{metadata !12, metadata !13, i64 6}

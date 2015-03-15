@@ -1,0 +1,17 @@
+; ModuleID = 'cmplx.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+; Function Attrs: nounwind readnone uwtable
+define { double, double } @cmplx(double %x, double %y) #0 {
+entry:
+  %.fca.0.insert = insertvalue { double, double } undef, double %x, 0
+  %.fca.1.insert = insertvalue { double, double } %.fca.0.insert, double %y, 1
+  ret { double, double } %.fca.1.insert
+}
+
+attributes #0 = { nounwind readnone uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}

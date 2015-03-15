@@ -1,0 +1,139 @@
+; ModuleID = 'ranstuff.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.double_prn = type { i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, double }
+
+; Function Attrs: nounwind uwtable
+define void @initialize_prn(%struct.double_prn* nocapture %prn_pt, i32 %seed, i32 %index) #0 {
+entry:
+  %mul = shl nsw i32 %index, 3
+  %add = add nsw i32 %mul, 69607
+  %mul1 = mul nsw i32 %add, %seed
+  %add2 = add nsw i32 %mul1, 12345
+  %mul5 = mul nsw i32 %add2, %add
+  %add6 = add nsw i32 %mul5, 12345
+  %0 = insertelement <2 x i32> undef, i32 %add2, i32 0
+  %1 = insertelement <2 x i32> %0, i32 %add6, i32 1
+  %2 = lshr <2 x i32> %1, <i32 8, i32 8>
+  %3 = zext <2 x i32> %2 to <2 x i64>
+  %4 = bitcast %struct.double_prn* %prn_pt to <2 x i64>*
+  store <2 x i64> %3, <2 x i64>* %4, align 8, !tbaa !1
+  %mul12 = mul nsw i32 %add6, %add
+  %add13 = add nsw i32 %mul12, 12345
+  %r2 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 2
+  %mul19 = mul nsw i32 %add13, %add
+  %add20 = add nsw i32 %mul19, 12345
+  %5 = insertelement <2 x i32> undef, i32 %add13, i32 0
+  %6 = insertelement <2 x i32> %5, i32 %add20, i32 1
+  %7 = lshr <2 x i32> %6, <i32 8, i32 8>
+  %8 = zext <2 x i32> %7 to <2 x i64>
+  %9 = bitcast i64* %r2 to <2 x i64>*
+  store <2 x i64> %8, <2 x i64>* %9, align 8, !tbaa !1
+  %mul26 = mul nsw i32 %add20, %add
+  %add27 = add nsw i32 %mul26, 12345
+  %r4 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 4
+  %mul33 = mul nsw i32 %add27, %add
+  %add34 = add nsw i32 %mul33, 12345
+  %10 = insertelement <2 x i32> undef, i32 %add27, i32 0
+  %11 = insertelement <2 x i32> %10, i32 %add34, i32 1
+  %12 = lshr <2 x i32> %11, <i32 8, i32 8>
+  %13 = zext <2 x i32> %12 to <2 x i64>
+  %14 = bitcast i64* %r4 to <2 x i64>*
+  store <2 x i64> %13, <2 x i64>* %14, align 8, !tbaa !1
+  %mul40 = mul nsw i32 %add34, %add
+  %add41 = add nsw i32 %mul40, 12345
+  %shr4298 = lshr i32 %add41, 8
+  %conv4499 = zext i32 %shr4298 to i64
+  %r6 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 6
+  store i64 %conv4499, i64* %r6, align 8, !tbaa !5
+  %mul47 = mul nsw i32 %add41, %add
+  %add48 = add nsw i32 %mul47, 12345
+  %conv49 = sext i32 %add48 to i64
+  %ic_state = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 9
+  store i64 %conv49, i64* %ic_state, align 8, !tbaa !8
+  %add51 = add nsw i32 %mul, 100005
+  %conv52 = sext i32 %add51 to i64
+  %multiplier = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 7
+  store i64 %conv52, i64* %multiplier, align 8, !tbaa !9
+  %addend = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 8
+  store i64 12345, i64* %addend, align 8, !tbaa !10
+  %scale = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 10
+  store double 0x3E70000000000000, double* %scale, align 8, !tbaa !11
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define double @myrand(%struct.double_prn* nocapture %prn_pt) #0 {
+entry:
+  %r5 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 5
+  %0 = load i64* %r5, align 8, !tbaa !12
+  %shr = lshr i64 %0, 7
+  %r6 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 6
+  %1 = load i64* %r6, align 8, !tbaa !5
+  %shl = shl i64 %1, 17
+  %or = or i64 %shl, %shr
+  %r4 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 4
+  %2 = load i64* %r4, align 8, !tbaa !13
+  %shr1 = lshr i64 %2, 1
+  %shl3 = shl i64 %0, 23
+  %or4 = or i64 %shr1, %shl3
+  %xor = xor i64 %or4, %or
+  %xor.tr = trunc i64 %xor to i32
+  %conv = and i32 %xor.tr, 16777215
+  store i64 %0, i64* %r6, align 8, !tbaa !5
+  store i64 %2, i64* %r5, align 8, !tbaa !12
+  %r3 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 3
+  %r2 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 2
+  %3 = bitcast i64* %r2 to <2 x i64>*
+  %4 = load <2 x i64>* %3, align 8, !tbaa !1
+  %5 = bitcast i64* %r3 to <2 x i64>*
+  store <2 x i64> %4, <2 x i64>* %5, align 8, !tbaa !1
+  %r1 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 1
+  %r0 = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 0
+  %6 = bitcast %struct.double_prn* %prn_pt to <2 x i64>*
+  %7 = load <2 x i64>* %6, align 8, !tbaa !1
+  %8 = bitcast i64* %r1 to <2 x i64>*
+  store <2 x i64> %7, <2 x i64>* %8, align 8, !tbaa !1
+  %conv1346 = zext i32 %conv to i64
+  store i64 %conv1346, i64* %r0, align 8, !tbaa !14
+  %ic_state = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 9
+  %9 = load i64* %ic_state, align 8, !tbaa !8
+  %multiplier = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 7
+  %10 = load i64* %multiplier, align 8, !tbaa !9
+  %mul = mul i64 %10, %9
+  %addend = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 8
+  %11 = load i64* %addend, align 8, !tbaa !10
+  %add = add i64 %mul, %11
+  %conv15 = trunc i64 %add to i32
+  %sext = shl i64 %add, 32
+  %conv16 = ashr exact i64 %sext, 32
+  store i64 %conv16, i64* %ic_state, align 8, !tbaa !8
+  %scale = getelementptr inbounds %struct.double_prn* %prn_pt, i64 0, i32 10
+  %12 = load double* %scale, align 8, !tbaa !11
+  %shr1847 = lshr i32 %conv15, 8
+  %xor20 = xor i32 %shr1847, %conv
+  %conv21 = sitofp i32 %xor20 to double
+  %mul22 = fmul double %12, %conv21
+  ret double %mul22
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"long", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !2, i64 48}
+!6 = metadata !{metadata !"", metadata !2, i64 0, metadata !2, i64 8, metadata !2, i64 16, metadata !2, i64 24, metadata !2, i64 32, metadata !2, i64 40, metadata !2, i64 48, metadata !2, i64 56, metadata !2, i64 64, metadata !2, i64 72, metadata !7, i64 80}
+!7 = metadata !{metadata !"double", metadata !3, i64 0}
+!8 = metadata !{metadata !6, metadata !2, i64 72}
+!9 = metadata !{metadata !6, metadata !2, i64 56}
+!10 = metadata !{metadata !6, metadata !2, i64 64}
+!11 = metadata !{metadata !6, metadata !7, i64 80}
+!12 = metadata !{metadata !6, metadata !2, i64 40}
+!13 = metadata !{metadata !6, metadata !2, i64 32}
+!14 = metadata !{metadata !6, metadata !2, i64 0}

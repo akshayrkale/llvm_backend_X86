@@ -1,0 +1,48 @@
+; ModuleID = 'msq_su3vec.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind readonly uwtable
+define double @magsq_su3vec(%struct.su3_vector* nocapture readonly %a) #0 {
+entry:
+  %real = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 0
+  %0 = load double* %real, align 8, !tbaa !1
+  %mul = fmul double %0, %0
+  %imag = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 1
+  %1 = load double* %imag, align 8, !tbaa !6
+  %mul12 = fmul double %1, %1
+  %add = fadd double %mul, %mul12
+  %add13 = fadd double %add, 0.000000e+00
+  %real.1 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 0
+  %2 = load double* %real.1, align 8, !tbaa !1
+  %mul.1 = fmul double %2, %2
+  %imag.1 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 1
+  %3 = load double* %imag.1, align 8, !tbaa !6
+  %mul12.1 = fmul double %3, %3
+  %add.1 = fadd double %mul.1, %mul12.1
+  %add13.1 = fadd double %add13, %add.1
+  %real.2 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 0
+  %4 = load double* %real.2, align 8, !tbaa !1
+  %mul.2 = fmul double %4, %4
+  %imag.2 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 1
+  %5 = load double* %imag.2, align 8, !tbaa !6
+  %mul12.2 = fmul double %5, %5
+  %add.2 = fadd double %mul.2, %mul12.2
+  %add13.2 = fadd double %add13.1, %add.2
+  ret double %add13.2
+}
+
+attributes #0 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 0}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 8}
+!3 = metadata !{metadata !"double", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !2, metadata !3, i64 8}

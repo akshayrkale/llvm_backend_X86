@@ -1,0 +1,109 @@
+; ModuleID = 'submat.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @sub_su3_matrix(%struct.su3_matrix* nocapture readonly %a, %struct.su3_matrix* nocapture readonly %b, %struct.su3_matrix* nocapture %c) #0 {
+entry:
+  %0 = bitcast %struct.su3_matrix* %a to <2 x double>*
+  %1 = load <2 x double>* %0, align 8, !tbaa !1
+  %2 = bitcast %struct.su3_matrix* %b to <2 x double>*
+  %3 = load <2 x double>* %2, align 8, !tbaa !1
+  %4 = fsub <2 x double> %1, %3
+  %5 = bitcast %struct.su3_matrix* %c to <2 x double>*
+  store <2 x double> %4, <2 x double>* %5, align 8, !tbaa !1
+  %real.1 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 0, i64 1, i32 0
+  %real11.1 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 0, i64 1, i32 0
+  %real17.1 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 0, i64 1, i32 0
+  %6 = bitcast double* %real.1 to <2 x double>*
+  %7 = load <2 x double>* %6, align 8, !tbaa !1
+  %8 = bitcast double* %real11.1 to <2 x double>*
+  %9 = load <2 x double>* %8, align 8, !tbaa !1
+  %10 = fsub <2 x double> %7, %9
+  %11 = bitcast double* %real17.1 to <2 x double>*
+  store <2 x double> %10, <2 x double>* %11, align 8, !tbaa !1
+  %real.2 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 0, i64 2, i32 0
+  %real11.2 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 0, i64 2, i32 0
+  %real17.2 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 0, i64 2, i32 0
+  %12 = bitcast double* %real.2 to <2 x double>*
+  %13 = load <2 x double>* %12, align 8, !tbaa !1
+  %14 = bitcast double* %real11.2 to <2 x double>*
+  %15 = load <2 x double>* %14, align 8, !tbaa !1
+  %16 = fsub <2 x double> %13, %15
+  %17 = bitcast double* %real17.2 to <2 x double>*
+  store <2 x double> %16, <2 x double>* %17, align 8, !tbaa !1
+  %real.158 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 1, i64 0, i32 0
+  %real11.159 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 1, i64 0, i32 0
+  %real17.161 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 1, i64 0, i32 0
+  %18 = bitcast double* %real.158 to <2 x double>*
+  %19 = load <2 x double>* %18, align 8, !tbaa !1
+  %20 = bitcast double* %real11.159 to <2 x double>*
+  %21 = load <2 x double>* %20, align 8, !tbaa !1
+  %22 = fsub <2 x double> %19, %21
+  %23 = bitcast double* %real17.161 to <2 x double>*
+  store <2 x double> %22, <2 x double>* %23, align 8, !tbaa !1
+  %real.1.1 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 1, i64 1, i32 0
+  %real11.1.1 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 1, i64 1, i32 0
+  %real17.1.1 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 1, i64 1, i32 0
+  %24 = bitcast double* %real.1.1 to <2 x double>*
+  %25 = load <2 x double>* %24, align 8, !tbaa !1
+  %26 = bitcast double* %real11.1.1 to <2 x double>*
+  %27 = load <2 x double>* %26, align 8, !tbaa !1
+  %28 = fsub <2 x double> %25, %27
+  %29 = bitcast double* %real17.1.1 to <2 x double>*
+  store <2 x double> %28, <2 x double>* %29, align 8, !tbaa !1
+  %real.2.1 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 1, i64 2, i32 0
+  %real11.2.1 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 1, i64 2, i32 0
+  %real17.2.1 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 1, i64 2, i32 0
+  %30 = bitcast double* %real.2.1 to <2 x double>*
+  %31 = load <2 x double>* %30, align 8, !tbaa !1
+  %32 = bitcast double* %real11.2.1 to <2 x double>*
+  %33 = load <2 x double>* %32, align 8, !tbaa !1
+  %34 = fsub <2 x double> %31, %33
+  %35 = bitcast double* %real17.2.1 to <2 x double>*
+  store <2 x double> %34, <2 x double>* %35, align 8, !tbaa !1
+  %real.266 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 2, i64 0, i32 0
+  %real11.267 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 2, i64 0, i32 0
+  %real17.269 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 2, i64 0, i32 0
+  %36 = bitcast double* %real.266 to <2 x double>*
+  %37 = load <2 x double>* %36, align 8, !tbaa !1
+  %38 = bitcast double* %real11.267 to <2 x double>*
+  %39 = load <2 x double>* %38, align 8, !tbaa !1
+  %40 = fsub <2 x double> %37, %39
+  %41 = bitcast double* %real17.269 to <2 x double>*
+  store <2 x double> %40, <2 x double>* %41, align 8, !tbaa !1
+  %real.1.2 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 2, i64 1, i32 0
+  %real11.1.2 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 2, i64 1, i32 0
+  %real17.1.2 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 2, i64 1, i32 0
+  %42 = bitcast double* %real.1.2 to <2 x double>*
+  %43 = load <2 x double>* %42, align 8, !tbaa !1
+  %44 = bitcast double* %real11.1.2 to <2 x double>*
+  %45 = load <2 x double>* %44, align 8, !tbaa !1
+  %46 = fsub <2 x double> %43, %45
+  %47 = bitcast double* %real17.1.2 to <2 x double>*
+  store <2 x double> %46, <2 x double>* %47, align 8, !tbaa !1
+  %real.2.2 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 2, i64 2, i32 0
+  %real11.2.2 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 2, i64 2, i32 0
+  %real17.2.2 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 2, i64 2, i32 0
+  %48 = bitcast double* %real.2.2 to <2 x double>*
+  %49 = load <2 x double>* %48, align 8, !tbaa !1
+  %50 = bitcast double* %real11.2.2 to <2 x double>*
+  %51 = load <2 x double>* %50, align 8, !tbaa !1
+  %52 = fsub <2 x double> %49, %51
+  %53 = bitcast double* %real17.2.2 to <2 x double>*
+  store <2 x double> %52, <2 x double>* %53, align 8, !tbaa !1
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"double", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

@@ -1,0 +1,131 @@
+; ModuleID = 'xmalloc.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct._IO_FILE = type opaque
+
+@name = internal unnamed_addr global i8* getelementptr inbounds ([1 x i8]* @.str2, i64 0, i64 0), align 8
+@stderr = external constant %struct._IO_FILE*
+@.str = private unnamed_addr constant [32 x i8] c"\0A%s%sCannot allocate %lu bytes\0A\00", align 1
+@.str1 = private unnamed_addr constant [3 x i8] c": \00", align 1
+@.str2 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+
+; Function Attrs: nounwind uwtable
+define void @xmalloc_set_program_name(i8* %s) #0 {
+entry:
+  store i8* %s, i8** @name, align 8, !tbaa !1
+  ret void
+}
+
+; Function Attrs: noreturn nounwind uwtable
+define void @xmalloc_failed(i64 %size) #1 {
+entry:
+  %0 = load %struct._IO_FILE** @stderr, align 8, !tbaa !1
+  %1 = load i8** @name, align 8, !tbaa !1
+  %2 = load i8* %1, align 1, !tbaa !5
+  %tobool = icmp ne i8 %2, 0
+  %cond = select i1 %tobool, i8* getelementptr inbounds ([3 x i8]* @.str1, i64 0, i64 0), i8* getelementptr inbounds ([1 x i8]* @.str2, i64 0, i64 0)
+  %call = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %0, i8* getelementptr inbounds ([32 x i8]* @.str, i64 0, i64 0), i8* %1, i8* %cond, i64 %size) #4
+  tail call void @xexit(i32 1) #5
+  unreachable
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #2
+
+; Function Attrs: noreturn
+declare void @xexit(i32) #3
+
+; Function Attrs: nounwind uwtable
+define noalias i8* @xmalloc(i64 %size) #0 {
+entry:
+  %cmp = icmp eq i64 %size, 0
+  %.size = select i1 %cmp, i64 1, i64 %size
+  %call = tail call i8* @malloc(i64 %.size) #6
+  %tobool = icmp eq i8* %call, null
+  br i1 %tobool, label %if.then1, label %if.end2
+
+if.then1:                                         ; preds = %entry
+  tail call void @xmalloc_failed(i64 %.size) #7
+  unreachable
+
+if.end2:                                          ; preds = %entry
+  ret i8* %call
+}
+
+; Function Attrs: nounwind
+declare noalias i8* @malloc(i64) #2
+
+; Function Attrs: nounwind uwtable
+define noalias i8* @xcalloc(i64 %nelem, i64 %elsize) #0 {
+entry:
+  %cmp = icmp eq i64 %nelem, 0
+  %cmp1 = icmp eq i64 %elsize, 0
+  %or.cond = or i1 %cmp, %cmp1
+  %.elsize = select i1 %or.cond, i64 1, i64 %elsize
+  %.nelem = select i1 %or.cond, i64 1, i64 %nelem
+  %call = tail call i8* @calloc(i64 %.nelem, i64 %.elsize) #6
+  %tobool = icmp eq i8* %call, null
+  br i1 %tobool, label %if.then2, label %if.end3
+
+if.then2:                                         ; preds = %entry
+  %mul = mul i64 %.nelem, %.elsize
+  tail call void @xmalloc_failed(i64 %mul) #7
+  unreachable
+
+if.end3:                                          ; preds = %entry
+  ret i8* %call
+}
+
+; Function Attrs: nounwind
+declare noalias i8* @calloc(i64, i64) #2
+
+; Function Attrs: nounwind uwtable
+define i8* @xrealloc(i8* %oldmem, i64 %size) #0 {
+entry:
+  %cmp = icmp eq i64 %size, 0
+  %.size = select i1 %cmp, i64 1, i64 %size
+  %tobool = icmp eq i8* %oldmem, null
+  br i1 %tobool, label %if.then1, label %if.else
+
+if.then1:                                         ; preds = %entry
+  %call = tail call i8* @malloc(i64 %.size) #6
+  br label %if.end3
+
+if.else:                                          ; preds = %entry
+  %call2 = tail call i8* @realloc(i8* %oldmem, i64 %.size) #6
+  br label %if.end3
+
+if.end3:                                          ; preds = %if.else, %if.then1
+  %newmem.0 = phi i8* [ %call2, %if.else ], [ %call, %if.then1 ]
+  %tobool4 = icmp eq i8* %newmem.0, null
+  br i1 %tobool4, label %if.then5, label %if.end6
+
+if.then5:                                         ; preds = %if.end3
+  tail call void @xmalloc_failed(i64 %.size) #7
+  unreachable
+
+if.end6:                                          ; preds = %if.end3
+  ret i8* %newmem.0
+}
+
+; Function Attrs: nounwind
+declare noalias i8* @realloc(i8* nocapture, i64) #2
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { noreturn nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { cold nounwind }
+attributes #5 = { noreturn nounwind }
+attributes #6 = { nounwind }
+attributes #7 = { noreturn }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !3, metadata !3, i64 0}

@@ -1,0 +1,92 @@
+; ModuleID = 'uncmp_ahmat.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.anti_hermitmat = type { %struct.complex, %struct.complex, %struct.complex, double, double, double, double }
+%struct.complex = type { double, double }
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+
+; Function Attrs: nounwind uwtable
+define void @uncompress_anti_hermitian(%struct.anti_hermitmat* nocapture readonly %mat_antihermit, %struct.su3_matrix* nocapture %mat_su3) #0 {
+entry:
+  %m00im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 3
+  %0 = load double* %m00im, align 8, !tbaa !1
+  %imag = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 0, i64 0, i32 1
+  store double %0, double* %imag, align 8, !tbaa !7
+  %real = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 0, i64 0, i32 0
+  store double 0.000000e+00, double* %real, align 8, !tbaa !8
+  %m11im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 4
+  %1 = load double* %m11im, align 8, !tbaa !9
+  %imag8 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 1, i64 1, i32 1
+  store double %1, double* %imag8, align 8, !tbaa !7
+  %real12 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 1, i64 1, i32 0
+  store double 0.000000e+00, double* %real12, align 8, !tbaa !8
+  %m22im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 5
+  %2 = load double* %m22im, align 8, !tbaa !10
+  %imag16 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 2, i32 1
+  store double %2, double* %imag16, align 8, !tbaa !7
+  %real20 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 2, i32 0
+  store double 0.000000e+00, double* %real20, align 8, !tbaa !8
+  %imag21 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 0, i32 1
+  %3 = bitcast %struct.anti_hermitmat* %mat_antihermit to <2 x double>*
+  %4 = load <2 x double>* %3, align 8, !tbaa !11
+  %real31 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 0, i64 1, i32 0
+  %5 = bitcast double* %real31 to <2 x double>*
+  store <2 x double> %4, <2 x double>* %5, align 8, !tbaa !11
+  %6 = extractelement <2 x double> %4, i32 0
+  %sub = fsub double -0.000000e+00, %6
+  %real35 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 1, i64 0, i32 0
+  store double %sub, double* %real35, align 8, !tbaa !8
+  %7 = load double* %imag21, align 8, !tbaa !12
+  %imag41 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 1, i64 0, i32 1
+  store double %7, double* %imag41, align 8, !tbaa !7
+  %imag42 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 1, i32 1
+  %real48 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 1, i32 0
+  %8 = bitcast double* %real48 to <2 x double>*
+  %9 = load <2 x double>* %8, align 8, !tbaa !11
+  %real52 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 0, i64 2, i32 0
+  %10 = bitcast double* %real52 to <2 x double>*
+  store <2 x double> %9, <2 x double>* %10, align 8, !tbaa !11
+  %11 = extractelement <2 x double> %9, i32 0
+  %sub53 = fsub double -0.000000e+00, %11
+  %real57 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 0, i32 0
+  store double %sub53, double* %real57, align 8, !tbaa !8
+  %12 = load double* %imag42, align 8, !tbaa !13
+  %imag63 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 0, i32 1
+  store double %12, double* %imag63, align 8, !tbaa !7
+  %imag64 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 2, i32 1
+  %real70 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 2, i32 0
+  %13 = bitcast double* %real70 to <2 x double>*
+  %14 = load <2 x double>* %13, align 8, !tbaa !11
+  %real74 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 1, i64 2, i32 0
+  %15 = bitcast double* %real74 to <2 x double>*
+  store <2 x double> %14, <2 x double>* %15, align 8, !tbaa !11
+  %16 = extractelement <2 x double> %14, i32 0
+  %sub75 = fsub double -0.000000e+00, %16
+  %real79 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 1, i32 0
+  store double %sub75, double* %real79, align 8, !tbaa !8
+  %17 = load double* %imag64, align 8, !tbaa !14
+  %imag85 = getelementptr inbounds %struct.su3_matrix* %mat_su3, i64 0, i32 0, i64 2, i64 1, i32 1
+  store double %17, double* %imag85, align 8, !tbaa !7
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !4, i64 48}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 16, metadata !3, i64 32, metadata !4, i64 48, metadata !4, i64 56, metadata !4, i64 64, metadata !4, i64 72}
+!3 = metadata !{metadata !"", metadata !4, i64 0, metadata !4, i64 8}
+!4 = metadata !{metadata !"double", metadata !5, i64 0}
+!5 = metadata !{metadata !"omnipotent char", metadata !6, i64 0}
+!6 = metadata !{metadata !"Simple C/C++ TBAA"}
+!7 = metadata !{metadata !3, metadata !4, i64 8}
+!8 = metadata !{metadata !3, metadata !4, i64 0}
+!9 = metadata !{metadata !2, metadata !4, i64 56}
+!10 = metadata !{metadata !2, metadata !4, i64 64}
+!11 = metadata !{metadata !4, metadata !4, i64 0}
+!12 = metadata !{metadata !2, metadata !4, i64 8}
+!13 = metadata !{metadata !2, metadata !4, i64 24}
+!14 = metadata !{metadata !2, metadata !4, i64 40}

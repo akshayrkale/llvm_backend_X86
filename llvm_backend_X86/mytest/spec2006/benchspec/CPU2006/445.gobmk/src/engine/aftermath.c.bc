@@ -1,0 +1,2631 @@
+; ModuleID = 'engine/aftermath.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.worm_data = type { i32, i32, float, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, [10 x i32], [10 x i32], [10 x i32], [10 x i32], [10 x i32], [10 x i32], [10 x i32], [10 x i32] }
+%struct._IO_FILE = type opaque
+%struct.dragon_data = type { i32, i32, i32, i32, float, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32 }
+%struct.dragon_data2 = type { i32, [10 x i32], i32, i32, i32, float, i32, float, float, i32, %struct.eyevalue, i32, i32, i32, i32, i32, i32 }
+%struct.eyevalue = type { i8, i8, i8, i8 }
+%struct.aftermath_data = type { i32, i32, i32, i32, i32, i32, i32, i32, [400 x i32], [400 x i32], [400 x i32] }
+%struct.SGFTree_t = type { %struct.SGFNode_t*, %struct.SGFNode_t* }
+%struct.SGFNode_t = type { %struct.SGFProperty_t*, %struct.SGFNode_t*, %struct.SGFNode_t*, %struct.SGFNode_t* }
+%struct.SGFProperty_t = type { %struct.SGFProperty_t*, i16, i8* }
+%struct.board_state = type { i32, [421 x i8], i32, i32, i32, [421 x i8], i32, i32, i32, [500 x i32], [500 x i32], i32, float, i32 }
+
+@board = external global [421 x i8]
+@worm = external global [400 x %struct.worm_data]
+@delta = external global [8 x i32]
+@debug = external global i32
+@board_size = external global i32
+@stderr = external constant %struct._IO_FILE*
+@.str = private unnamed_addr constant [4 x i8] c"%2d\00", align 1
+@.str1 = private unnamed_addr constant [3 x i8] c" o\00", align 1
+@.str2 = private unnamed_addr constant [3 x i8] c" x\00", align 1
+@.str3 = private unnamed_addr constant [3 x i8] c" ?\00", align 1
+@.str4 = private unnamed_addr constant [3 x i8] c" O\00", align 1
+@.str5 = private unnamed_addr constant [3 x i8] c" X\00", align 1
+@.str6 = private unnamed_addr constant [3 x i8] c" .\00", align 1
+@.str7 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@.str8 = private unnamed_addr constant [21 x i8] c"Closest opponent %1m\00", align 1
+@.str9 = private unnamed_addr constant [15 x i8] c", distance %d\0A\00", align 1
+@.str10 = private unnamed_addr constant [16 x i8] c"Closest own %1m\00", align 1
+@dragon = external global [400 x %struct.dragon_data]
+@dragon2 = external global %struct.dragon_data2*
+@.str11 = private unnamed_addr constant [21 x i8] c"Closing edge at %1m\0A\00", align 1
+@.str12 = private unnamed_addr constant [40 x i8] c"Score %1M = %d (hotspot bonus %d + %d)\0A\00", align 1
+@.str13 = private unnamed_addr constant [12 x i8] c"aftermath-B\00", align 1
+@.str14 = private unnamed_addr constant [49 x i8] c"Blunder: %1m becomes tactically safer after %1m\0A\00", align 1
+@.str15 = private unnamed_addr constant [43 x i8] c"Blunder: %1m becomes more alive after %1m\0A\00", align 1
+@.str16 = private unnamed_addr constant [27 x i8] c"Splitting eyespace at %1m\0A\00", align 1
+@.str17 = private unnamed_addr constant [12 x i8] c"aftermath-A\00", align 1
+@stackp = external global i32
+@.str18 = private unnamed_addr constant [33 x i8] c"Filling opponent liberty at %1m\0A\00", align 1
+@.str19 = private unnamed_addr constant [30 x i8] c"Tactically attack %1m at %1m\0A\00", align 1
+@aftermath = internal global %struct.aftermath_data zeroinitializer, align 4
+@aftermath_sgftree = internal unnamed_addr global %struct.SGFTree_t* null, align 8
+@chinese_rules = external global i32
+@.str20 = private unnamed_addr constant [19 x i8] c"engine/aftermath.c\00", align 1
+@.str21 = private unnamed_addr constant [15 x i8] c"ON_BOARD1(pos)\00", align 1
+@play_aftermath.current_board = internal unnamed_addr global [400 x i32] zeroinitializer, align 16
+@play_aftermath.current_color = internal unnamed_addr global i32 0, align 4
+@.str22 = private unnamed_addr constant [25 x i8] c"color == 2 || color == 1\00", align 1
+@white_captured = external global i32
+@black_captured = external global i32
+@.str23 = private unnamed_addr constant [20 x i8] c"White captured: %d\0A\00", align 1
+@.str24 = private unnamed_addr constant [20 x i8] c"Black captured: %d\0A\00", align 1
+@.str25 = private unnamed_addr constant [21 x i8] c"White prisoners: %d\0A\00", align 1
+@.str26 = private unnamed_addr constant [21 x i8] c"Black prisoners: %d\0A\00", align 1
+@.str27 = private unnamed_addr constant [21 x i8] c"White territory: %d\0A\00", align 1
+@.str28 = private unnamed_addr constant [21 x i8] c"Black territory: %d\0A\00", align 1
+@.str29 = private unnamed_addr constant [16 x i8] c"White area: %d\0A\00", align 1
+@.str30 = private unnamed_addr constant [16 x i8] c"Black area: %d\0A\00", align 1
+@.str31 = private unnamed_addr constant [23 x i8] c"The aftermath starts.\0A\00", align 1
+@disable_threat_computation = external global i32
+@disable_endgame_patterns = external global i32
+@verbose = external global i32
+@.str32 = private unnamed_addr constant [45 x i8] c"%d %C move %1m (nodes %d, %d  total %d, %d)\0A\00", align 1
+@movenum = external global i32
+@level = external global i32
+@lower_bound = external global float
+@upper_bound = external global float
+@showscore = external global i32
+@.str33 = private unnamed_addr constant [24 x i8] c"\0AScore estimate: %s %f\0A\00", align 1
+@.str34 = private unnamed_addr constant [3 x i8] c"W \00", align 1
+@.str35 = private unnamed_addr constant [3 x i8] c"B \00", align 1
+@.str36 = private unnamed_addr constant [33 x i8] c"\0AScore estimate: %s %f to %s %f\0A\00", align 1
+@score = external global float
+@.str37 = private unnamed_addr constant [12 x i8] c"stackp == 0\00", align 1
+@.str38 = private unnamed_addr constant [41 x i8] c"Move generation likes %1m with value %f\0A\00", align 1
+@.str39 = private unnamed_addr constant [9 x i8] c"I pass.\0A\00", align 1
+@.str40 = private unnamed_addr constant [48 x i8] c"reduced_genmove() recommends %1m with value %f\0A\00", align 1
+
+; Function Attrs: noimplicitfloat nounwind uwtable
+define i32 @aftermath_genmove(i32* nocapture %aftermath_move, i32 %color, i32* %under_control, i32 %do_capture_dead_stones) #0 {
+entry:
+  %distance = alloca [400 x i32], align 16
+  %score = alloca [400 x i32], align 16
+  %owl_hotspot = alloca [400 x float], align 16
+  %reading_hotspot = alloca [400 x float], align 16
+  %dragons = alloca [400 x i32], align 16
+  %lib = alloca i32, align 4
+  %mx = alloca [400 x i8], align 16
+  %mx659 = alloca [400 x i32], align 16
+  %adjs = alloca [160 x i32], align 16
+  %lib1309 = alloca i32, align 4
+  %sub = sub nsw i32 3, %color
+  %0 = bitcast [400 x i32]* %distance to i8*
+  call void @llvm.lifetime.start(i64 1600, i8* %0) #1
+  %1 = bitcast [400 x i32]* %score to i8*
+  call void @llvm.lifetime.start(i64 1600, i8* %1) #1
+  %2 = bitcast [400 x float]* %owl_hotspot to i8*
+  call void @llvm.lifetime.start(i64 1600, i8* %2) #1
+  %3 = bitcast [400 x float]* %reading_hotspot to i8*
+  call void @llvm.lifetime.start(i64 1600, i8* %3) #1
+  %4 = bitcast [400 x i32]* %dragons to i8*
+  call void @llvm.lifetime.start(i64 1600, i8* %4) #1
+  %arraydecay = getelementptr inbounds [400 x float]* %owl_hotspot, i64 0, i64 0
+  call void @owl_hotspots(float* %arraydecay) #4
+  %arraydecay1 = getelementptr inbounds [400 x float]* %reading_hotspot, i64 0, i64 0
+  call void @reading_hotspots(float* %arraydecay1) #4
+  %tobool15 = icmp eq i32 %do_capture_dead_stones, 0
+  br label %for.body
+
+for.body:                                         ; preds = %for.inc, %entry
+  %indvars.iv1997 = phi i64 [ 21, %entry ], [ %indvars.iv.next1998, %for.inc ]
+  %arrayidx = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1997
+  %5 = load i8* %arrayidx, align 1, !tbaa !1
+  %cmp2 = icmp eq i8 %5, 3
+  br i1 %cmp2, label %for.inc, label %if.else
+
+if.else:                                          ; preds = %for.body
+  %conv = zext i8 %5 to i32
+  %cmp7 = icmp eq i32 %conv, %color
+  br i1 %cmp7, label %land.lhs.true, label %if.else14
+
+land.lhs.true:                                    ; preds = %if.else
+  %invincible = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv1997, i32 13
+  %6 = load i32* %invincible, align 4, !tbaa !4
+  %tobool = icmp eq i32 %6, 0
+  br i1 %tobool, label %if.else14, label %if.then11
+
+if.then11:                                        ; preds = %land.lhs.true
+  %arrayidx13 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1997
+  store i32 0, i32* %arrayidx13, align 4, !tbaa !8
+  br label %for.inc
+
+if.else14:                                        ; preds = %land.lhs.true, %if.else
+  br i1 %tobool15, label %land.lhs.true16, label %if.else41
+
+land.lhs.true16:                                  ; preds = %if.else14
+  %cmp20 = icmp eq i32 %conv, %sub
+  br i1 %cmp20, label %land.lhs.true22, label %lor.lhs.false
+
+land.lhs.true22:                                  ; preds = %land.lhs.true16
+  %unconditional_status = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv1997, i32 14
+  %7 = load i32* %unconditional_status, align 4, !tbaa !9
+  %cmp25 = icmp eq i32 %7, 0
+  br i1 %cmp25, label %if.then38, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %land.lhs.true22, %land.lhs.true16
+  br i1 %cmp7, label %land.lhs.true32, label %if.else41
+
+land.lhs.true32:                                  ; preds = %lor.lhs.false
+  %unconditional_status35 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv1997, i32 14
+  %8 = load i32* %unconditional_status35, align 4, !tbaa !9
+  %cmp36 = icmp eq i32 %8, 1
+  br i1 %cmp36, label %if.then38, label %if.else41
+
+if.then38:                                        ; preds = %land.lhs.true32, %land.lhs.true22
+  %arrayidx40 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1997
+  store i32 0, i32* %arrayidx40, align 4, !tbaa !8
+  br label %for.inc
+
+if.else41:                                        ; preds = %if.else14, %land.lhs.true32, %lor.lhs.false
+  %arrayidx43 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1997
+  store i32 -1, i32* %arrayidx43, align 4, !tbaa !8
+  br label %for.inc
+
+for.inc:                                          ; preds = %for.body, %if.then38, %if.else41, %if.then11
+  %indvars.iv.next1998 = add nuw nsw i64 %indvars.iv1997, 1
+  %exitcond1999 = icmp eq i64 %indvars.iv.next1998, 400
+  br i1 %exitcond1999, label %do.body, label %for.body
+
+do.body:                                          ; preds = %for.inc, %for.end141
+  %d.0 = phi i32 [ %add97, %for.end141 ], [ 0, %for.inc ]
+  %closest_own.0 = phi i32 [ %closest_own.2, %for.end141 ], [ 0, %for.inc ]
+  %closest_opponent.0 = phi i32 [ %closest_opponent.2, %for.end141 ], [ 0, %for.inc ]
+  %cmp74 = icmp eq i32 %d.0, 0
+  %cmp88 = icmp sgt i32 %d.0, 0
+  %add97 = add nsw i32 %d.0, 1
+  br label %for.body49
+
+for.body49:                                       ; preds = %for.inc139, %do.body
+  %indvars.iv1994 = phi i64 [ 21, %do.body ], [ %indvars.iv.next1995, %for.inc139 ]
+  %something_found.01925 = phi i32 [ 0, %do.body ], [ %something_found.1, %for.inc139 ]
+  %closest_opponent.11924 = phi i32 [ %closest_opponent.0, %do.body ], [ %closest_opponent.2, %for.inc139 ]
+  %closest_own.11923 = phi i32 [ %closest_own.0, %do.body ], [ %closest_own.2, %for.inc139 ]
+  %arrayidx51 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1994
+  %9 = load i8* %arrayidx51, align 1, !tbaa !1
+  %cmp53 = icmp eq i8 %9, 3
+  br i1 %cmp53, label %for.inc139, label %land.lhs.true55
+
+land.lhs.true55:                                  ; preds = %for.body49
+  %arrayidx57 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1994
+  %10 = load i32* %arrayidx57, align 4, !tbaa !8
+  %cmp58 = icmp eq i32 %10, -1
+  br i1 %cmp58, label %for.body64, label %for.inc139
+
+for.body64:                                       ; preds = %land.lhs.true55, %for.inc135
+  %indvars.iv1992 = phi i64 [ %indvars.iv.next1993, %for.inc135 ], [ 0, %land.lhs.true55 ]
+  %arrayidx66 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1992
+  %11 = load i32* %arrayidx66, align 4, !tbaa !8
+  %12 = trunc i64 %indvars.iv1994 to i32
+  %add = add nsw i32 %11, %12
+  %idxprom67 = sext i32 %add to i64
+  %arrayidx68 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom67
+  %13 = load i8* %arrayidx68, align 1, !tbaa !1
+  %cmp70 = icmp ne i8 %13, 3
+  %cmp80 = icmp eq i8 %13, 0
+  %or.cond = or i1 %cmp74, %cmp80
+  %or.cond2028 = and i1 %cmp70, %or.cond
+  br i1 %or.cond2028, label %land.lhs.true82, label %for.inc135
+
+land.lhs.true82:                                  ; preds = %for.body64
+  %arrayidx84 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom67
+  %14 = load i32* %arrayidx84, align 4, !tbaa !8
+  %cmp85 = icmp eq i32 %14, %d.0
+  br i1 %cmp85, label %if.then87, label %for.inc135
+
+if.then87:                                        ; preds = %land.lhs.true82
+  br i1 %cmp88, label %land.lhs.true90, label %if.else121
+
+land.lhs.true90:                                  ; preds = %if.then87
+  %conv93 = zext i8 %9 to i32
+  %cmp94 = icmp eq i32 %conv93, %sub
+  br i1 %cmp94, label %if.then96, label %land.lhs.true107
+
+if.then96:                                        ; preds = %land.lhs.true90
+  store i32 %add97, i32* %arrayidx57, align 4, !tbaa !8
+  %cmp100 = icmp eq i32 %closest_opponent.11924, 0
+  %pos.1.closest_opponent.1 = select i1 %cmp100, i32 %12, i32 %closest_opponent.11924
+  br label %for.inc139
+
+land.lhs.true107:                                 ; preds = %land.lhs.true90
+  %cmp111 = icmp eq i32 %conv93, %color
+  br i1 %cmp111, label %if.then113, label %if.else121
+
+if.then113:                                       ; preds = %land.lhs.true107
+  store i32 %add97, i32* %arrayidx57, align 4, !tbaa !8
+  %cmp117 = icmp eq i32 %closest_own.11923, 0
+  %pos.1.closest_own.1 = select i1 %cmp117, i32 %12, i32 %closest_own.11923
+  br label %for.inc139
+
+if.else121:                                       ; preds = %if.then87, %land.lhs.true107
+  %cmp125 = icmp eq i8 %9, 0
+  br i1 %cmp125, label %if.then127, label %for.inc139
+
+if.then127:                                       ; preds = %if.else121
+  store i32 %add97, i32* %arrayidx57, align 4, !tbaa !8
+  br label %for.inc139
+
+for.inc135:                                       ; preds = %for.body64, %land.lhs.true82
+  %indvars.iv.next1993 = add nuw nsw i64 %indvars.iv1992, 1
+  %15 = trunc i64 %indvars.iv.next1993 to i32
+  %cmp62 = icmp slt i32 %15, 4
+  br i1 %cmp62, label %for.body64, label %for.inc139
+
+for.inc139:                                       ; preds = %for.inc135, %if.then113, %if.then96, %for.body49, %land.lhs.true55, %if.else121, %if.then127
+  %closest_own.2 = phi i32 [ %closest_own.11923, %if.then127 ], [ %closest_own.11923, %if.else121 ], [ %closest_own.11923, %land.lhs.true55 ], [ %closest_own.11923, %for.body49 ], [ %closest_own.11923, %if.then96 ], [ %pos.1.closest_own.1, %if.then113 ], [ %closest_own.11923, %for.inc135 ]
+  %closest_opponent.2 = phi i32 [ %closest_opponent.11924, %if.then127 ], [ %closest_opponent.11924, %if.else121 ], [ %closest_opponent.11924, %land.lhs.true55 ], [ %closest_opponent.11924, %for.body49 ], [ %pos.1.closest_opponent.1, %if.then96 ], [ %closest_opponent.11924, %if.then113 ], [ %closest_opponent.11924, %for.inc135 ]
+  %something_found.1 = phi i32 [ 1, %if.then127 ], [ %something_found.01925, %if.else121 ], [ %something_found.01925, %land.lhs.true55 ], [ %something_found.01925, %for.body49 ], [ %something_found.01925, %if.then96 ], [ %something_found.01925, %if.then113 ], [ %something_found.01925, %for.inc135 ]
+  %indvars.iv.next1995 = add nuw nsw i64 %indvars.iv1994, 1
+  %exitcond1996 = icmp eq i64 %indvars.iv.next1995, 400
+  br i1 %exitcond1996, label %for.end141, label %for.body49
+
+for.end141:                                       ; preds = %for.inc139
+  %tobool143 = icmp eq i32 %something_found.1, 0
+  br i1 %tobool143, label %do.end, label %do.body
+
+do.end:                                           ; preds = %for.end141
+  %tobool144 = icmp eq i32* %under_control, null
+  br i1 %tobool144, label %if.end172, label %for.body149
+
+for.body149:                                      ; preds = %do.end, %for.inc169
+  %indvars.iv1989 = phi i64 [ %indvars.iv.next1990, %for.inc169 ], [ 21, %do.end ]
+  %arrayidx151 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1989
+  %16 = load i8* %arrayidx151, align 1, !tbaa !1
+  %cmp153 = icmp eq i8 %16, 3
+  br i1 %cmp153, label %for.inc169, label %if.else156
+
+if.else156:                                       ; preds = %for.body149
+  %arrayidx158 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1989
+  %17 = load i32* %arrayidx158, align 4, !tbaa !8
+  %cmp159 = icmp eq i32 %17, -1
+  %arrayidx163 = getelementptr inbounds i32* %under_control, i64 %indvars.iv1989
+  br i1 %cmp159, label %if.then161, label %if.else164
+
+if.then161:                                       ; preds = %if.else156
+  store i32 0, i32* %arrayidx163, align 4, !tbaa !8
+  br label %for.inc169
+
+if.else164:                                       ; preds = %if.else156
+  store i32 1, i32* %arrayidx163, align 4, !tbaa !8
+  br label %for.inc169
+
+for.inc169:                                       ; preds = %for.body149, %if.else164, %if.then161
+  %indvars.iv.next1990 = add nuw nsw i64 %indvars.iv1989, 1
+  %exitcond1991 = icmp eq i64 %indvars.iv.next1990, 400
+  br i1 %exitcond1991, label %if.end172, label %for.body149
+
+if.end172:                                        ; preds = %for.inc169, %do.end
+  %18 = load i32* @debug, align 4, !tbaa !8
+  %and = and i32 %18, 131072
+  %tobool173 = icmp eq i32 %and, 0
+  br i1 %tobool173, label %for.body270, label %for.cond175.preheader
+
+for.cond175.preheader:                            ; preds = %if.end172
+  %19 = load i32* @board_size, align 4, !tbaa !8
+  %cmp1761917 = icmp sgt i32 %19, 0
+  br i1 %cmp1761917, label %for.cond179.preheader.lr.ph, label %for.end245
+
+for.cond179.preheader.lr.ph:                      ; preds = %for.cond175.preheader
+  %20 = load %struct._IO_FILE** @stderr, align 8, !tbaa !10
+  br label %for.cond179.preheader
+
+for.cond179.preheader:                            ; preds = %for.cond179.preheader.lr.ph, %for.end241
+  %21 = phi i32 [ %19, %for.cond179.preheader.lr.ph ], [ %28, %for.end241 ]
+  %indvars.iv1987 = phi i64 [ 0, %for.cond179.preheader.lr.ph ], [ %indvars.iv.next1988, %for.end241 ]
+  %cmp1801915 = icmp sgt i32 %21, 0
+  br i1 %cmp1801915, label %for.body182.lr.ph, label %for.end241
+
+for.body182.lr.ph:                                ; preds = %for.cond179.preheader
+  %add183 = mul i64 %indvars.iv1987, 85899345920
+  %sext2004 = add i64 %add183, 90194313216
+  %22 = ashr exact i64 %sext2004, 32
+  br label %for.body182
+
+for.body182:                                      ; preds = %for.body182.lr.ph, %for.inc239
+  %indvars.iv1984 = phi i64 [ 0, %for.body182.lr.ph ], [ %indvars.iv.next1985, %for.inc239 ]
+  %23 = add nsw i64 %22, %indvars.iv1984
+  %arrayidx186 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %23
+  %24 = load i32* %arrayidx186, align 4, !tbaa !8
+  %cmp187 = icmp sgt i32 %24, 0
+  br i1 %cmp187, label %if.then189, label %if.else192
+
+if.then189:                                       ; preds = %for.body182
+  %call = call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %20, i8* getelementptr inbounds ([4 x i8]* @.str, i64 0, i64 0), i32 %24) #5
+  br label %for.inc239
+
+if.else192:                                       ; preds = %for.body182
+  %cmp195 = icmp eq i32 %24, 0
+  %arrayidx199 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %23
+  %25 = load i8* %arrayidx199, align 1, !tbaa !1
+  %cmp201 = icmp eq i8 %25, 1
+  br i1 %cmp195, label %if.then197, label %if.else217
+
+if.then197:                                       ; preds = %if.else192
+  br i1 %cmp201, label %if.then203, label %if.else205
+
+if.then203:                                       ; preds = %if.then197
+  %call204 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str1, i64 0, i64 0)) #4
+  br label %for.inc239
+
+if.else205:                                       ; preds = %if.then197
+  %cmp209 = icmp eq i8 %25, 2
+  br i1 %cmp209, label %if.then211, label %if.else213
+
+if.then211:                                       ; preds = %if.else205
+  %call212 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0)) #4
+  br label %for.inc239
+
+if.else213:                                       ; preds = %if.else205
+  %call214 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str3, i64 0, i64 0)) #4
+  br label %for.inc239
+
+if.else217:                                       ; preds = %if.else192
+  br i1 %cmp201, label %if.then223, label %if.else225
+
+if.then223:                                       ; preds = %if.else217
+  %call224 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str4, i64 0, i64 0)) #4
+  br label %for.inc239
+
+if.else225:                                       ; preds = %if.else217
+  %cmp229 = icmp eq i8 %25, 2
+  br i1 %cmp229, label %if.then231, label %if.else233
+
+if.then231:                                       ; preds = %if.else225
+  %call232 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str5, i64 0, i64 0)) #4
+  br label %for.inc239
+
+if.else233:                                       ; preds = %if.else225
+  %call234 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([3 x i8]* @.str6, i64 0, i64 0)) #4
+  br label %for.inc239
+
+for.inc239:                                       ; preds = %if.then189, %if.then223, %if.else233, %if.then231, %if.then203, %if.else213, %if.then211
+  %indvars.iv.next1985 = add nuw nsw i64 %indvars.iv1984, 1
+  %26 = load i32* @board_size, align 4, !tbaa !8
+  %27 = trunc i64 %indvars.iv.next1985 to i32
+  %cmp180 = icmp slt i32 %27, %26
+  br i1 %cmp180, label %for.body182, label %for.end241
+
+for.end241:                                       ; preds = %for.inc239, %for.cond179.preheader
+  %call242 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([2 x i8]* @.str7, i64 0, i64 0)) #4
+  %indvars.iv.next1988 = add nuw nsw i64 %indvars.iv1987, 1
+  %28 = load i32* @board_size, align 4, !tbaa !8
+  %29 = trunc i64 %indvars.iv.next1988 to i32
+  %cmp176 = icmp slt i32 %29, %28
+  br i1 %cmp176, label %for.cond179.preheader, label %for.end245
+
+for.end245:                                       ; preds = %for.end241, %for.cond175.preheader
+  %call246 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str8, i64 0, i64 0), i32 %closest_opponent.2) #4
+  %cmp247 = icmp eq i32 %closest_opponent.2, 0
+  br i1 %cmp247, label %if.else253, label %if.then249
+
+if.then249:                                       ; preds = %for.end245
+  %idxprom250 = sext i32 %closest_opponent.2 to i64
+  %arrayidx251 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom250
+  %30 = load i32* %arrayidx251, align 4, !tbaa !8
+  %call252 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([15 x i8]* @.str9, i64 0, i64 0), i32 %30) #4
+  br label %if.end255
+
+if.else253:                                       ; preds = %for.end245
+  %call254 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([2 x i8]* @.str7, i64 0, i64 0)) #4
+  br label %if.end255
+
+if.end255:                                        ; preds = %if.else253, %if.then249
+  %call256 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([16 x i8]* @.str10, i64 0, i64 0), i32 %closest_own.2) #4
+  %cmp257 = icmp eq i32 %closest_own.2, 0
+  br i1 %cmp257, label %if.else263, label %if.then259
+
+if.then259:                                       ; preds = %if.end255
+  %idxprom260 = sext i32 %closest_own.2 to i64
+  %arrayidx261 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom260
+  %31 = load i32* %arrayidx261, align 4, !tbaa !8
+  %call262 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([15 x i8]* @.str9, i64 0, i64 0), i32 %31) #4
+  br label %for.body270
+
+if.else263:                                       ; preds = %if.end255
+  %call264 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([2 x i8]* @.str7, i64 0, i64 0)) #4
+  br label %for.body270
+
+for.body270:                                      ; preds = %if.else263, %if.then259, %if.end172, %for.inc377
+  %indvars.iv1981 = phi i64 [ %indvars.iv.next1982, %for.inc377 ], [ 21, %if.end172 ], [ 21, %if.then259 ], [ 21, %if.else263 ]
+  %best_score.01912 = phi i32 [ %best_score.3, %for.inc377 ], [ 5, %if.end172 ], [ 5, %if.then259 ], [ 5, %if.else263 ]
+  %best_scoring_move.01911 = phi i32 [ %best_scoring_move.3, %for.inc377 ], [ 0, %if.end172 ], [ 0, %if.then259 ], [ 0, %if.else263 ]
+  %arrayidx272 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1981
+  %32 = load i8* %arrayidx272, align 1, !tbaa !1
+  %cmp274 = icmp eq i8 %32, 0
+  br i1 %cmp274, label %lor.lhs.false276, label %for.inc377
+
+lor.lhs.false276:                                 ; preds = %for.body270
+  %arrayidx278 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1981
+  %33 = load i32* %arrayidx278, align 4, !tbaa !8
+  %cmp279 = icmp eq i32 %33, 0
+  br i1 %cmp279, label %for.inc377, label %if.end282
+
+if.end282:                                        ; preds = %lor.lhs.false276
+  %34 = trunc i64 %indvars.iv1981 to i32
+  %call283 = call i32 @approxlib(i32 %34, i32 %color, i32 3, i32* null) #4
+  %cmp284 = icmp slt i32 %call283, 3
+  br i1 %cmp284, label %for.inc377, label %if.end287
+
+if.end287:                                        ; preds = %if.end282
+  %call288 = call i32 @is_self_atari(i32 %34, i32 %sub) #4
+  %tobool289 = icmp eq i32 %call288, 0
+  br i1 %tobool289, label %for.cond292.preheader, label %for.inc377
+
+for.cond292.preheader:                            ; preds = %if.end287
+  %arrayidx363 = getelementptr inbounds [400 x float]* %owl_hotspot, i64 0, i64 %indvars.iv1981
+  %arrayidx365 = getelementptr inbounds [400 x float]* %reading_hotspot, i64 0, i64 %indvars.iv1981
+  %cmp336 = icmp sgt i32 %call283, 4
+  br label %for.body295
+
+for.body295:                                      ; preds = %for.cond292.backedge, %for.cond292.preheader
+  %indvars.iv1978 = phi i64 [ 0, %for.cond292.preheader ], [ %indvars.iv.next1979, %for.cond292.backedge ]
+  %best_score.11909 = phi i32 [ %best_score.01912, %for.cond292.preheader ], [ %best_score.1.be, %for.cond292.backedge ]
+  %best_scoring_move.11908 = phi i32 [ %best_scoring_move.01911, %for.cond292.preheader ], [ %best_scoring_move.1.be, %for.cond292.backedge ]
+  %arrayidx297 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1978
+  %35 = load i32* %arrayidx297, align 4, !tbaa !8
+  %indvars.iv.next1979 = add nuw nsw i64 %indvars.iv1978, 1
+  %36 = trunc i64 %indvars.iv.next1979 to i32
+  %37 = icmp eq i32 %36, 4
+  %sext = shl i64 %indvars.iv.next1979, 32
+  %38 = ashr exact i64 %sext, 32
+  %idxprom299 = select i1 %37, i64 0, i64 %38
+  %arrayidx300 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %idxprom299
+  %39 = load i32* %arrayidx300, align 4, !tbaa !8
+  %sub301 = sub nsw i32 %34, %35
+  %idxprom302 = sext i32 %sub301 to i64
+  %arrayidx303 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom302
+  %40 = load i8* %arrayidx303, align 1, !tbaa !1
+  %cmp305 = icmp eq i8 %40, 3
+  br i1 %cmp305, label %land.lhs.true307, label %for.cond292.backedge
+
+for.cond292.backedge:                             ; preds = %for.body295, %land.lhs.true307, %land.lhs.true314, %land.lhs.true322, %lor.lhs.false335, %land.lhs.true338, %land.lhs.true343, %if.then361
+  %best_scoring_move.1.be = phi i32 [ %best_scoring_move.11908, %for.body295 ], [ %best_scoring_move.11908, %land.lhs.true338 ], [ %best_scoring_move.11908, %lor.lhs.false335 ], [ %best_scoring_move.11908, %land.lhs.true322 ], [ %best_scoring_move.11908, %land.lhs.true314 ], [ %best_scoring_move.11908, %land.lhs.true307 ], [ %best_scoring_move.11908, %land.lhs.true343 ], [ %pos.3.best_scoring_move.1, %if.then361 ]
+  %best_score.1.be = phi i32 [ %best_score.11909, %for.body295 ], [ %best_score.11909, %land.lhs.true338 ], [ %best_score.11909, %lor.lhs.false335 ], [ %best_score.11909, %land.lhs.true322 ], [ %best_score.11909, %land.lhs.true314 ], [ %best_score.11909, %land.lhs.true307 ], [ %best_score.11909, %land.lhs.true343 ], [ %conv368.best_score.1, %if.then361 ]
+  %exitcond1980 = icmp eq i64 %indvars.iv.next1979, 4
+  br i1 %exitcond1980, label %for.inc377, label %for.body295
+
+land.lhs.true307:                                 ; preds = %for.body295
+  %add308 = add nsw i32 %35, %34
+  %idxprom309 = sext i32 %add308 to i64
+  %arrayidx310 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom309
+  %41 = load i8* %arrayidx310, align 1, !tbaa !1
+  %conv311 = zext i8 %41 to i32
+  %cmp312 = icmp eq i32 %conv311, %color
+  br i1 %cmp312, label %land.lhs.true314, label %for.cond292.backedge
+
+land.lhs.true314:                                 ; preds = %land.lhs.true307
+  %add316 = add nsw i32 %39, %add308
+  %idxprom317 = sext i32 %add316 to i64
+  %arrayidx318 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom317
+  %42 = load i8* %arrayidx318, align 1, !tbaa !1
+  %conv319 = zext i8 %42 to i32
+  %cmp320 = icmp eq i32 %conv319, %sub
+  br i1 %cmp320, label %land.lhs.true322, label %for.cond292.backedge
+
+land.lhs.true322:                                 ; preds = %land.lhs.true314
+  %sub324 = sub nsw i32 %add308, %39
+  %idxprom325 = sext i32 %sub324 to i64
+  %arrayidx326 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom325
+  %43 = load i8* %arrayidx326, align 1, !tbaa !1
+  %conv327 = zext i8 %43 to i32
+  %cmp328 = icmp eq i32 %conv327, %sub
+  br i1 %cmp328, label %land.lhs.true330, label %for.cond292.backedge
+
+land.lhs.true330:                                 ; preds = %land.lhs.true322
+  %call332 = call i32 @countlib(i32 %add308) #4
+  %cmp333 = icmp sgt i32 %call283, %call332
+  br i1 %cmp333, label %land.lhs.true343, label %lor.lhs.false335
+
+lor.lhs.false335:                                 ; preds = %land.lhs.true330
+  br i1 %cmp336, label %land.lhs.true338, label %for.cond292.backedge
+
+land.lhs.true338:                                 ; preds = %lor.lhs.false335
+  %call340 = call i32 @countlib(i32 %add308) #4
+  %cmp341 = icmp eq i32 %call283, %call340
+  br i1 %cmp341, label %land.lhs.true343, label %for.cond292.backedge
+
+land.lhs.true343:                                 ; preds = %land.lhs.true338, %land.lhs.true330
+  %id = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom309, i32 1
+  %44 = load i32* %id, align 4, !tbaa !12
+  %idxprom347 = sext i32 %44 to i64
+  %45 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  %safety = getelementptr inbounds %struct.dragon_data2* %45, i64 %idxprom347, i32 6
+  %46 = load i32* %safety, align 4, !tbaa !14
+  %47 = and i32 %46, -2
+  %switch = icmp eq i32 %47, 8
+  br i1 %switch, label %if.then361, label %for.cond292.backedge
+
+if.then361:                                       ; preds = %land.lhs.true343
+  %48 = load float* %arrayidx363, align 4, !tbaa !17
+  %49 = load float* %arrayidx365, align 4, !tbaa !17
+  %add366 = fadd float %48, %49
+  %mul367 = fmul float %add366, 2.000000e+01
+  %conv368 = fptosi float %mul367 to i32
+  %cmp369 = icmp sgt i32 %conv368, %best_score.11909
+  %pos.3.best_scoring_move.1 = select i1 %cmp369, i32 %34, i32 %best_scoring_move.11908
+  %conv368.best_score.1 = select i1 %cmp369, i32 %conv368, i32 %best_score.11909
+  br label %for.cond292.backedge
+
+for.inc377:                                       ; preds = %for.cond292.backedge, %if.end287, %for.body270, %if.end282, %lor.lhs.false276
+  %best_scoring_move.3 = phi i32 [ %best_scoring_move.01911, %for.body270 ], [ %best_scoring_move.01911, %lor.lhs.false276 ], [ %best_scoring_move.01911, %if.end282 ], [ %best_scoring_move.01911, %if.end287 ], [ %best_scoring_move.1.be, %for.cond292.backedge ]
+  %best_score.3 = phi i32 [ %best_score.01912, %for.body270 ], [ %best_score.01912, %lor.lhs.false276 ], [ %best_score.01912, %if.end282 ], [ %best_score.01912, %if.end287 ], [ %best_score.1.be, %for.cond292.backedge ]
+  %indvars.iv.next1982 = add nuw nsw i64 %indvars.iv1981, 1
+  %exitcond1983 = icmp eq i64 %indvars.iv.next1982, 400
+  br i1 %exitcond1983, label %for.end379, label %for.body270
+
+for.end379:                                       ; preds = %for.inc377
+  %cmp380 = icmp eq i32 %best_scoring_move.3, 0
+  br i1 %cmp380, label %for.body394, label %land.lhs.true382
+
+land.lhs.true382:                                 ; preds = %for.end379
+  %call383 = call i32 @safe_move(i32 %best_scoring_move.3, i32 %color) #4
+  %cmp384 = icmp eq i32 %call383, 5
+  br i1 %cmp384, label %if.then386, label %for.body394
+
+if.then386:                                       ; preds = %land.lhs.true382
+  store i32 %best_scoring_move.3, i32* %aftermath_move, align 4, !tbaa !8
+  %50 = load i32* @debug, align 4, !tbaa !8
+  %and387 = and i32 %50, 131072
+  %tobool388 = icmp eq i32 %and387, 0
+  br i1 %tobool388, label %cleanup1427, label %cond.false
+
+cond.false:                                       ; preds = %if.then386
+  %call389 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str11, i64 0, i64 0), i32 %best_scoring_move.3) #4
+  br label %cleanup1427
+
+for.body394:                                      ; preds = %land.lhs.true382, %for.end379, %for.inc473
+  %indvars.iv1972 = phi i64 [ %indvars.iv.next1973, %for.inc473 ], [ 21, %for.end379 ], [ 21, %land.lhs.true382 ]
+  %arrayidx396 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1972
+  %51 = load i8* %arrayidx396, align 1, !tbaa !1
+  %conv397 = zext i8 %51 to i32
+  %cmp398 = icmp eq i32 %conv397, %sub
+  br i1 %cmp398, label %land.lhs.true400, label %for.inc473
+
+land.lhs.true400:                                 ; preds = %for.body394
+  %unconditional_status403 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv1972, i32 14
+  %52 = load i32* %unconditional_status403, align 4, !tbaa !9
+  %cmp404 = icmp eq i32 %52, 0
+  br i1 %cmp404, label %for.inc473, label %land.lhs.true406
+
+land.lhs.true406:                                 ; preds = %land.lhs.true400
+  %53 = trunc i64 %indvars.iv1972 to i32
+  %call407 = call i32 @countlib(i32 %53) #4
+  %cmp408 = icmp eq i32 %call407, 1
+  br i1 %cmp408, label %land.lhs.true410, label %for.inc473
+
+land.lhs.true410:                                 ; preds = %land.lhs.true406
+  %54 = add nsw i64 %indvars.iv1972, 20
+  %arrayidx413 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %54
+  %55 = load i8* %arrayidx413, align 1, !tbaa !1
+  %cmp415 = icmp eq i8 %55, 3
+  br i1 %cmp415, label %lor.lhs.false423, label %land.lhs.true417
+
+land.lhs.true417:                                 ; preds = %land.lhs.true410
+  %arrayidx420 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %54
+  %56 = load i32* %arrayidx420, align 4, !tbaa !8
+  %cmp421 = icmp eq i32 %56, 0
+  br i1 %cmp421, label %if.then462, label %lor.lhs.false423
+
+lor.lhs.false423:                                 ; preds = %land.lhs.true410, %land.lhs.true417
+  %57 = add nsw i64 %indvars.iv1972, -1
+  %arrayidx426 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %57
+  %58 = load i8* %arrayidx426, align 1, !tbaa !1
+  %cmp428 = icmp eq i8 %58, 3
+  br i1 %cmp428, label %lor.lhs.false436, label %land.lhs.true430
+
+land.lhs.true430:                                 ; preds = %lor.lhs.false423
+  %arrayidx433 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %57
+  %59 = load i32* %arrayidx433, align 4, !tbaa !8
+  %cmp434 = icmp eq i32 %59, 0
+  br i1 %cmp434, label %if.then462, label %lor.lhs.false436
+
+lor.lhs.false436:                                 ; preds = %lor.lhs.false423, %land.lhs.true430
+  %60 = add nsw i64 %indvars.iv1972, -20
+  %arrayidx439 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %60
+  %61 = load i8* %arrayidx439, align 1, !tbaa !1
+  %cmp441 = icmp eq i8 %61, 3
+  br i1 %cmp441, label %lor.lhs.false449, label %land.lhs.true443
+
+land.lhs.true443:                                 ; preds = %lor.lhs.false436
+  %arrayidx446 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %60
+  %62 = load i32* %arrayidx446, align 4, !tbaa !8
+  %cmp447 = icmp eq i32 %62, 0
+  br i1 %cmp447, label %if.then462, label %lor.lhs.false449
+
+lor.lhs.false449:                                 ; preds = %lor.lhs.false436, %land.lhs.true443
+  %63 = add nsw i64 %indvars.iv1972, 1
+  %arrayidx452 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %63
+  %64 = load i8* %arrayidx452, align 1, !tbaa !1
+  %cmp454 = icmp eq i8 %64, 3
+  br i1 %cmp454, label %for.inc473, label %land.lhs.true456
+
+land.lhs.true456:                                 ; preds = %lor.lhs.false449
+  %arrayidx459 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %63
+  %65 = load i32* %arrayidx459, align 4, !tbaa !8
+  %cmp460 = icmp eq i32 %65, 0
+  br i1 %cmp460, label %if.then462, label %for.inc473
+
+if.then462:                                       ; preds = %land.lhs.true456, %land.lhs.true443, %land.lhs.true430, %land.lhs.true417
+  %call463 = call i32 @findlib(i32 %53, i32 1, i32* %lib) #4
+  %call464 = call i32 @countstones(i32 %53) #4
+  %cmp465 = icmp sgt i32 %call464, 1
+  br i1 %cmp465, label %if.then470, label %lor.lhs.false467
+
+lor.lhs.false467:                                 ; preds = %if.then462
+  %66 = load i32* %lib, align 4, !tbaa !8
+  %call468 = call i32 @is_self_atari(i32 %66, i32 %color) #4
+  %tobool469 = icmp eq i32 %call468, 0
+  br i1 %tobool469, label %if.then470, label %for.inc473
+
+if.then470:                                       ; preds = %lor.lhs.false467, %if.then462
+  %67 = load i32* %lib, align 4, !tbaa !8
+  store i32 %67, i32* %aftermath_move, align 4, !tbaa !8
+  br label %cleanup1427
+
+for.inc473:                                       ; preds = %lor.lhs.false467, %lor.lhs.false449, %land.lhs.true400, %for.body394, %land.lhs.true406, %land.lhs.true456
+  %indvars.iv.next1973 = add nuw nsw i64 %indvars.iv1972, 1
+  %68 = trunc i64 %indvars.iv.next1973 to i32
+  %cmp392 = icmp slt i32 %68, 400
+  br i1 %cmp392, label %for.body394, label %for.end475
+
+for.end475:                                       ; preds = %for.inc473
+  %69 = or i32 %closest_opponent.2, %closest_own.2
+  %70 = icmp eq i32 %69, 0
+  br i1 %70, label %for.cond654.preheader, label %if.then481
+
+for.cond654.preheader:                            ; preds = %for.end475
+  %71 = bitcast [400 x i32]* %mx659 to i8*
+  br label %for.body657
+
+if.then481:                                       ; preds = %for.end475
+  %cmp482 = icmp eq i32 %closest_own.2, 0
+  %closest_opponent.1.closest_own.1 = select i1 %cmp482, i32 %closest_opponent.2, i32 %closest_own.2
+  %idxprom487 = sext i32 %closest_opponent.1.closest_own.1 to i64
+  %arrayidx488 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom487
+  %72 = load i32* %arrayidx488, align 4, !tbaa !8
+  %cmp489 = icmp eq i32 %72, 2
+  br i1 %cmp489, label %if.then491, label %while.cond.preheader
+
+if.then491:                                       ; preds = %if.then481
+  %73 = getelementptr inbounds [400 x i8]* %mx, i64 0, i64 0
+  call void @llvm.lifetime.start(i64 400, i8* %73) #1
+  call void @llvm.memset.p0i8.i64(i8* %73, i8 0, i64 400, i32 16, i1 false)
+  br label %for.body495
+
+while.cond.preheader.loopexit:                    ; preds = %for.inc613
+  %idxprom6171891.phi.trans.insert = sext i32 %best_scoring_move.5 to i64
+  %arrayidx6181892.phi.trans.insert = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom6171891.phi.trans.insert
+  %.pre2002 = load i32* %arrayidx6181892.phi.trans.insert, align 4, !tbaa !8
+  br label %while.cond.preheader
+
+while.cond.preheader:                             ; preds = %while.cond.preheader.loopexit, %if.then481
+  %74 = phi i32 [ %72, %if.then481 ], [ %.pre2002, %while.cond.preheader.loopexit ]
+  %move.1.ph1846 = phi i32 [ %closest_opponent.1.closest_own.1, %if.then481 ], [ %best_scoring_move.5, %while.cond.preheader.loopexit ]
+  %cmp6191893 = icmp sgt i32 %74, 1
+  br i1 %cmp6191893, label %for.cond621.preheader, label %while.end
+
+for.body495:                                      ; preds = %for.inc613, %if.then491
+  %indvars.iv1969 = phi i64 [ 21, %if.then491 ], [ %indvars.iv.next1970, %for.inc613 ]
+  %best_score.41902 = phi i32 [ 0, %if.then491 ], [ %best_score.5, %for.inc613 ]
+  %best_scoring_move.41901 = phi i32 [ %closest_opponent.1.closest_own.1, %if.then491 ], [ %best_scoring_move.5, %for.inc613 ]
+  %mark.01900 = phi i8 [ 0, %if.then491 ], [ %mark.1, %for.inc613 ]
+  %arrayidx498 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1969
+  %75 = load i8* %arrayidx498, align 1, !tbaa !1
+  %cmp500 = icmp eq i8 %75, 3
+  br i1 %cmp500, label %for.inc613, label %lor.lhs.false502
+
+lor.lhs.false502:                                 ; preds = %for.body495
+  %arrayidx504 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1969
+  %76 = load i32* %arrayidx504, align 4, !tbaa !8
+  %cmp505 = icmp eq i32 %76, 1
+  br i1 %cmp505, label %if.end508, label %for.inc613
+
+if.end508:                                        ; preds = %lor.lhs.false502
+  %inc509 = add i8 %mark.01900, 1
+  br label %for.body513
+
+for.body513:                                      ; preds = %for.inc599, %if.end508
+  %indvars.iv1966 = phi i64 [ 0, %if.end508 ], [ %indvars.iv.next1967, %for.inc599 ]
+  %move_ok.01898 = phi i32 [ 0, %if.end508 ], [ %move_ok.2, %for.inc599 ]
+  %score496.01897 = phi i32 [ 0, %if.end508 ], [ %score496.6, %for.inc599 ]
+  %arrayidx516 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1966
+  %77 = load i32* %arrayidx516, align 4, !tbaa !8
+  %78 = trunc i64 %indvars.iv1969 to i32
+  %add517 = add nsw i32 %77, %78
+  %idxprom518 = sext i32 %add517 to i64
+  %arrayidx519 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom518
+  %79 = load i8* %arrayidx519, align 1, !tbaa !1
+  %conv520 = zext i8 %79 to i32
+  %cmp521 = icmp eq i8 %79, 3
+  br i1 %cmp521, label %for.inc599, label %if.end524
+
+if.end524:                                        ; preds = %for.body513
+  %arrayidx526 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom518
+  %80 = load i32* %arrayidx526, align 4, !tbaa !8
+  %cmp527 = icmp slt i32 %80, 1
+  br i1 %cmp527, label %if.then529, label %if.else530
+
+if.then529:                                       ; preds = %if.end524
+  %dec = add nsw i32 %score496.01897, -1
+  br label %for.inc599
+
+if.else530:                                       ; preds = %if.end524
+  %cmp534 = icmp eq i8 %79, 0
+  br i1 %cmp534, label %if.then536, label %if.else538
+
+if.then536:                                       ; preds = %if.else530
+  %inc537 = add nsw i32 %score496.01897, 1
+  br label %for.inc599
+
+if.else538:                                       ; preds = %if.else530
+  %arrayidx540 = getelementptr inbounds [400 x i8]* %mx, i64 0, i64 %idxprom518
+  %81 = load i8* %arrayidx540, align 1, !tbaa !1
+  %cmp543 = icmp eq i8 %81, %inc509
+  br i1 %cmp543, label %if.then545, label %if.else547
+
+if.then545:                                       ; preds = %if.else538
+  %dec546 = add nsw i32 %score496.01897, -1
+  br label %for.inc599
+
+if.else547:                                       ; preds = %if.else538
+  %cmp551 = icmp eq i32 %conv520, %color
+  br i1 %cmp551, label %if.then553, label %if.else579
+
+if.then553:                                       ; preds = %if.else547
+  %call555 = call i32 @countstones(i32 %add517) #4
+  %cmp556 = icmp sgt i32 %call555, 2
+  %inc559.add554.v = select i1 %cmp556, i32 8, i32 7
+  %inc559.add554 = add i32 %inc559.add554.v, %score496.01897
+  %call561 = call i32 @countstones(i32 %add517) #4
+  %cmp562 = icmp sgt i32 %call561, 4
+  %inc565 = zext i1 %cmp562 to i32
+  %score496.2 = add nsw i32 %inc559.add554, %inc565
+  %call567 = call i32 @countlib(i32 %add517) #4
+  %cmp568 = icmp slt i32 %call567, 4
+  %inc571 = zext i1 %cmp568 to i32
+  %inc571.score496.2 = add nsw i32 %score496.2, %inc571
+  %call573 = call i32 @countlib(i32 %add517) #4
+  %cmp574 = icmp slt i32 %call573, 3
+  %inc577 = zext i1 %cmp574 to i32
+  %inc577.inc571.score496.2 = add nsw i32 %inc571.score496.2, %inc577
+  br label %if.end594
+
+if.else579:                                       ; preds = %if.else547
+  %call580 = call i32 @approxlib(i32 %78, i32 %sub, i32 241, i32* null) #4
+  %call581 = call i32 @countlib(i32 %add517) #4
+  %sub582 = sub nsw i32 %call580, %call581
+  %82 = ashr i32 %sub582, 31
+  %cmp589 = icmp sgt i32 %sub582, 0
+  %inc592 = zext i1 %cmp589 to i32
+  %83 = add i32 %score496.01897, 2
+  %inc587.inc583 = add i32 %83, %82
+  %inc592.inc587.inc583 = add i32 %inc587.inc583, %inc592
+  br label %if.end594
+
+if.end594:                                        ; preds = %if.then553, %if.else579
+  %score496.5 = phi i32 [ %inc592.inc587.inc583, %if.else579 ], [ %inc577.inc571.score496.2, %if.then553 ]
+  call void @mark_string(i32 %add517, i8* %73, i8 signext %inc509) #4
+  br label %for.inc599
+
+for.inc599:                                       ; preds = %for.body513, %if.then529, %if.then545, %if.end594, %if.then536
+  %score496.6 = phi i32 [ %dec, %if.then529 ], [ %inc537, %if.then536 ], [ %dec546, %if.then545 ], [ %score496.5, %if.end594 ], [ %score496.01897, %for.body513 ]
+  %move_ok.2 = phi i32 [ %move_ok.01898, %if.then529 ], [ %move_ok.01898, %if.then536 ], [ %move_ok.01898, %if.then545 ], [ 1, %if.end594 ], [ %move_ok.01898, %for.body513 ]
+  %indvars.iv.next1967 = add nuw nsw i64 %indvars.iv1966, 1
+  %exitcond1968 = icmp eq i64 %indvars.iv.next1967, 4
+  br i1 %exitcond1968, label %for.end601, label %for.body513
+
+for.end601:                                       ; preds = %for.inc599
+  %call602 = call i32 @is_suicide(i32 %78, i32 %sub) #4
+  %tobool603 = icmp eq i32 %call602, 0
+  %sub605 = add nsw i32 %score496.6, -3
+  %score496.0.sub605 = select i1 %tobool603, i32 %score496.6, i32 %sub605
+  %tobool607 = icmp ne i32 %move_ok.2, 0
+  %cmp609 = icmp sgt i32 %score496.0.sub605, %best_score.41902
+  %or.cond1834 = and i1 %tobool607, %cmp609
+  %pos.5.best_scoring_move.4 = select i1 %or.cond1834, i32 %78, i32 %best_scoring_move.41901
+  %score496.0.sub605.best_score.4 = select i1 %or.cond1834, i32 %score496.0.sub605, i32 %best_score.41902
+  br label %for.inc613
+
+for.inc613:                                       ; preds = %for.end601, %lor.lhs.false502, %for.body495
+  %mark.1 = phi i8 [ %mark.01900, %lor.lhs.false502 ], [ %mark.01900, %for.body495 ], [ %inc509, %for.end601 ]
+  %best_scoring_move.5 = phi i32 [ %best_scoring_move.41901, %lor.lhs.false502 ], [ %best_scoring_move.41901, %for.body495 ], [ %pos.5.best_scoring_move.4, %for.end601 ]
+  %best_score.5 = phi i32 [ %best_score.41902, %lor.lhs.false502 ], [ %best_score.41902, %for.body495 ], [ %score496.0.sub605.best_score.4, %for.end601 ]
+  %indvars.iv.next1970 = add nuw nsw i64 %indvars.iv1969, 1
+  %exitcond1971 = icmp eq i64 %indvars.iv.next1970, 400
+  br i1 %exitcond1971, label %while.cond.preheader.loopexit, label %for.body495
+
+while.cond.loopexit:                              ; preds = %land.lhs.true640, %for.inc650.while.cond.loopexit_crit_edge
+  %84 = phi i32 [ %.pre2003, %for.inc650.while.cond.loopexit_crit_edge ], [ %88, %land.lhs.true640 ]
+  %move.1.ph = phi i32 [ %move.11894, %for.inc650.while.cond.loopexit_crit_edge ], [ %add628, %land.lhs.true640 ]
+  %cmp619 = icmp sgt i32 %84, 1
+  br i1 %cmp619, label %for.cond621.preheader, label %while.end
+
+for.cond621.preheader:                            ; preds = %while.cond.preheader, %while.cond.loopexit
+  %85 = phi i32 [ %84, %while.cond.loopexit ], [ %74, %while.cond.preheader ]
+  %move.11894 = phi i32 [ %move.1.ph, %while.cond.loopexit ], [ %move.1.ph1846, %while.cond.preheader ]
+  br label %for.body624
+
+for.body624:                                      ; preds = %for.cond621.preheader, %for.inc650
+  %indvars.iv1964 = phi i64 [ 0, %for.cond621.preheader ], [ %indvars.iv.next1965, %for.inc650 ]
+  %arrayidx627 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1964
+  %86 = load i32* %arrayidx627, align 4, !tbaa !8
+  %add628 = add nsw i32 %86, %move.11894
+  %idxprom629 = sext i32 %add628 to i64
+  %arrayidx630 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom629
+  %87 = load i8* %arrayidx630, align 1, !tbaa !1
+  %cond = icmp eq i8 %87, 0
+  br i1 %cond, label %land.lhs.true640, label %for.inc650
+
+land.lhs.true640:                                 ; preds = %for.body624
+  %arrayidx642 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom629
+  %88 = load i32* %arrayidx642, align 4, !tbaa !8
+  %sub645 = add nsw i32 %85, -1
+  %cmp646 = icmp eq i32 %88, %sub645
+  br i1 %cmp646, label %while.cond.loopexit, label %for.inc650
+
+for.inc650:                                       ; preds = %for.body624, %land.lhs.true640
+  %indvars.iv.next1965 = add nuw nsw i64 %indvars.iv1964, 1
+  %89 = trunc i64 %indvars.iv.next1965 to i32
+  %cmp622 = icmp slt i32 %89, 4
+  br i1 %cmp622, label %for.body624, label %for.inc650.while.cond.loopexit_crit_edge
+
+for.inc650.while.cond.loopexit_crit_edge:         ; preds = %for.inc650
+  %idxprom617.phi.trans.insert = sext i32 %move.11894 to i64
+  %arrayidx618.phi.trans.insert = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %idxprom617.phi.trans.insert
+  %.pre2003 = load i32* %arrayidx618.phi.trans.insert, align 4, !tbaa !8
+  br label %while.cond.loopexit
+
+while.end:                                        ; preds = %while.cond.loopexit, %while.cond.preheader
+  %move.1.lcssa = phi i32 [ %move.1.ph1846, %while.cond.preheader ], [ %move.1.ph, %while.cond.loopexit ]
+  store i32 %move.1.lcssa, i32* %aftermath_move, align 4, !tbaa !8
+  br label %cleanup1427
+
+for.cond1013.preheader:                           ; preds = %cleanup
+  %90 = bitcast [160 x i32]* %adjs to i8*
+  %arraydecay1114 = getelementptr inbounds [160 x i32]* %adjs, i64 0, i64 0
+  br label %for.cond1013
+
+for.body657:                                      ; preds = %cleanup, %for.cond654.preheader
+  %indvars.iv1960 = phi i64 [ 21, %for.cond654.preheader ], [ %indvars.iv.next1961, %cleanup ]
+  call void @llvm.lifetime.start(i64 1600, i8* %71) #1
+  %arrayidx661 = getelementptr inbounds [400 x i32]* %score, i64 0, i64 %indvars.iv1960
+  store i32 0, i32* %arrayidx661, align 4, !tbaa !8
+  %arrayidx663 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1960
+  %91 = load i8* %arrayidx663, align 1, !tbaa !1
+  %cmp665 = icmp eq i8 %91, 0
+  br i1 %cmp665, label %lor.lhs.false667, label %cleanup
+
+lor.lhs.false667:                                 ; preds = %for.body657
+  %arrayidx669 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1960
+  %92 = load i32* %arrayidx669, align 4, !tbaa !8
+  %cmp670 = icmp eq i32 %92, -1
+  br i1 %cmp670, label %if.end673, label %cleanup
+
+if.end673:                                        ; preds = %lor.lhs.false667
+  call void @llvm.memset.p0i8.i64(i8* %71, i8 0, i64 1600, i32 16, i1 false)
+  %arrayidx772 = getelementptr inbounds [400 x i32]* %dragons, i64 0, i64 %indvars.iv1960
+  br label %for.body677
+
+for.body677:                                      ; preds = %if.end673, %for.inc894
+  %indvars.iv1958 = phi i64 [ 0, %if.end673 ], [ %indvars.iv.next1959, %for.inc894 ]
+  %bonus.01884 = phi i32 [ 0, %if.end673 ], [ %bonus.7, %for.inc894 ]
+  %safety658.01883 = phi i32 [ 3, %if.end673 ], [ %safety658.3, %for.inc894 ]
+  %own_worms.01882 = phi i32 [ 0, %if.end673 ], [ %own_worms.2, %for.inc894 ]
+  %opponent_dragons.01881 = phi i32 [ 0, %if.end673 ], [ %opponent_dragons.2, %for.inc894 ]
+  %own_diagonals.01880 = phi i32 [ 0, %if.end673 ], [ %own_diagonals.1, %for.inc894 ]
+  %own_neighbors.01879 = phi i32 [ 0, %if.end673 ], [ %own_neighbors.1, %for.inc894 ]
+  %eyespace_neighbors.01878 = phi i32 [ 0, %if.end673 ], [ %eyespace_neighbors.2, %for.inc894 ]
+  %arrayidx680 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1958
+  %93 = load i32* %arrayidx680, align 4, !tbaa !8
+  %94 = trunc i64 %indvars.iv1960 to i32
+  %add681 = add nsw i32 %93, %94
+  %idxprom682 = sext i32 %add681 to i64
+  %arrayidx683 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom682
+  %95 = load i8* %arrayidx683, align 1, !tbaa !1
+  %conv684 = zext i8 %95 to i32
+  switch i8 %95, label %if.end700 [
+    i8 3, label %for.inc894
+    i8 0, label %if.then694
+  ]
+
+if.then694:                                       ; preds = %for.body677
+  %96 = trunc i64 %indvars.iv1958 to i32
+  %cmp695 = icmp slt i32 %96, 4
+  %inc698 = zext i1 %cmp695 to i32
+  %inc698.eyespace_neighbors.0 = add nsw i32 %inc698, %eyespace_neighbors.01878
+  br label %for.inc894
+
+if.end700:                                        ; preds = %for.body677
+  %cmp704 = icmp eq i32 %conv684, %sub
+  br i1 %cmp704, label %if.then706, label %if.else764
+
+if.then706:                                       ; preds = %if.end700
+  %origin709 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom682, i32 2
+  %97 = load i32* %origin709, align 4, !tbaa !18
+  %98 = trunc i64 %indvars.iv1958 to i32
+  %cmp710 = icmp slt i32 %98, 4
+  br i1 %cmp710, label %if.then712, label %if.end727
+
+if.then712:                                       ; preds = %if.then706
+  %status = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom682, i32 16
+  %99 = load i32* %status, align 4, !tbaa !19
+  %cmp715 = icmp eq i32 %99, 1
+  br i1 %cmp715, label %for.end896, label %if.else718
+
+if.else718:                                       ; preds = %if.then712
+  %idxprom719 = sext i32 %97 to i64
+  %arrayidx720 = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom719
+  %100 = load i32* %arrayidx720, align 4, !tbaa !8
+  %tobool721 = icmp eq i32 %100, 0
+  br i1 %tobool721, label %if.end727.thread, label %if.end727.thread2014
+
+if.end727.thread2014:                             ; preds = %if.else718
+  %idxprom7282015 = sext i32 %97 to i64
+  %arrayidx7292016 = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom7282015
+  br label %if.end761
+
+if.end727.thread:                                 ; preds = %if.else718
+  %inc723 = add nsw i32 %eyespace_neighbors.01878, 1
+  %inc724 = add nsw i32 %opponent_dragons.01881, 1
+  %idxprom7282005 = sext i32 %97 to i64
+  %arrayidx7292006 = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom7282005
+  br label %land.lhs.true731
+
+if.end727:                                        ; preds = %if.then706
+  %idxprom728.phi.trans.insert = sext i32 %97 to i64
+  %arrayidx729.phi.trans.insert = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom728.phi.trans.insert
+  %.pre = load i32* %arrayidx729.phi.trans.insert, align 4, !tbaa !8
+  %idxprom728 = sext i32 %97 to i64
+  %arrayidx729 = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom728
+  %tobool730 = icmp eq i32 %.pre, 0
+  br i1 %tobool730, label %land.lhs.true731, label %if.end761
+
+land.lhs.true731:                                 ; preds = %if.end727.thread, %if.end727
+  %arrayidx7292013 = phi i32* [ %arrayidx7292006, %if.end727.thread ], [ %arrayidx729, %if.end727 ]
+  %opponent_dragons.12011 = phi i32 [ %inc724, %if.end727.thread ], [ %opponent_dragons.01881, %if.end727 ]
+  %eyespace_neighbors.12009 = phi i32 [ %inc723, %if.end727.thread ], [ %eyespace_neighbors.01878, %if.end727 ]
+  %status734 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom682, i32 16
+  %101 = load i32* %status734, align 4, !tbaa !19
+  %cmp735 = icmp eq i32 %101, 0
+  br i1 %cmp735, label %if.then737, label %if.end761
+
+if.then737:                                       ; preds = %land.lhs.true731
+  %inc738 = add nsw i32 %bonus.01884, 1
+  br i1 %cmp710, label %land.lhs.true741, label %if.end761
+
+land.lhs.true741:                                 ; preds = %if.then737
+  %call742 = call i32 @countlib(i32 %add681) #4
+  %cmp743 = icmp slt i32 %call742, 3
+  br i1 %cmp743, label %if.end751, label %land.lhs.true754
+
+if.end751:                                        ; preds = %land.lhs.true741
+  %call746 = call i32 @countstones(i32 %add681) #4
+  %cmp747 = icmp sgt i32 %call746, 2
+  %inc750 = add nsw i32 %bonus.01884, 2
+  %inc750.inc738 = select i1 %cmp747, i32 %inc750, i32 %inc738
+  br label %land.lhs.true754
+
+land.lhs.true754:                                 ; preds = %land.lhs.true741, %if.end751
+  %bonus.11839 = phi i32 [ %inc750.inc738, %if.end751 ], [ %inc738, %land.lhs.true741 ]
+  %call755 = call i32 @countlib(i32 %add681) #4
+  %cmp756 = icmp eq i32 %call755, 1
+  %add759 = add nsw i32 %bonus.11839, 3
+  %add759.bonus.1 = select i1 %cmp756, i32 %add759, i32 %bonus.11839
+  br label %if.end761
+
+if.end761:                                        ; preds = %if.end727.thread2014, %if.then737, %land.lhs.true754, %if.end727, %land.lhs.true731
+  %arrayidx7292012 = phi i32* [ %arrayidx729, %if.end727 ], [ %arrayidx7292013, %land.lhs.true731 ], [ %arrayidx7292013, %land.lhs.true754 ], [ %arrayidx7292013, %if.then737 ], [ %arrayidx7292016, %if.end727.thread2014 ]
+  %opponent_dragons.12010 = phi i32 [ %opponent_dragons.01881, %if.end727 ], [ %opponent_dragons.12011, %land.lhs.true731 ], [ %opponent_dragons.12011, %land.lhs.true754 ], [ %opponent_dragons.12011, %if.then737 ], [ %opponent_dragons.01881, %if.end727.thread2014 ]
+  %eyespace_neighbors.12008 = phi i32 [ %eyespace_neighbors.01878, %if.end727 ], [ %eyespace_neighbors.12009, %land.lhs.true731 ], [ %eyespace_neighbors.12009, %land.lhs.true754 ], [ %eyespace_neighbors.12009, %if.then737 ], [ %eyespace_neighbors.01878, %if.end727.thread2014 ]
+  %bonus.2 = phi i32 [ %bonus.01884, %if.end727 ], [ %bonus.01884, %land.lhs.true731 ], [ %add759.bonus.1, %land.lhs.true754 ], [ %inc738, %if.then737 ], [ %bonus.01884, %if.end727.thread2014 ]
+  store i32 1, i32* %arrayidx7292012, align 4, !tbaa !8
+  br label %for.inc894
+
+if.else764:                                       ; preds = %if.end700
+  %cmp768 = icmp eq i32 %conv684, %color
+  br i1 %cmp768, label %if.then770, label %for.inc894
+
+if.then770:                                       ; preds = %if.else764
+  store i32 %add681, i32* %arrayidx772, align 4, !tbaa !8
+  %cmp773 = icmp eq i32 %safety658.01883, 3
+  br i1 %cmp773, label %land.lhs.true775, label %if.end782
+
+land.lhs.true775:                                 ; preds = %if.then770
+  %status778 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom682, i32 16
+  %102 = load i32* %status778, align 4, !tbaa !19
+  %cmp779 = icmp eq i32 %102, 1
+  %.safety658.0 = select i1 %cmp779, i32 1, i32 3
+  br label %if.end782
+
+if.end782:                                        ; preds = %land.lhs.true775, %if.then770
+  %safety658.1 = phi i32 [ %safety658.01883, %if.then770 ], [ %.safety658.0, %land.lhs.true775 ]
+  %id785 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom682, i32 1
+  %103 = load i32* %id785, align 4, !tbaa !12
+  %idxprom786 = sext i32 %103 to i64
+  %104 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  %safety788 = getelementptr inbounds %struct.dragon_data2* %104, i64 %idxprom786, i32 6
+  %105 = load i32* %safety788, align 4, !tbaa !14
+  %cmp789 = icmp eq i32 %105, 9
+  %.safety658.1 = select i1 %cmp789, i32 9, i32 %safety658.1
+  %106 = trunc i64 %indvars.iv1958 to i32
+  %cmp793 = icmp slt i32 %106, 4
+  br i1 %cmp793, label %if.then795, label %if.else889
+
+if.then795:                                       ; preds = %if.end782
+  %origin798 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %idxprom682, i32 3
+  %107 = load i32* %origin798, align 4, !tbaa !20
+  %idxprom799 = sext i32 %107 to i64
+  %arrayidx800 = getelementptr inbounds [400 x i32]* %mx659, i64 0, i64 %idxprom799
+  %108 = load i32* %arrayidx800, align 4, !tbaa !8
+  %tobool801 = icmp eq i32 %108, 0
+  br i1 %tobool801, label %if.then802, label %if.end823
+
+if.then802:                                       ; preds = %if.then795
+  %inc803 = add nsw i32 %own_worms.01882, 1
+  %call804 = call i32 @countstones(i32 %107) #4
+  %cmp805 = icmp eq i32 %call804, 1
+  %add808 = add nsw i32 %bonus.01884, 2
+  %add808.bonus.0 = select i1 %cmp805, i32 %add808, i32 %bonus.01884
+  %call810 = call i32 @countlib(i32 %107) #4
+  %cmp811 = icmp slt i32 %call810, 6
+  br i1 %cmp811, label %land.lhs.true813, label %if.end820
+
+land.lhs.true813:                                 ; preds = %if.then802
+  %call814 = call i32 @approxlib(i32 %94, i32 %color, i32 5, i32* null) #4
+  %call815 = call i32 @countlib(i32 %107) #4
+  %cmp816 = icmp slt i32 %call814, %call815
+  %sub819 = add nsw i32 %add808.bonus.0, -5
+  %sub819.add808.bonus.0 = select i1 %cmp816, i32 %sub819, i32 %add808.bonus.0
+  br label %if.end820
+
+if.end820:                                        ; preds = %land.lhs.true813, %if.then802
+  %bonus.4 = phi i32 [ %add808.bonus.0, %if.then802 ], [ %sub819.add808.bonus.0, %land.lhs.true813 ]
+  store i32 1, i32* %arrayidx800, align 4, !tbaa !8
+  br label %if.end823
+
+if.end823:                                        ; preds = %if.then795, %if.end820
+  %own_worms.1 = phi i32 [ %own_worms.01882, %if.then795 ], [ %inc803, %if.end820 ]
+  %bonus.5 = phi i32 [ %bonus.01884, %if.then795 ], [ %bonus.4, %if.end820 ]
+  %call824 = call i32 @countlib(i32 %107) #4
+  %cmp825 = icmp slt i32 %call824, 3
+  br i1 %cmp825, label %for.cond828.preheader, label %if.end887
+
+for.cond828.preheader:                            ; preds = %if.end823
+  %109 = load i32* getelementptr inbounds ([8 x i32]* @delta, i64 0, i64 0), align 4, !tbaa !8
+  %add834 = add nsw i32 %109, %107
+  %idxprom835 = sext i32 %add834 to i64
+  %arrayidx836 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom835
+  %110 = load i8* %arrayidx836, align 1, !tbaa !1
+  %cmp838 = icmp eq i8 %110, 3
+  br i1 %cmp838, label %for.inc870, label %if.end841
+
+if.end841:                                        ; preds = %for.cond828.preheader
+  %conv837 = zext i8 %110 to i32
+  %cmp846 = icmp eq i32 %conv837, %sub
+  br i1 %cmp846, label %land.lhs.true848, label %if.else856
+
+land.lhs.true848:                                 ; preds = %if.end841
+  %status852 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom835, i32 16
+  %111 = load i32* %status852, align 4, !tbaa !19
+  %cmp853 = icmp eq i32 %111, 0
+  br i1 %cmp853, label %for.inc870, label %if.else856
+
+if.else856:                                       ; preds = %land.lhs.true848, %if.end841
+  %cmp861 = icmp eq i8 %110, 0
+  br i1 %cmp861, label %land.lhs.true863, label %for.inc870
+
+land.lhs.true863:                                 ; preds = %if.else856
+  %call865 = call i32 @is_self_atari(i32 %add834, i32 %sub) #4
+  %tobool866 = icmp eq i32 %call865, 0
+  %.safe_atari.0 = zext i1 %tobool866 to i32
+  br label %for.inc870
+
+for.inc870:                                       ; preds = %land.lhs.true863, %land.lhs.true848, %for.cond828.preheader, %if.else856
+  %important.1 = phi i32 [ 0, %if.else856 ], [ 0, %for.cond828.preheader ], [ 1, %land.lhs.true848 ], [ 0, %land.lhs.true863 ]
+  %safe_atari.1 = phi i32 [ 0, %if.else856 ], [ 0, %for.cond828.preheader ], [ 0, %land.lhs.true848 ], [ %.safe_atari.0, %land.lhs.true863 ]
+  %112 = load i32* getelementptr inbounds ([8 x i32]* @delta, i64 0, i64 1), align 4, !tbaa !8
+  %add834.1 = add nsw i32 %112, %107
+  %idxprom835.1 = sext i32 %add834.1 to i64
+  %arrayidx836.1 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom835.1
+  %113 = load i8* %arrayidx836.1, align 1, !tbaa !1
+  %cmp838.1 = icmp eq i8 %113, 3
+  br i1 %cmp838.1, label %for.inc870.1, label %if.end841.1
+
+if.then876:                                       ; preds = %for.inc870.3
+  %inc877 = add nsw i32 %bonus.5, 1
+  %tobool878 = icmp eq i32 %important.1.3, 0
+  br i1 %tobool878, label %if.end887, label %if.then879
+
+if.then879:                                       ; preds = %if.then876
+  %tobool881 = icmp eq i32 %safe_atari.1.3, 0
+  %add880.add883.v = select i1 %tobool881, i32 3, i32 5
+  %add880.add883 = add i32 %add880.add883.v, %bonus.5
+  br label %if.end887
+
+if.end887:                                        ; preds = %if.then879, %if.then876, %for.inc870.3, %if.end823
+  %bonus.6 = phi i32 [ %inc877, %if.then876 ], [ %bonus.5, %for.inc870.3 ], [ %bonus.5, %if.end823 ], [ %add880.add883, %if.then879 ]
+  %inc888 = add nsw i32 %own_neighbors.01879, 1
+  br label %for.inc894
+
+if.else889:                                       ; preds = %if.end782
+  %inc890 = add nsw i32 %own_diagonals.01880, 1
+  br label %for.inc894
+
+for.inc894:                                       ; preds = %if.then694, %for.body677, %if.end761, %if.end887, %if.else889, %if.else764
+  %eyespace_neighbors.2 = phi i32 [ %eyespace_neighbors.12008, %if.end761 ], [ %eyespace_neighbors.01878, %if.end887 ], [ %eyespace_neighbors.01878, %if.else889 ], [ %eyespace_neighbors.01878, %if.else764 ], [ %eyespace_neighbors.01878, %for.body677 ], [ %inc698.eyespace_neighbors.0, %if.then694 ]
+  %own_neighbors.1 = phi i32 [ %own_neighbors.01879, %if.end761 ], [ %inc888, %if.end887 ], [ %own_neighbors.01879, %if.else889 ], [ %own_neighbors.01879, %if.else764 ], [ %own_neighbors.01879, %for.body677 ], [ %own_neighbors.01879, %if.then694 ]
+  %own_diagonals.1 = phi i32 [ %own_diagonals.01880, %if.end761 ], [ %own_diagonals.01880, %if.end887 ], [ %inc890, %if.else889 ], [ %own_diagonals.01880, %if.else764 ], [ %own_diagonals.01880, %for.body677 ], [ %own_diagonals.01880, %if.then694 ]
+  %opponent_dragons.2 = phi i32 [ %opponent_dragons.12010, %if.end761 ], [ %opponent_dragons.01881, %if.end887 ], [ %opponent_dragons.01881, %if.else889 ], [ %opponent_dragons.01881, %if.else764 ], [ %opponent_dragons.01881, %for.body677 ], [ %opponent_dragons.01881, %if.then694 ]
+  %own_worms.2 = phi i32 [ %own_worms.01882, %if.end761 ], [ %own_worms.1, %if.end887 ], [ %own_worms.01882, %if.else889 ], [ %own_worms.01882, %if.else764 ], [ %own_worms.01882, %for.body677 ], [ %own_worms.01882, %if.then694 ]
+  %safety658.3 = phi i32 [ %safety658.01883, %if.end761 ], [ %.safety658.1, %if.end887 ], [ %.safety658.1, %if.else889 ], [ %safety658.01883, %if.else764 ], [ %safety658.01883, %for.body677 ], [ %safety658.01883, %if.then694 ]
+  %bonus.7 = phi i32 [ %bonus.2, %if.end761 ], [ %bonus.6, %if.end887 ], [ %bonus.01884, %if.else889 ], [ %bonus.01884, %if.else764 ], [ %bonus.01884, %for.body677 ], [ %bonus.01884, %if.then694 ]
+  %indvars.iv.next1959 = add nuw nsw i64 %indvars.iv1958, 1
+  %114 = trunc i64 %indvars.iv.next1959 to i32
+  %cmp675 = icmp slt i32 %114, 8
+  br i1 %cmp675, label %for.body677, label %for.end896
+
+for.end896:                                       ; preds = %if.then712, %for.inc894
+  %bonus.0.lcssa = phi i32 [ %bonus.01884, %if.then712 ], [ %bonus.7, %for.inc894 ]
+  %own_worms.0.lcssa = phi i32 [ %own_worms.01882, %if.then712 ], [ %own_worms.2, %for.inc894 ]
+  %opponent_dragons.0.lcssa = phi i32 [ %opponent_dragons.01881, %if.then712 ], [ %opponent_dragons.2, %for.inc894 ]
+  %own_diagonals.0.lcssa = phi i32 [ %own_diagonals.01880, %if.then712 ], [ %own_diagonals.1, %for.inc894 ]
+  %own_neighbors.0.lcssa = phi i32 [ %own_neighbors.01879, %if.then712 ], [ %own_neighbors.1, %for.inc894 ]
+  %eyespace_neighbors.0.lcssa = phi i32 [ %eyespace_neighbors.01878, %if.then712 ], [ %eyespace_neighbors.2, %for.inc894 ]
+  %safety658.4 = phi i32 [ 0, %if.then712 ], [ %safety658.3, %for.inc894 ]
+  %cmp903 = icmp eq i32 %eyespace_neighbors.0.lcssa, 0
+  br i1 %cmp903, label %cleanup, label %switch.early.test
+
+switch.early.test:                                ; preds = %for.end896
+  switch i32 %safety658.4, label %lor.lhs.false905 [
+    i32 3, label %cleanup
+    i32 0, label %cleanup
+  ]
+
+lor.lhs.false905:                                 ; preds = %switch.early.test
+  %add906 = sub i32 0, %own_diagonals.0.lcssa
+  %cmp907 = icmp eq i32 %own_neighbors.0.lcssa, %add906
+  br i1 %cmp907, label %cleanup, label %if.end910
+
+if.end910:                                        ; preds = %lor.lhs.false905
+  %cmp911 = icmp slt i32 %bonus.0.lcssa, 0
+  %.bonus.0 = select i1 %cmp911, i32 0, i32 %bonus.0.lcssa
+  %mul915 = shl nsw i32 %eyespace_neighbors.0.lcssa, 2
+  %add916 = add nsw i32 %.bonus.0, %mul915
+  store i32 %add916, i32* %arrayidx661, align 4, !tbaa !8
+  %cmp919 = icmp eq i32 %safety658.4, 9
+  br i1 %cmp919, label %if.then921, label %if.else945
+
+if.then921:                                       ; preds = %if.end910
+  %cmp925 = icmp slt i32 %own_neighbors.0.lcssa, 2
+  %add930 = select i1 %cmp925, i32 %own_diagonals.0.lcssa, i32 0
+  %add924 = add i32 %add930, %own_neighbors.0.lcssa
+  %add930.add924 = add i32 %add924, %add916
+  store i32 %add930.add924, i32* %arrayidx661, align 4, !tbaa !8
+  %cmp932 = icmp sgt i32 %own_worms.0.lcssa, 1
+  %cmp935 = icmp sgt i32 %eyespace_neighbors.0.lcssa, 0
+  %or.cond1434 = and i1 %cmp932, %cmp935
+  br i1 %or.cond1434, label %if.then937, label %if.end953
+
+if.then937:                                       ; preds = %if.then921
+  %115 = mul i32 %own_worms.0.lcssa, 5
+  %add943 = add nsw i32 %add930.add924, %115
+  store i32 %add943, i32* %arrayidx661, align 4, !tbaa !8
+  br label %if.end953
+
+if.else945:                                       ; preds = %if.end910
+  %cmp946 = icmp sgt i32 %eyespace_neighbors.0.lcssa, 2
+  br i1 %cmp946, label %if.then948, label %if.end953
+
+if.then948:                                       ; preds = %if.else945
+  %add951 = add nsw i32 %add916, %own_diagonals.0.lcssa
+  store i32 %add951, i32* %arrayidx661, align 4, !tbaa !8
+  br label %if.end953
+
+if.end953:                                        ; preds = %if.else945, %if.then948, %if.then921, %if.then937
+  %116 = phi i32 [ %add916, %if.else945 ], [ %add951, %if.then948 ], [ %add930.add924, %if.then921 ], [ %add943, %if.then937 ]
+  %cmp954 = icmp sgt i32 %opponent_dragons.0.lcssa, 1
+  br i1 %cmp954, label %if.then956, label %if.end962
+
+if.then956:                                       ; preds = %if.end953
+  %117 = mul i32 %opponent_dragons.0.lcssa, 10
+  %mul958 = add i32 %117, -10
+  %add961 = add nsw i32 %mul958, %116
+  store i32 %add961, i32* %arrayidx661, align 4, !tbaa !8
+  br label %if.end962
+
+if.end962:                                        ; preds = %if.then956, %if.end953
+  %118 = phi i32 [ %add961, %if.then956 ], [ %116, %if.end953 ]
+  %arrayidx964 = getelementptr inbounds [400 x float]* %owl_hotspot, i64 0, i64 %indvars.iv1960
+  %119 = load float* %arrayidx964, align 4, !tbaa !17
+  %conv965 = fpext float %119 to double
+  %mul966 = fmul double %conv965, 2.000000e+01
+  %conv967 = fptosi double %mul966 to i32
+  %arrayidx969 = getelementptr inbounds [400 x float]* %reading_hotspot, i64 0, i64 %indvars.iv1960
+  %120 = load float* %arrayidx969, align 4, !tbaa !17
+  %conv970 = fpext float %120 to double
+  %mul971 = fmul double %conv970, 2.000000e+01
+  %conv972 = fptosi double %mul971 to i32
+  %add973 = add nsw i32 %conv972, %conv967
+  %cmp976 = icmp sgt i32 %118, 0
+  %add981 = add nsw i32 %add973, %118
+  %cmp982 = icmp slt i32 %add981, 1
+  %or.cond1835 = and i1 %cmp976, %cmp982
+  %sub987 = sub nsw i32 1, %118
+  %hotspot_bonus.0 = select i1 %or.cond1835, i32 %sub987, i32 %add973
+  %add991 = add nsw i32 %hotspot_bonus.0, %118
+  store i32 %add991, i32* %arrayidx661, align 4, !tbaa !8
+  %121 = load i32* @debug, align 4, !tbaa !8
+  %and992 = and i32 %121, 131072
+  %tobool993 = icmp eq i32 %and992, 0
+  br i1 %tobool993, label %if.end998, label %if.then994
+
+if.then994:                                       ; preds = %if.end962
+  %call997 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([40 x i8]* @.str12, i64 0, i64 0), i32 %94, i32 %add991, i32 %conv967, i32 %conv972) #4
+  br label %if.end998
+
+if.end998:                                        ; preds = %if.end962, %if.then994
+  %call999 = call i32 @is_ko(i32 %94, i32 %color, i32* null) #4
+  %tobool1000 = icmp eq i32 %call999, 0
+  br i1 %tobool1000, label %cleanup, label %if.then1001
+
+if.then1001:                                      ; preds = %if.end998
+  %add1004 = add nsw i32 %add991, 1
+  %div = sdiv i32 %add1004, 2
+  store i32 %div, i32* %arrayidx661, align 4, !tbaa !8
+  br label %cleanup
+
+cleanup:                                          ; preds = %if.then1001, %if.end998, %lor.lhs.false905, %for.end896, %switch.early.test, %switch.early.test, %for.body657, %lor.lhs.false667
+  call void @llvm.lifetime.end(i64 1600, i8* %71) #1
+  %indvars.iv.next1961 = add nuw nsw i64 %indvars.iv1960, 1
+  %exitcond1962 = icmp eq i64 %indvars.iv.next1961, 400
+  br i1 %exitcond1962, label %for.cond1013.preheader, label %for.body657
+
+for.cond1013:                                     ; preds = %if.then1185, %if.then1070, %for.inc1031, %for.cond1013.preheader
+  %best_score.6 = phi i32 [ 0, %for.cond1013.preheader ], [ %best_score.7, %for.inc1031 ], [ 0, %if.then1070 ], [ 0, %if.then1185 ]
+  %pos.7 = phi i32 [ 21, %for.cond1013.preheader ], [ %inc1032, %for.inc1031 ], [ 21, %if.then1070 ], [ 21, %if.then1185 ]
+  %move.2 = phi i32 [ 0, %for.cond1013.preheader ], [ %move.3, %for.inc1031 ], [ 0, %if.then1070 ], [ 0, %if.then1185 ]
+  %cmp1014 = icmp slt i32 %pos.7, 400
+  br i1 %cmp1014, label %for.body1016, label %for.end1033
+
+for.body1016:                                     ; preds = %for.cond1013
+  %idxprom1017 = sext i32 %pos.7 to i64
+  %arrayidx1018 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom1017
+  %122 = load i8* %arrayidx1018, align 1, !tbaa !1
+  %cmp1020 = icmp eq i8 %122, 3
+  br i1 %cmp1020, label %for.inc1031, label %land.lhs.true1022
+
+land.lhs.true1022:                                ; preds = %for.body1016
+  %arrayidx1024 = getelementptr inbounds [400 x i32]* %score, i64 0, i64 %idxprom1017
+  %123 = load i32* %arrayidx1024, align 4, !tbaa !8
+  %cmp1025 = icmp sgt i32 %123, %best_score.6
+  %.best_score.6 = select i1 %cmp1025, i32 %123, i32 %best_score.6
+  %pos.7.move.2 = select i1 %cmp1025, i32 %pos.7, i32 %move.2
+  br label %for.inc1031
+
+for.inc1031:                                      ; preds = %land.lhs.true1022, %for.body1016
+  %best_score.7 = phi i32 [ %best_score.6, %for.body1016 ], [ %.best_score.6, %land.lhs.true1022 ]
+  %move.3 = phi i32 [ %move.2, %for.body1016 ], [ %pos.7.move.2, %land.lhs.true1022 ]
+  %inc1032 = add nsw i32 %pos.7, 1
+  br label %for.cond1013
+
+for.end1033:                                      ; preds = %for.cond1013
+  %cmp1034 = icmp eq i32 %move.2, 0
+  br i1 %cmp1034, label %for.body1201, label %if.end1037
+
+if.end1037:                                       ; preds = %for.end1033
+  %idxprom1038 = sext i32 %move.2 to i64
+  %arrayidx1039 = getelementptr inbounds [400 x i32]* %dragons, i64 0, i64 %idxprom1038
+  %124 = load i32* %arrayidx1039, align 4, !tbaa !8
+  %call1040 = call i32 @is_illegal_ko_capture(i32 %move.2, i32 %color) #4
+  %tobool1041 = icmp eq i32 %call1040, 0
+  br i1 %tobool1041, label %lor.lhs.false1042, label %if.then1070
+
+lor.lhs.false1042:                                ; preds = %if.end1037
+  %call1043 = call i32 @safe_move(i32 %move.2, i32 %color) #4
+  %tobool1044 = icmp eq i32 %call1043, 0
+  br i1 %tobool1044, label %if.then1070, label %lor.lhs.false1045
+
+lor.lhs.false1045:                                ; preds = %lor.lhs.false1042
+  %idxprom1046 = sext i32 %124 to i64
+  %id1048 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1046, i32 1
+  %125 = load i32* %id1048, align 4, !tbaa !12
+  %idxprom1049 = sext i32 %125 to i64
+  %126 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  %safety1051 = getelementptr inbounds %struct.dragon_data2* %126, i64 %idxprom1049, i32 6
+  %127 = load i32* %safety1051, align 4, !tbaa !14
+  %128 = and i32 %127, -2
+  %switch1838 = icmp eq i32 %128, 8
+  br i1 %switch1838, label %lor.lhs.false1067, label %land.lhs.true1063
+
+land.lhs.true1063:                                ; preds = %lor.lhs.false1045
+  %call1064 = call i32 @owl_does_defend(i32 %move.2, i32 %124, i32* null) #4
+  %cmp1065 = icmp eq i32 %call1064, 5
+  br i1 %cmp1065, label %lor.lhs.false1067, label %if.then1070
+
+lor.lhs.false1067:                                ; preds = %lor.lhs.false1045, %land.lhs.true1063
+  %call1068 = call i32 @confirm_safety(i32 %move.2, i32 %color, i32* null, i8* null) #4
+  %tobool1069 = icmp eq i32 %call1068, 0
+  br i1 %tobool1069, label %if.then1070, label %if.else1073
+
+if.then1070:                                      ; preds = %land.lhs.true1063, %lor.lhs.false1067, %lor.lhs.false1042, %if.end1037
+  %arrayidx1072 = getelementptr inbounds [400 x i32]* %score, i64 0, i64 %idxprom1038
+  store i32 0, i32* %arrayidx1072, align 4, !tbaa !8
+  br label %for.cond1013
+
+if.else1073:                                      ; preds = %lor.lhs.false1067
+  %call1075 = call i32 @approxlib(i32 %move.2, i32 %color, i32 5, i32* null) #4
+  %cmp1077 = icmp slt i32 %call1075, 5
+  br i1 %cmp1077, label %for.body1083, label %if.else1188
+
+for.body1083:                                     ; preds = %if.else1073, %for.inc1101
+  %indvars.iv1949 = phi i64 [ %indvars.iv.next1950, %for.inc1101 ], [ 0, %if.else1073 ]
+  %arrayidx1085 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1949
+  %129 = load i32* %arrayidx1085, align 4, !tbaa !8
+  %add1086 = add nsw i32 %129, %move.2
+  %idxprom1087 = sext i32 %add1086 to i64
+  %arrayidx1088 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom1087
+  %130 = load i8* %arrayidx1088, align 1, !tbaa !1
+  %conv1089 = zext i8 %130 to i32
+  %cmp1090 = icmp eq i32 %conv1089, %color
+  br i1 %cmp1090, label %land.lhs.true1092, label %for.inc1101
+
+land.lhs.true1092:                                ; preds = %for.body1083
+  %call1096 = call i32 @countlib(i32 %add1086) #4
+  %cmp1097 = icmp sgt i32 %call1096, %call1075
+  br i1 %cmp1097, label %if.then1106, label %for.inc1101
+
+for.inc1101:                                      ; preds = %for.body1083, %land.lhs.true1092
+  %indvars.iv.next1950 = add nuw nsw i64 %indvars.iv1949, 1
+  %131 = trunc i64 %indvars.iv.next1950 to i32
+  %cmp1081 = icmp slt i32 %131, 4
+  br i1 %cmp1081, label %for.body1083, label %if.else1188
+
+if.then1106:                                      ; preds = %land.lhs.true1092
+  %132 = load i32* %arrayidx1085, align 4, !tbaa !8
+  %add1109 = add nsw i32 %132, %move.2
+  %call1110 = call i32 @trymove(i32 %move.2, i32 %color, i8* getelementptr inbounds ([12 x i8]* @.str13, i64 0, i64 0), i32 %add1109, i32 0, i32 0) #4
+  %tobool1111 = icmp eq i32 %call1110, 0
+  br i1 %tobool1111, label %if.else1188, label %if.then1112
+
+if.then1112:                                      ; preds = %if.then1106
+  call void @llvm.lifetime.start(i64 640, i8* %90) #1
+  %call1115 = call i32 @chainlinks(i32 %move.2, i32* %arraydecay1114) #4
+  %cmp11171866 = icmp sgt i32 %call1115, 0
+  br i1 %cmp11171866, label %for.body1119, label %if.end1183.thread2026
+
+if.end1183.thread2026:                            ; preds = %if.then1112
+  call void @popgo() #4
+  br label %if.else1188
+
+for.body1119:                                     ; preds = %if.then1112, %for.inc1148
+  %indvars.iv1951 = phi i64 [ %indvars.iv.next1952, %for.inc1148 ], [ 0, %if.then1112 ]
+  %move_ok1076.01867 = phi i32 [ %move_ok1076.1, %for.inc1148 ], [ 1, %if.then1112 ]
+  %arrayidx1121 = getelementptr inbounds [160 x i32]* %adjs, i64 0, i64 %indvars.iv1951
+  %133 = load i32* %arrayidx1121, align 4, !tbaa !8
+  %idxprom1122 = sext i32 %133 to i64
+  %arrayidx1124 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %idxprom1122, i32 16, i64 0
+  %134 = load i32* %arrayidx1124, align 4, !tbaa !8
+  %cmp1125 = icmp eq i32 %134, 0
+  br i1 %cmp1125, label %for.inc1148, label %land.lhs.true1127
+
+land.lhs.true1127:                                ; preds = %for.body1119
+  %call1130 = call i32 @find_defense(i32 %133, i32* null) #4
+  %135 = load i32* %arrayidx1121, align 4, !tbaa !8
+  %idxprom1133 = sext i32 %135 to i64
+  %arrayidx1135 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %idxprom1133, i32 18, i64 0
+  %136 = load i32* %arrayidx1135, align 4, !tbaa !8
+  %cmp1136 = icmp sgt i32 %call1130, %136
+  br i1 %cmp1136, label %if.then1138, label %for.inc1148
+
+if.then1138:                                      ; preds = %land.lhs.true1127
+  %137 = load i32* @debug, align 4, !tbaa !8
+  %and1139 = and i32 %137, 131072
+  %tobool1140 = icmp eq i32 %and1139, 0
+  br i1 %tobool1140, label %for.inc1148, label %cond.false1142
+
+cond.false1142:                                   ; preds = %if.then1138
+  %call1145 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([49 x i8]* @.str14, i64 0, i64 0), i32 %135, i32 %move.2) #4
+  br label %for.inc1148
+
+for.inc1148:                                      ; preds = %cond.false1142, %if.then1138, %for.body1119, %land.lhs.true1127
+  %move_ok1076.1 = phi i32 [ %move_ok1076.01867, %land.lhs.true1127 ], [ %move_ok1076.01867, %for.body1119 ], [ 0, %if.then1138 ], [ 0, %cond.false1142 ]
+  %indvars.iv.next1952 = add nuw nsw i64 %indvars.iv1951, 1
+  %lftr.wideiv = trunc i64 %indvars.iv.next1952 to i32
+  %exitcond = icmp eq i32 %lftr.wideiv, %call1115
+  br i1 %exitcond, label %for.end1150, label %for.body1119
+
+for.end1150:                                      ; preds = %for.inc1148
+  call void @popgo() #4
+  %tobool11541870 = icmp ne i32 %move_ok1076.1, 0
+  %or.cond14361871 = and i1 %cmp11171866, %tobool11541870
+  br i1 %or.cond14361871, label %for.body1155, label %if.end1183
+
+for.body1155:                                     ; preds = %for.end1150, %for.inc1178
+  %indvars.iv1953 = phi i64 [ %indvars.iv.next1954, %for.inc1178 ], [ 0, %for.end1150 ]
+  %arrayidx1157 = getelementptr inbounds [160 x i32]* %adjs, i64 0, i64 %indvars.iv1953
+  %138 = load i32* %arrayidx1157, align 4, !tbaa !8
+  %idxprom1158 = sext i32 %138 to i64
+  %status1160 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1158, i32 16
+  %139 = load i32* %status1160, align 4, !tbaa !19
+  %cmp1161 = icmp eq i32 %139, 0
+  br i1 %cmp1161, label %land.lhs.true1163, label %for.inc1178
+
+land.lhs.true1163:                                ; preds = %for.body1155
+  %call1166 = call i32 @owl_does_attack(i32 %move.2, i32 %138, i32* null) #4
+  %tobool1167 = icmp eq i32 %call1166, 0
+  br i1 %tobool1167, label %if.then1168, label %for.inc1178
+
+if.then1168:                                      ; preds = %land.lhs.true1163
+  %140 = load i32* @debug, align 4, !tbaa !8
+  %and1169 = and i32 %140, 131072
+  %tobool1170 = icmp eq i32 %and1169, 0
+  br i1 %tobool1170, label %if.then1185, label %cond.false1172
+
+cond.false1172:                                   ; preds = %if.then1168
+  %141 = load i32* %arrayidx1157, align 4, !tbaa !8
+  %call1175 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([43 x i8]* @.str15, i64 0, i64 0), i32 %141, i32 %move.2) #4
+  br label %if.then1185
+
+for.inc1178:                                      ; preds = %land.lhs.true1163, %for.body1155
+  %indvars.iv.next1954 = add nuw nsw i64 %indvars.iv1953, 1
+  %142 = trunc i64 %indvars.iv.next1954 to i32
+  %cmp1152 = icmp slt i32 %142, %call1115
+  %tobool1154 = icmp ne i32 %move_ok1076.1, 0
+  %or.cond1436 = and i1 %cmp1152, %tobool1154
+  br i1 %or.cond1436, label %for.body1155, label %if.end1183
+
+if.end1183:                                       ; preds = %for.inc1178, %for.end1150
+  %tobool1184 = icmp eq i32 %move_ok1076.1, 0
+  br i1 %tobool1184, label %if.then1185, label %if.else1188
+
+if.then1185:                                      ; preds = %if.then1168, %cond.false1172, %if.end1183
+  %arrayidx1187 = getelementptr inbounds [400 x i32]* %score, i64 0, i64 %idxprom1038
+  store i32 0, i32* %arrayidx1187, align 4, !tbaa !8
+  br label %for.cond1013
+
+if.else1188:                                      ; preds = %if.else1073, %if.then1106, %if.end1183, %for.inc1101, %if.end1183.thread2026
+  store i32 %move.2, i32* %aftermath_move, align 4, !tbaa !8
+  %143 = load i32* @debug, align 4, !tbaa !8
+  %and1189 = and i32 %143, 131072
+  %tobool1190 = icmp eq i32 %and1189, 0
+  br i1 %tobool1190, label %cleanup1427, label %cond.false1192
+
+cond.false1192:                                   ; preds = %if.else1188
+  %call1193 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([27 x i8]* @.str16, i64 0, i64 0), i32 %move.2) #4
+  br label %cleanup1427
+
+for.cond1364.preheader:                           ; preds = %for.inc1361
+  br i1 %tobool15, label %for.body1367, label %for.body1367.us
+
+for.body1367.us:                                  ; preds = %for.cond1364.preheader, %for.inc1424.us
+  %indvars.iv2000 = phi i64 [ %indvars.iv.next2001, %for.inc1424.us ], [ 21, %for.cond1364.preheader ]
+  %arrayidx1369.us = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv2000
+  %144 = load i8* %arrayidx1369.us, align 1, !tbaa !1
+  %conv1370.us = zext i8 %144 to i32
+  %cmp1371.us = icmp eq i32 %conv1370.us, %sub
+  br i1 %cmp1371.us, label %land.lhs.true1381.us, label %for.inc1424.us
+
+land.lhs.true1381.us:                             ; preds = %for.body1367.us
+  %id1384.us = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %indvars.iv2000, i32 1
+  %145 = load i32* %id1384.us, align 4, !tbaa !12
+  %idxprom1385.us = sext i32 %145 to i64
+  %146 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  %safety1387.us = getelementptr inbounds %struct.dragon_data2* %146, i64 %idxprom1385.us, i32 6
+  %147 = load i32* %safety1387.us, align 4, !tbaa !14
+  switch i32 %147, label %for.inc1424.us [
+    i32 0, label %land.lhs.true1399.us
+    i32 6, label %land.lhs.true1399.us
+  ]
+
+land.lhs.true1399.us:                             ; preds = %land.lhs.true1381.us, %land.lhs.true1381.us
+  %arrayidx1403.us = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv2000, i32 16, i64 0
+  %148 = load i32* %arrayidx1403.us, align 4, !tbaa !8
+  %cmp1404.us = icmp eq i32 %148, 0
+  br i1 %cmp1404.us, label %for.inc1424.us, label %land.lhs.true1406.us
+
+land.lhs.true1406.us:                             ; preds = %land.lhs.true1399.us
+  %arrayidx1409.us = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv2000, i32 15, i64 0
+  %149 = load i32* %arrayidx1409.us, align 4, !tbaa !8
+  %call1410.us = call i32 @is_illegal_ko_capture(i32 %149, i32 %color) #4
+  %tobool1411.us = icmp eq i32 %call1410.us, 0
+  br i1 %tobool1411.us, label %if.then1412, label %for.inc1424.us
+
+for.inc1424.us:                                   ; preds = %land.lhs.true1406.us, %land.lhs.true1399.us, %land.lhs.true1381.us, %for.body1367.us
+  %indvars.iv.next2001 = add nuw nsw i64 %indvars.iv2000, 1
+  %150 = trunc i64 %indvars.iv.next2001 to i32
+  %cmp1365.us = icmp slt i32 %150, 400
+  br i1 %cmp1365.us, label %for.body1367.us, label %cleanup1427
+
+for.body1201:                                     ; preds = %for.end1033, %for.inc1361
+  %indvars.iv1947 = phi i64 [ %indvars.iv.next1948, %for.inc1361 ], [ 21, %for.end1033 ]
+  %arrayidx1203 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv1947
+  %151 = load i8* %arrayidx1203, align 1, !tbaa !1
+  %cmp1205 = icmp eq i8 %151, 0
+  br i1 %cmp1205, label %lor.lhs.false1207, label %for.inc1361
+
+lor.lhs.false1207:                                ; preds = %for.body1201
+  %arrayidx1209 = getelementptr inbounds [400 x i32]* %distance, i64 0, i64 %indvars.iv1947
+  %152 = load i32* %arrayidx1209, align 4, !tbaa !8
+  %cmp1210 = icmp eq i32 %152, -1
+  br i1 %cmp1210, label %for.cond1214.preheader, label %for.inc1361
+
+for.cond1214.preheader:                           ; preds = %lor.lhs.false1207
+  %153 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  br i1 %tobool15, label %for.body1217.us, label %for.body1217
+
+for.body1217.us:                                  ; preds = %for.cond1214.preheader, %for.inc1259.us
+  %indvars.iv1945 = phi i64 [ %indvars.iv.next1946, %for.inc1259.us ], [ 0, %for.cond1214.preheader ]
+  %arrayidx1220.us = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1945
+  %154 = load i32* %arrayidx1220.us, align 4, !tbaa !8
+  %155 = trunc i64 %indvars.iv1947 to i32
+  %add1221.us = add nsw i32 %154, %155
+  %idxprom1222.us = sext i32 %add1221.us to i64
+  %arrayidx1223.us = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom1222.us
+  %156 = load i8* %arrayidx1223.us, align 1, !tbaa !1
+  %cmp1225.us = icmp ne i8 %156, 3
+  %conv1224.us = zext i8 %156 to i32
+  %cmp1232.us = icmp eq i32 %conv1224.us, %sub
+  %or.cond1836.us = and i1 %cmp1225.us, %cmp1232.us
+  br i1 %or.cond1836.us, label %land.lhs.true1234.us, label %for.inc1259.us
+
+land.lhs.true1234.us:                             ; preds = %for.body1217.us
+  %status1237.us = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1222.us, i32 16
+  %157 = load i32* %status1237.us, align 4, !tbaa !19
+  %cmp1238.us = icmp eq i32 %157, 1
+  br i1 %cmp1238.us, label %for.inc1259.us, label %lor.lhs.false1242.us
+
+lor.lhs.false1242.us:                             ; preds = %land.lhs.true1234.us
+  %unconditional_status1245.us = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %idxprom1222.us, i32 14
+  %158 = load i32* %unconditional_status1245.us, align 4, !tbaa !9
+  %cmp1246.us = icmp eq i32 %158, 0
+  br i1 %cmp1246.us, label %for.inc1259.us, label %land.lhs.true1248.us
+
+land.lhs.true1248.us:                             ; preds = %lor.lhs.false1242.us
+  %id1251.us = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1222.us, i32 1
+  %159 = load i32* %id1251.us, align 4, !tbaa !12
+  %idxprom1252.us = sext i32 %159 to i64
+  %safety1254.us = getelementptr inbounds %struct.dragon_data2* %153, i64 %idxprom1252.us, i32 6
+  %160 = load i32* %safety1254.us, align 4, !tbaa !14
+  %cmp1255.us = icmp eq i32 %160, 5
+  br i1 %cmp1255.us, label %for.inc1259.us, label %for.end1261
+
+for.inc1259.us:                                   ; preds = %land.lhs.true1248.us, %lor.lhs.false1242.us, %land.lhs.true1234.us, %for.body1217.us
+  %indvars.iv.next1946 = add nuw nsw i64 %indvars.iv1945, 1
+  %161 = trunc i64 %indvars.iv.next1946 to i32
+  %cmp1215.us = icmp slt i32 %161, 4
+  br i1 %cmp1215.us, label %for.body1217.us, label %for.inc1361
+
+for.body1217:                                     ; preds = %for.cond1214.preheader, %for.inc1259
+  %indvars.iv1941 = phi i64 [ %indvars.iv.next1942, %for.inc1259 ], [ 0, %for.cond1214.preheader ]
+  %arrayidx1220 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1941
+  %162 = load i32* %arrayidx1220, align 4, !tbaa !8
+  %163 = trunc i64 %indvars.iv1947 to i32
+  %add1221 = add nsw i32 %162, %163
+  %idxprom1222 = sext i32 %add1221 to i64
+  %arrayidx1223 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom1222
+  %164 = load i8* %arrayidx1223, align 1, !tbaa !1
+  %cmp1225 = icmp ne i8 %164, 3
+  %conv1224 = zext i8 %164 to i32
+  %cmp1232 = icmp eq i32 %conv1224, %sub
+  %or.cond1836 = and i1 %cmp1225, %cmp1232
+  br i1 %or.cond1836, label %land.lhs.true1234, label %for.inc1259
+
+land.lhs.true1234:                                ; preds = %for.body1217
+  %status1237 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1222, i32 16
+  %165 = load i32* %status1237, align 4, !tbaa !19
+  %cmp1238 = icmp eq i32 %165, 1
+  br i1 %cmp1238, label %for.inc1259, label %land.lhs.true1248
+
+land.lhs.true1248:                                ; preds = %land.lhs.true1234
+  %id1251 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1222, i32 1
+  %166 = load i32* %id1251, align 4, !tbaa !12
+  %idxprom1252 = sext i32 %166 to i64
+  %safety1254 = getelementptr inbounds %struct.dragon_data2* %153, i64 %idxprom1252, i32 6
+  %167 = load i32* %safety1254, align 4, !tbaa !14
+  %cmp1255 = icmp eq i32 %167, 5
+  br i1 %cmp1255, label %for.inc1259, label %for.end1261
+
+for.inc1259:                                      ; preds = %for.body1217, %land.lhs.true1248, %land.lhs.true1234
+  %indvars.iv.next1942 = add nuw nsw i64 %indvars.iv1941, 1
+  %168 = trunc i64 %indvars.iv.next1942 to i32
+  %cmp1215 = icmp slt i32 %168, 4
+  br i1 %cmp1215, label %for.body1217, label %for.inc1361
+
+for.end1261:                                      ; preds = %land.lhs.true1248, %land.lhs.true1248.us
+  %add1221.lcssa = phi i32 [ %add1221.us, %land.lhs.true1248.us ], [ %add1221, %land.lhs.true1248 ]
+  %cmp1262 = icmp eq i32 %add1221.lcssa, 0
+  br i1 %cmp1262, label %for.inc1361, label %if.end1265
+
+if.end1265:                                       ; preds = %for.end1261
+  %169 = trunc i64 %indvars.iv1947 to i32
+  %call1266 = call i32 @trymove(i32 %169, i32 %color, i8* getelementptr inbounds ([12 x i8]* @.str17, i64 0, i64 0), i32 %add1221.lcssa, i32 0, i32 0) #4
+  %tobool1267 = icmp eq i32 %call1266, 0
+  br i1 %tobool1267, label %for.inc1361, label %for.cond1270.preheader
+
+for.cond1270.preheader:                           ; preds = %if.end1265
+  %170 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  br label %for.body1273
+
+for.body1273:                                     ; preds = %for.cond1270.preheader, %for.inc1299
+  %indvars.iv1943 = phi i64 [ 0, %for.cond1270.preheader ], [ %indvars.iv.next1944, %for.inc1299 ]
+  %arrayidx1275 = getelementptr inbounds [8 x i32]* @delta, i64 0, i64 %indvars.iv1943
+  %171 = load i32* %arrayidx1275, align 4, !tbaa !8
+  %add1276 = add nsw i32 %171, %169
+  %idxprom1277 = sext i32 %add1276 to i64
+  %arrayidx1278 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom1277
+  %172 = load i8* %arrayidx1278, align 1, !tbaa !1
+  %conv1279 = zext i8 %172 to i32
+  %cmp1280 = icmp eq i32 %conv1279, %color
+  br i1 %cmp1280, label %land.lhs.true1282, label %for.inc1299
+
+land.lhs.true1282:                                ; preds = %for.body1273
+  %id1288 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom1277, i32 1
+  %173 = load i32* %id1288, align 4, !tbaa !12
+  %idxprom1289 = sext i32 %173 to i64
+  %safety1291 = getelementptr inbounds %struct.dragon_data2* %170, i64 %idxprom1289, i32 6
+  %174 = load i32* %safety1291, align 4, !tbaa !14
+  %cmp1292 = icmp eq i32 %174, 5
+  br i1 %cmp1292, label %for.inc1299, label %while.cond1304
+
+for.inc1299:                                      ; preds = %land.lhs.true1282, %for.body1273
+  %indvars.iv.next1944 = add nuw nsw i64 %indvars.iv1943, 1
+  %175 = trunc i64 %indvars.iv.next1944 to i32
+  %cmp1271 = icmp slt i32 %175, 4
+  br i1 %cmp1271, label %for.body1273, label %while.cond1322.preheader
+
+while.cond1304:                                   ; preds = %land.lhs.true1282, %while.body1308
+  %move.4 = phi i32 [ %176, %while.body1308 ], [ %169, %land.lhs.true1282 ]
+  %call1305 = call i32 @countlib(i32 %169) #4
+  %cmp1306 = icmp eq i32 %call1305, 1
+  br i1 %cmp1306, label %while.body1308, label %while.end1315
+
+while.body1308:                                   ; preds = %while.cond1304
+  %call1310 = call i32 @findlib(i32 %169, i32 1, i32* %lib1309) #4
+  %176 = load i32* %lib1309, align 4, !tbaa !8
+  %call1311 = call i32 @trymove(i32 %176, i32 %color, i8* getelementptr inbounds ([12 x i8]* @.str13, i64 0, i64 0), i32 %add1221.lcssa, i32 0, i32 0) #4
+  %tobool1312 = icmp eq i32 %call1311, 0
+  br i1 %tobool1312, label %while.end1315, label %while.cond1304
+
+while.end1315:                                    ; preds = %while.body1308, %while.cond1304
+  %move.5 = phi i32 [ %176, %while.body1308 ], [ %move.4, %while.cond1304 ]
+  %call1316 = call i32 @countlib(i32 %169) #4
+  %cmp1317 = icmp eq i32 %call1316, 1
+  %.move.5 = select i1 %cmp1317, i32 0, i32 %move.5
+  br label %while.cond1322.preheader
+
+while.cond1322.preheader:                         ; preds = %for.inc1299, %while.end1315
+  %self_atari_ok.01844.ph = phi i1 [ false, %while.end1315 ], [ true, %for.inc1299 ]
+  %cc.01843.ph = phi i32 [ %add1276, %while.end1315 ], [ 0, %for.inc1299 ]
+  %move.6.ph = phi i32 [ %.move.5, %while.end1315 ], [ %169, %for.inc1299 ]
+  %177 = load i32* @stackp, align 4, !tbaa !8
+  %cmp13231858 = icmp sgt i32 %177, 0
+  br i1 %cmp13231858, label %while.body1325, label %while.end1326
+
+while.body1325:                                   ; preds = %while.cond1322.preheader, %while.body1325
+  call void @popgo() #4
+  %178 = load i32* @stackp, align 4, !tbaa !8
+  %cmp1323 = icmp sgt i32 %178, 0
+  br i1 %cmp1323, label %while.body1325, label %while.end1326
+
+while.end1326:                                    ; preds = %while.body1325, %while.cond1322.preheader
+  %cmp1327 = icmp eq i32 %move.6.ph, 0
+  br i1 %cmp1327, label %for.inc1361, label %if.end1330
+
+if.end1330:                                       ; preds = %while.end1326
+  br i1 %self_atari_ok.01844.ph, label %if.end1336, label %land.lhs.true1332
+
+land.lhs.true1332:                                ; preds = %if.end1330
+  %call1333 = call i32 @is_self_atari(i32 %move.6.ph, i32 %color) #4
+  %tobool1334 = icmp eq i32 %call1333, 0
+  br i1 %tobool1334, label %if.end1336, label %for.inc1361
+
+if.end1336:                                       ; preds = %land.lhs.true1332, %if.end1330
+  %call1337 = call i32 @owl_does_attack(i32 %move.6.ph, i32 %add1221.lcssa, i32* null) #4
+  %cmp1338 = icmp eq i32 %call1337, 5
+  br i1 %cmp1338, label %if.then1340, label %for.inc1361
+
+if.then1340:                                      ; preds = %if.end1336
+  %cmp1341 = icmp eq i32 %cc.01843.ph, 0
+  br i1 %cmp1341, label %if.end1347, label %land.lhs.true1343
+
+land.lhs.true1343:                                ; preds = %if.then1340
+  %call1344 = call i32 @owl_does_defend(i32 %move.6.ph, i32 %cc.01843.ph, i32* null) #4
+  %tobool1345 = icmp eq i32 %call1344, 0
+  br i1 %tobool1345, label %for.inc1361, label %if.end1347
+
+if.end1347:                                       ; preds = %land.lhs.true1343, %if.then1340
+  br i1 %self_atari_ok.01844.ph, label %if.end1353, label %land.lhs.true1349
+
+land.lhs.true1349:                                ; preds = %if.end1347
+  %call1350 = call i32 @confirm_safety(i32 %move.6.ph, i32 %color, i32* null, i8* null) #4
+  %tobool1351 = icmp eq i32 %call1350, 0
+  br i1 %tobool1351, label %for.inc1361, label %if.end1353
+
+if.end1353:                                       ; preds = %land.lhs.true1349, %if.end1347
+  store i32 %move.6.ph, i32* %aftermath_move, align 4, !tbaa !8
+  %179 = load i32* @debug, align 4, !tbaa !8
+  %and1354 = and i32 %179, 131072
+  %tobool1355 = icmp eq i32 %and1354, 0
+  br i1 %tobool1355, label %cleanup1427, label %cond.false1357
+
+cond.false1357:                                   ; preds = %if.end1353
+  %call1358 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([33 x i8]* @.str18, i64 0, i64 0), i32 %move.6.ph) #4
+  br label %cleanup1427
+
+for.inc1361:                                      ; preds = %for.inc1259, %for.inc1259.us, %land.lhs.true1343, %land.lhs.true1349, %land.lhs.true1332, %if.end1265, %lor.lhs.false1207, %for.body1201, %if.end1336, %while.end1326, %for.end1261
+  %indvars.iv.next1948 = add nuw nsw i64 %indvars.iv1947, 1
+  %180 = trunc i64 %indvars.iv.next1948 to i32
+  %cmp1199 = icmp slt i32 %180, 400
+  br i1 %cmp1199, label %for.body1201, label %for.cond1364.preheader
+
+for.body1367:                                     ; preds = %for.cond1364.preheader, %for.inc1424
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc1424 ], [ 21, %for.cond1364.preheader ]
+  %arrayidx1369 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv
+  %181 = load i8* %arrayidx1369, align 1, !tbaa !1
+  %conv1370 = zext i8 %181 to i32
+  %cmp1371 = icmp eq i32 %conv1370, %sub
+  br i1 %cmp1371, label %land.lhs.true1373, label %for.inc1424
+
+land.lhs.true1373:                                ; preds = %for.body1367
+  %unconditional_status1376 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv, i32 14
+  %182 = load i32* %unconditional_status1376, align 4, !tbaa !9
+  %cmp1377 = icmp eq i32 %182, 3
+  br i1 %cmp1377, label %land.lhs.true1381, label %for.inc1424
+
+land.lhs.true1381:                                ; preds = %land.lhs.true1373
+  %id1384 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %indvars.iv, i32 1
+  %183 = load i32* %id1384, align 4, !tbaa !12
+  %idxprom1385 = sext i32 %183 to i64
+  %184 = load %struct.dragon_data2** @dragon2, align 8, !tbaa !10
+  %safety1387 = getelementptr inbounds %struct.dragon_data2* %184, i64 %idxprom1385, i32 6
+  %185 = load i32* %safety1387, align 4, !tbaa !14
+  switch i32 %185, label %for.inc1424 [
+    i32 0, label %land.lhs.true1399
+    i32 6, label %land.lhs.true1399
+  ]
+
+land.lhs.true1399:                                ; preds = %land.lhs.true1381, %land.lhs.true1381
+  %arrayidx1403 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv, i32 16, i64 0
+  %186 = load i32* %arrayidx1403, align 4, !tbaa !8
+  %cmp1404 = icmp eq i32 %186, 0
+  br i1 %cmp1404, label %for.inc1424, label %land.lhs.true1406
+
+land.lhs.true1406:                                ; preds = %land.lhs.true1399
+  %arrayidx1409 = getelementptr inbounds [400 x %struct.worm_data]* @worm, i64 0, i64 %indvars.iv, i32 15, i64 0
+  %187 = load i32* %arrayidx1409, align 4, !tbaa !8
+  %call1410 = call i32 @is_illegal_ko_capture(i32 %187, i32 %color) #4
+  %tobool1411 = icmp eq i32 %call1410, 0
+  br i1 %tobool1411, label %if.then1412, label %for.inc1424
+
+if.then1412:                                      ; preds = %land.lhs.true1406.us, %land.lhs.true1406
+  %arrayidx1409.lcssa = phi i32* [ %arrayidx1409, %land.lhs.true1406 ], [ %arrayidx1409.us, %land.lhs.true1406.us ]
+  %pos.9.lcssa1847.in = phi i64 [ %indvars.iv, %land.lhs.true1406 ], [ %indvars.iv2000, %land.lhs.true1406.us ]
+  %188 = load i32* %arrayidx1409.lcssa, align 4, !tbaa !8
+  store i32 %188, i32* %aftermath_move, align 4, !tbaa !8
+  %189 = load i32* @debug, align 4, !tbaa !8
+  %and1417 = and i32 %189, 131072
+  %tobool1418 = icmp eq i32 %and1417, 0
+  br i1 %tobool1418, label %cleanup1427, label %cond.false1420
+
+cond.false1420:                                   ; preds = %if.then1412
+  %pos.9.lcssa1847 = trunc i64 %pos.9.lcssa1847.in to i32
+  %call1421 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([30 x i8]* @.str19, i64 0, i64 0), i32 %pos.9.lcssa1847, i32 %188) #4
+  br label %cleanup1427
+
+for.inc1424:                                      ; preds = %land.lhs.true1381, %land.lhs.true1406, %land.lhs.true1399, %for.body1367, %land.lhs.true1373
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %190 = trunc i64 %indvars.iv.next to i32
+  %cmp1365 = icmp slt i32 %190, 400
+  br i1 %cmp1365, label %for.body1367, label %cleanup1427
+
+cleanup1427:                                      ; preds = %for.inc1424.us, %for.inc1424, %cond.false1420, %if.then1412, %cond.false1357, %if.end1353, %cond.false1192, %if.else1188, %cond.false, %if.then386, %while.end, %if.then470
+  %retval.0 = phi i32 [ 1, %if.then470 ], [ 1, %while.end ], [ 1, %if.then386 ], [ 1, %cond.false ], [ 1, %if.else1188 ], [ 1, %cond.false1192 ], [ 1, %if.end1353 ], [ 1, %cond.false1357 ], [ 1, %if.then1412 ], [ 1, %cond.false1420 ], [ -1, %for.inc1424 ], [ -1, %for.inc1424.us ]
+  call void @llvm.lifetime.end(i64 1600, i8* %4) #1
+  call void @llvm.lifetime.end(i64 1600, i8* %3) #1
+  call void @llvm.lifetime.end(i64 1600, i8* %2) #1
+  call void @llvm.lifetime.end(i64 1600, i8* %1) #1
+  call void @llvm.lifetime.end(i64 1600, i8* %0) #1
+  ret i32 %retval.0
+
+if.end841.1:                                      ; preds = %for.inc870
+  %conv837.1 = zext i8 %113 to i32
+  %cmp846.1 = icmp eq i32 %conv837.1, %sub
+  br i1 %cmp846.1, label %land.lhs.true848.1, label %if.else856.1
+
+land.lhs.true848.1:                               ; preds = %if.end841.1
+  %status852.1 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom835.1, i32 16
+  %191 = load i32* %status852.1, align 4, !tbaa !19
+  %cmp853.1 = icmp eq i32 %191, 0
+  br i1 %cmp853.1, label %for.inc870.1, label %if.else856.1
+
+if.else856.1:                                     ; preds = %land.lhs.true848.1, %if.end841.1
+  %cmp861.1 = icmp eq i8 %113, 0
+  br i1 %cmp861.1, label %land.lhs.true863.1, label %for.inc870.1
+
+land.lhs.true863.1:                               ; preds = %if.else856.1
+  %call865.1 = call i32 @is_self_atari(i32 %add834.1, i32 %sub) #4
+  %tobool866.1 = icmp eq i32 %call865.1, 0
+  %.safe_atari.0.1 = select i1 %tobool866.1, i32 1, i32 %safe_atari.1
+  br label %for.inc870.1
+
+for.inc870.1:                                     ; preds = %land.lhs.true863.1, %if.else856.1, %land.lhs.true848.1, %for.inc870
+  %important.1.1 = phi i32 [ %important.1, %if.else856.1 ], [ %important.1, %for.inc870 ], [ 1, %land.lhs.true848.1 ], [ %important.1, %land.lhs.true863.1 ]
+  %safe_atari.1.1 = phi i32 [ %safe_atari.1, %if.else856.1 ], [ %safe_atari.1, %for.inc870 ], [ %safe_atari.1, %land.lhs.true848.1 ], [ %.safe_atari.0.1, %land.lhs.true863.1 ]
+  %192 = load i32* getelementptr inbounds ([8 x i32]* @delta, i64 0, i64 2), align 4, !tbaa !8
+  %add834.2 = add nsw i32 %192, %107
+  %idxprom835.2 = sext i32 %add834.2 to i64
+  %arrayidx836.2 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom835.2
+  %193 = load i8* %arrayidx836.2, align 1, !tbaa !1
+  %cmp838.2 = icmp eq i8 %193, 3
+  br i1 %cmp838.2, label %for.inc870.2, label %if.end841.2
+
+if.end841.2:                                      ; preds = %for.inc870.1
+  %conv837.2 = zext i8 %193 to i32
+  %cmp846.2 = icmp eq i32 %conv837.2, %sub
+  br i1 %cmp846.2, label %land.lhs.true848.2, label %if.else856.2
+
+land.lhs.true848.2:                               ; preds = %if.end841.2
+  %status852.2 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom835.2, i32 16
+  %194 = load i32* %status852.2, align 4, !tbaa !19
+  %cmp853.2 = icmp eq i32 %194, 0
+  br i1 %cmp853.2, label %for.inc870.2, label %if.else856.2
+
+if.else856.2:                                     ; preds = %land.lhs.true848.2, %if.end841.2
+  %cmp861.2 = icmp eq i8 %193, 0
+  br i1 %cmp861.2, label %land.lhs.true863.2, label %for.inc870.2
+
+land.lhs.true863.2:                               ; preds = %if.else856.2
+  %call865.2 = call i32 @is_self_atari(i32 %add834.2, i32 %sub) #4
+  %tobool866.2 = icmp eq i32 %call865.2, 0
+  %.safe_atari.0.2 = select i1 %tobool866.2, i32 1, i32 %safe_atari.1.1
+  br label %for.inc870.2
+
+for.inc870.2:                                     ; preds = %land.lhs.true863.2, %if.else856.2, %land.lhs.true848.2, %for.inc870.1
+  %important.1.2 = phi i32 [ %important.1.1, %if.else856.2 ], [ %important.1.1, %for.inc870.1 ], [ 1, %land.lhs.true848.2 ], [ %important.1.1, %land.lhs.true863.2 ]
+  %safe_atari.1.2 = phi i32 [ %safe_atari.1.1, %if.else856.2 ], [ %safe_atari.1.1, %for.inc870.1 ], [ %safe_atari.1.1, %land.lhs.true848.2 ], [ %.safe_atari.0.2, %land.lhs.true863.2 ]
+  %195 = load i32* getelementptr inbounds ([8 x i32]* @delta, i64 0, i64 3), align 4, !tbaa !8
+  %add834.3 = add nsw i32 %195, %107
+  %idxprom835.3 = sext i32 %add834.3 to i64
+  %arrayidx836.3 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom835.3
+  %196 = load i8* %arrayidx836.3, align 1, !tbaa !1
+  %cmp838.3 = icmp eq i8 %196, 3
+  br i1 %cmp838.3, label %for.inc870.3, label %if.end841.3
+
+if.end841.3:                                      ; preds = %for.inc870.2
+  %conv837.3 = zext i8 %196 to i32
+  %cmp846.3 = icmp eq i32 %conv837.3, %sub
+  br i1 %cmp846.3, label %land.lhs.true848.3, label %if.else856.3
+
+land.lhs.true848.3:                               ; preds = %if.end841.3
+  %status852.3 = getelementptr inbounds [400 x %struct.dragon_data]* @dragon, i64 0, i64 %idxprom835.3, i32 16
+  %197 = load i32* %status852.3, align 4, !tbaa !19
+  %cmp853.3 = icmp eq i32 %197, 0
+  br i1 %cmp853.3, label %for.inc870.3, label %if.else856.3
+
+if.else856.3:                                     ; preds = %land.lhs.true848.3, %if.end841.3
+  %cmp861.3 = icmp eq i8 %196, 0
+  br i1 %cmp861.3, label %land.lhs.true863.3, label %for.inc870.3
+
+land.lhs.true863.3:                               ; preds = %if.else856.3
+  %call865.3 = call i32 @is_self_atari(i32 %add834.3, i32 %sub) #4
+  %tobool866.3 = icmp eq i32 %call865.3, 0
+  %.safe_atari.0.3 = select i1 %tobool866.3, i32 1, i32 %safe_atari.1.2
+  br label %for.inc870.3
+
+for.inc870.3:                                     ; preds = %land.lhs.true863.3, %if.else856.3, %land.lhs.true848.3, %for.inc870.2
+  %important.1.3 = phi i32 [ %important.1.2, %if.else856.3 ], [ %important.1.2, %for.inc870.2 ], [ 1, %land.lhs.true848.3 ], [ %important.1.2, %land.lhs.true863.3 ]
+  %safe_atari.1.3 = phi i32 [ %safe_atari.1.2, %if.else856.3 ], [ %safe_atari.1.2, %for.inc870.2 ], [ %safe_atari.1.2, %land.lhs.true848.3 ], [ %.safe_atari.0.3, %land.lhs.true863.3 ]
+  %call873 = call i32 @approxlib(i32 %94, i32 %color, i32 3, i32* null) #4
+  %cmp874 = icmp sgt i32 %call873, 2
+  br i1 %cmp874, label %if.then876, label %if.end887
+}
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #1
+
+; Function Attrs: noimplicitfloat
+declare void @owl_hotspots(float*) #2
+
+; Function Attrs: noimplicitfloat
+declare void @reading_hotspots(float*) #2
+
+; Function Attrs: noimplicitfloat nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #3
+
+; Function Attrs: noimplicitfloat
+declare i32 @gprintf(i8*, ...) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @approxlib(i32, i32, i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @is_self_atari(i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @countlib(i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @safe_move(i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @findlib(i32, i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @countstones(i32) #2
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #1
+
+; Function Attrs: noimplicitfloat
+declare void @mark_string(i32, i8*, i8 signext) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @is_suicide(i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.end(i64, i8* nocapture) #1
+
+; Function Attrs: noimplicitfloat
+declare i32 @is_ko(i32, i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @is_illegal_ko_capture(i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @owl_does_defend(i32, i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @confirm_safety(i32, i32, i32*, i8*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @trymove(i32, i32, i8*, i32, i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @chainlinks(i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @find_defense(i32, i32*) #2
+
+; Function Attrs: noimplicitfloat
+declare void @popgo() #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @owl_does_attack(i32, i32, i32*) #2
+
+; Function Attrs: noimplicitfloat nounwind uwtable
+define float @aftermath_compute_score(i32 %color, float %komi, %struct.SGFTree_t* %tree) #0 {
+entry:
+  store %struct.SGFTree_t* %tree, %struct.SGFTree_t** @aftermath_sgftree, align 8, !tbaa !10
+  tail call fastcc void @play_aftermath(i32 %color) #6
+  %0 = load i32* @chinese_rules, align 4, !tbaa !8
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %if.else, label %if.then
+
+if.then:                                          ; preds = %entry
+  %1 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  %2 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  %sub = sub nsw i32 %1, %2
+  br label %return
+
+if.else:                                          ; preds = %entry
+  %3 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %4 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 1), align 4, !tbaa !25
+  %5 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 3), align 4, !tbaa !26
+  %6 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %7 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 0), align 4, !tbaa !28
+  %8 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 2), align 4, !tbaa !29
+  %add3.neg = add i32 %4, %3
+  %add4.neg = add i32 %add3.neg, %5
+  %add1 = sub i32 %add4.neg, %6
+  %add2 = sub i32 %add1, %7
+  %sub5 = sub i32 %add2, %8
+  br label %return
+
+return:                                           ; preds = %if.else, %if.then
+  %conv.pn.in = phi i32 [ %sub, %if.then ], [ %sub5, %if.else ]
+  %conv.pn = sitofp i32 %conv.pn.in to float
+  %retval.0 = fadd float %conv.pn, %komi
+  ret float %retval.0
+}
+
+; Function Attrs: noimplicitfloat nounwind uwtable
+define internal fastcc void @play_aftermath(i32 %color) #0 {
+entry:
+  %val.i.i = alloca float, align 4
+  %move.i = alloca i32, align 4
+  %saved_board = alloca %struct.board_state, align 4
+  %0 = bitcast %struct.board_state* %saved_board to i8*
+  call void @llvm.lifetime.start(i64 4888, i8* %0) #1
+  %color.off = add i32 %color, -1
+  %1 = icmp ult i32 %color.off, 2
+  br i1 %1, label %if.end, label %if.else
+
+if.else:                                          ; preds = %entry
+  call void @abortgo(i8* getelementptr inbounds ([19 x i8]* @.str20, i64 0, i64 0), i32 927, i8* getelementptr inbounds ([25 x i8]* @.str22, i64 0, i64 0), i32 -1, i32 -1) #4
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %if.else
+  %2 = load i32* @play_aftermath.current_color, align 4, !tbaa !8
+  %cmp2 = icmp eq i32 %2, %color
+  br i1 %cmp2, label %for.body, label %if.then3
+
+if.then3:                                         ; preds = %if.end
+  store i32 %color, i32* @play_aftermath.current_color, align 4, !tbaa !8
+  br label %for.body
+
+for.body:                                         ; preds = %if.then3, %if.end, %for.inc
+  %indvars.iv224 = phi i64 [ %indvars.iv.next225, %for.inc ], [ 21, %if.end ], [ 21, %if.then3 ]
+  %cached_board.1223 = phi i32 [ %cached_board.2, %for.inc ], [ 0, %if.then3 ], [ 1, %if.end ]
+  %arrayidx = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv224
+  %3 = load i8* %arrayidx, align 1, !tbaa !1
+  %conv = zext i8 %3 to i32
+  %cmp6 = icmp eq i8 %3, 3
+  br i1 %cmp6, label %for.inc, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %for.body
+  %arrayidx12 = getelementptr inbounds [400 x i32]* @play_aftermath.current_board, i64 0, i64 %indvars.iv224
+  %4 = load i32* %arrayidx12, align 4, !tbaa !8
+  %cmp13 = icmp eq i32 %conv, %4
+  br i1 %cmp13, label %for.inc, label %if.then15
+
+if.then15:                                        ; preds = %land.lhs.true
+  store i32 %conv, i32* %arrayidx12, align 4, !tbaa !8
+  br label %for.inc
+
+for.inc:                                          ; preds = %land.lhs.true, %for.body, %if.then15
+  %cached_board.2 = phi i32 [ 0, %if.then15 ], [ %cached_board.1223, %land.lhs.true ], [ %cached_board.1223, %for.body ]
+  %indvars.iv.next225 = add nuw nsw i64 %indvars.iv224, 1
+  %exitcond226 = icmp eq i64 %indvars.iv.next225, 400
+  br i1 %exitcond226, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.inc
+  %tobool = icmp eq i32 %cached_board.2, 0
+  br i1 %tobool, label %if.end23, label %cleanup
+
+if.end23:                                         ; preds = %for.end
+  %5 = load i32* @white_captured, align 4, !tbaa !8
+  store i32 %5, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 0), align 4, !tbaa !28
+  %6 = load i32* @black_captured, align 4, !tbaa !8
+  store i32 %6, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 1), align 4, !tbaa !25
+  call void @llvm.memset.p0i8.i64(i8* bitcast (i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 2) to i8*), i8 0, i64 24, i32 4, i1 false)
+  call void @store_board(%struct.board_state* %saved_board) #4
+  %7 = bitcast i32* %move.i to i8*
+  call void @llvm.lifetime.start(i64 4, i8* %7) #1
+  %8 = load i32* @debug, align 4, !tbaa !8
+  %and.i = and i32 %8, 131072
+  %tobool.i = icmp eq i32 %and.i, 0
+  br i1 %tobool.i, label %cond.end.i, label %cond.false.i
+
+cond.false.i:                                     ; preds = %if.end23
+  %call.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([23 x i8]* @.str31, i64 0, i64 0)) #4
+  br label %cond.end.i
+
+cond.end.i:                                       ; preds = %cond.false.i, %if.end23
+  store i32 1, i32* @disable_threat_computation, align 4, !tbaa !8
+  store i32 1, i32* @disable_endgame_patterns, align 4, !tbaa !8
+  %9 = bitcast float* %val.i.i to i8*
+  %10 = load %struct._IO_FILE** @stderr, align 8, !tbaa !10
+  br label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %cond.end30.i, %cond.end.i
+  %pass.04.i = phi i32 [ 0, %cond.end.i ], [ %inc33..i, %cond.end30.i ]
+  %moves.03.i = phi i32 [ 0, %cond.end.i ], [ %inc.i, %cond.end30.i ]
+  %color_to_play.01.i = phi i32 [ %color, %cond.end.i ], [ %sub35.i, %cond.end30.i ]
+  %11 = load i32* @board_size, align 4, !tbaa !8
+  %mul.i = mul nsw i32 %11, %11
+  %cmp1.i = icmp slt i32 %moves.03.i, %mul.i
+  br i1 %cmp1.i, label %while.body.i, label %do_play_aftermath.exit
+
+while.body.i:                                     ; preds = %land.rhs.i
+  %call2.i = call i32 @get_reading_node_counter() #4
+  %call3.i = call i32 @get_owl_node_counter() #4
+  call void @llvm.lifetime.start(i64 4, i8* %9) #1
+  store i32 0, i32* %move.i, align 4, !tbaa !8
+  store float -1.000000e+00, float* %val.i.i, align 4, !tbaa !17
+  call void @reset_engine() #4
+  call void @examine_position(i32 %color_to_play.01.i, i32 99) #4
+  %12 = load i32* @level, align 4, !tbaa !8
+  %cmp.i.i = icmp sgt i32 %12, 7
+  br i1 %cmp.i.i, label %if.then.i.i, label %if.else39.i.i
+
+if.then.i.i:                                      ; preds = %while.body.i
+  %call.i.i = call float @estimate_score(float* @lower_bound, float* @upper_bound) #4
+  %13 = load i32* @verbose, align 4, !tbaa !8
+  %14 = load i32* @showscore, align 4
+  %15 = or i32 %14, %13
+  %16 = icmp eq i32 %15, 0
+  br i1 %16, label %if.end33.i.i, label %if.then2.i.i
+
+if.then2.i.i:                                     ; preds = %if.then.i.i
+  %17 = load float* @lower_bound, align 4, !tbaa !17
+  %18 = load float* @upper_bound, align 4, !tbaa !17
+  %cmp3.i.i = fcmp oeq float %17, %18
+  %cmp5.i.i = fcmp ogt float %17, 0.000000e+00
+  %cond.i.i = select i1 %cmp5.i.i, i8* getelementptr inbounds ([3 x i8]* @.str34, i64 0, i64 0), i8* getelementptr inbounds ([3 x i8]* @.str35, i64 0, i64 0)
+  %cmp6.i.i = fcmp olt float %17, 0.000000e+00
+  br i1 %cmp3.i.i, label %if.then4.i.i, label %if.else.i.i
+
+if.then4.i.i:                                     ; preds = %if.then2.i.i
+  br i1 %cmp6.i.i, label %cond.true.i.i, label %cond.end.i.i
+
+cond.true.i.i:                                    ; preds = %if.then4.i.i
+  %sub.i.i = fsub float -0.000000e+00, %17
+  br label %cond.end.i.i
+
+cond.end.i.i:                                     ; preds = %cond.true.i.i, %if.then4.i.i
+  %cond7.i.i = phi float [ %sub.i.i, %cond.true.i.i ], [ %17, %if.then4.i.i ]
+  %conv.i.i = fpext float %cond7.i.i to double
+  %call8.i.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([24 x i8]* @.str33, i64 0, i64 0), i8* %cond.i.i, double %conv.i.i) #4
+  br label %if.end.i.i
+
+if.else.i.i:                                      ; preds = %if.then2.i.i
+  br i1 %cmp6.i.i, label %cond.true14.i.i, label %cond.end17.i.i
+
+cond.true14.i.i:                                  ; preds = %if.else.i.i
+  %sub15.i.i = fsub float -0.000000e+00, %17
+  br label %cond.end17.i.i
+
+cond.end17.i.i:                                   ; preds = %cond.true14.i.i, %if.else.i.i
+  %cond18.i.i = phi float [ %sub15.i.i, %cond.true14.i.i ], [ %17, %if.else.i.i ]
+  %conv19.i.i = fpext float %cond18.i.i to double
+  %cmp20.i.i = fcmp ogt float %18, 0.000000e+00
+  %cond22.i.i = select i1 %cmp20.i.i, i8* getelementptr inbounds ([3 x i8]* @.str34, i64 0, i64 0), i8* getelementptr inbounds ([3 x i8]* @.str35, i64 0, i64 0)
+  %cmp23.i.i = fcmp olt float %18, 0.000000e+00
+  br i1 %cmp23.i.i, label %cond.true25.i.i, label %cond.end28.i.i
+
+cond.true25.i.i:                                  ; preds = %cond.end17.i.i
+  %sub26.i.i = fsub float -0.000000e+00, %18
+  br label %cond.end28.i.i
+
+cond.end28.i.i:                                   ; preds = %cond.true25.i.i, %cond.end17.i.i
+  %cond29.i.i = phi float [ %sub26.i.i, %cond.true25.i.i ], [ %18, %cond.end17.i.i ]
+  %conv30.i.i = fpext float %cond29.i.i to double
+  %call31.i.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([33 x i8]* @.str36, i64 0, i64 0), i8* %cond.i.i, double %conv19.i.i, i8* %cond22.i.i, double %conv30.i.i) #4
+  br label %if.end.i.i
+
+if.end.i.i:                                       ; preds = %cond.end28.i.i, %cond.end.i.i
+  %call32.i.i = call i32 @fflush(%struct._IO_FILE* %10) #4
+  br label %if.end33.i.i
+
+if.end33.i.i:                                     ; preds = %if.end.i.i, %if.then.i.i
+  %cmp34.i.i = icmp eq i32 %color_to_play.01.i, 1
+  br i1 %cmp34.i.i, label %if.then36.i.i, label %if.else37.i.i
+
+if.then36.i.i:                                    ; preds = %if.end33.i.i
+  %19 = load float* @lower_bound, align 4, !tbaa !17
+  store float %19, float* @score, align 4, !tbaa !17
+  br label %if.end40.i.i
+
+if.else37.i.i:                                    ; preds = %if.end33.i.i
+  %20 = load float* @upper_bound, align 4, !tbaa !17
+  store float %20, float* @score, align 4, !tbaa !17
+  br label %if.end40.i.i
+
+if.else39.i.i:                                    ; preds = %while.body.i
+  store float 0.000000e+00, float* @score, align 4, !tbaa !17
+  br label %if.end40.i.i
+
+if.end40.i.i:                                     ; preds = %if.else39.i.i, %if.else37.i.i, %if.then36.i.i
+  %21 = load i32* @stackp, align 4, !tbaa !8
+  %cmp41.i.i = icmp eq i32 %21, 0
+  br i1 %cmp41.i.i, label %if.end45.i.i, label %if.else44.i.i
+
+if.else44.i.i:                                    ; preds = %if.end40.i.i
+  call void @abortgo(i8* getelementptr inbounds ([19 x i8]* @.str20, i64 0, i64 0), i32 831, i8* getelementptr inbounds ([12 x i8]* @.str37, i64 0, i64 0), i32 -1, i32 -1) #4
+  br label %if.end45.i.i
+
+if.end45.i.i:                                     ; preds = %if.else44.i.i, %if.end40.i.i
+  call void @worm_reasons(i32 %color_to_play.01.i) #4
+  %22 = load i32* @verbose, align 4, !tbaa !8
+  %cmp46.i.i = icmp sgt i32 %22, 0
+  br i1 %cmp46.i.i, label %if.then48.i.i, label %if.end49.i.i
+
+if.then48.i.i:                                    ; preds = %if.end45.i.i
+  %dec.i.i = add nsw i32 %22, -1
+  store i32 %dec.i.i, i32* @verbose, align 4, !tbaa !8
+  br label %if.end49.i.i
+
+if.end49.i.i:                                     ; preds = %if.then48.i.i, %if.end45.i.i
+  call void @owl_reasons(i32 %color_to_play.01.i) #4
+  store i32 %22, i32* @verbose, align 4, !tbaa !8
+  call void @combinations(i32 %color_to_play.01.i) #4
+  %23 = load i32* @stackp, align 4, !tbaa !8
+  %cmp50.i.i = icmp eq i32 %23, 0
+  br i1 %cmp50.i.i, label %if.end54.i.i, label %if.else53.i.i
+
+if.else53.i.i:                                    ; preds = %if.end49.i.i
+  call void @abortgo(i8* getelementptr inbounds ([19 x i8]* @.str20, i64 0, i64 0), i32 849, i8* getelementptr inbounds ([12 x i8]* @.str37, i64 0, i64 0), i32 -1, i32 -1) #4
+  br label %if.end54.i.i
+
+if.end54.i.i:                                     ; preds = %if.else53.i.i, %if.end49.i.i
+  %24 = load float* @lower_bound, align 4, !tbaa !17
+  %call55.i.i = call i32 @review_move_reasons(i32* %move.i, float* %val.i.i, i32 %color_to_play.01.i, float 0.000000e+00, float %24, i32* null) #4
+  %tobool56.i.i = icmp ne i32 %call55.i.i, 0
+  %25 = load i32* @verbose, align 4
+  %tobool58.i.i = icmp ne i32 %25, 0
+  %or.cond88.i.i = and i1 %tobool56.i.i, %tobool58.i.i
+  br i1 %or.cond88.i.i, label %cond.false60.i.i, label %if.end64.i.i
+
+cond.false60.i.i:                                 ; preds = %if.end54.i.i
+  %26 = load i32* %move.i, align 4, !tbaa !8
+  %27 = load float* %val.i.i, align 4, !tbaa !17
+  %conv61.i.i = fpext float %27 to double
+  %call62.i.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([41 x i8]* @.str38, i64 0, i64 0), i32 %26, double %conv61.i.i) #4
+  br label %if.end64.i.i
+
+if.end64.i.i:                                     ; preds = %cond.false60.i.i, %if.end54.i.i
+  %28 = load i32* @stackp, align 4, !tbaa !8
+  %cmp65.i.i = icmp eq i32 %28, 0
+  br i1 %cmp65.i.i, label %if.end69.i.i, label %if.else68.i.i
+
+if.else68.i.i:                                    ; preds = %if.end64.i.i
+  call void @abortgo(i8* getelementptr inbounds ([19 x i8]* @.str20, i64 0, i64 0), i32 854, i8* getelementptr inbounds ([12 x i8]* @.str37, i64 0, i64 0), i32 -1, i32 -1) #4
+  br label %if.end69.i.i
+
+if.end69.i.i:                                     ; preds = %if.else68.i.i, %if.end64.i.i
+  %29 = load float* %val.i.i, align 4, !tbaa !17
+  %conv70.i.i = fpext float %29 to double
+  %cmp71.i.i = fcmp olt float %29, 0.000000e+00
+  %30 = load i32* @verbose, align 4, !tbaa !8
+  %tobool74.i.i = icmp ne i32 %30, 0
+  br i1 %cmp71.i.i, label %if.then73.i.i, label %if.else79.i.i
+
+if.then73.i.i:                                    ; preds = %if.end69.i.i
+  br i1 %tobool74.i.i, label %cond.false76.i.i, label %cond.end78.i.i
+
+cond.false76.i.i:                                 ; preds = %if.then73.i.i
+  %call77.i.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([9 x i8]* @.str39, i64 0, i64 0)) #4
+  br label %cond.end78.i.i
+
+cond.end78.i.i:                                   ; preds = %cond.false76.i.i, %if.then73.i.i
+  store i32 0, i32* %move.i, align 4, !tbaa !8
+  br label %reduced_genmove.exit.i
+
+if.else79.i.i:                                    ; preds = %if.end69.i.i
+  br i1 %tobool74.i.i, label %cond.false82.i.i, label %reduced_genmove.exit.i
+
+cond.false82.i.i:                                 ; preds = %if.else79.i.i
+  %31 = load i32* %move.i, align 4, !tbaa !8
+  %call84.i.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([48 x i8]* @.str40, i64 0, i64 0), i32 %31, double %conv70.i.i) #4
+  br label %reduced_genmove.exit.i
+
+reduced_genmove.exit.i:                           ; preds = %cond.false82.i.i, %if.else79.i.i, %cond.end78.i.i
+  %32 = load float* %val.i.i, align 4, !tbaa !17
+  %conv87.i.i = fptosi float %32 to i32
+  call void @llvm.lifetime.end(i64 4, i8* %9) #1
+  %cmp5.i = icmp slt i32 %conv87.i.i, 0
+  br i1 %cmp5.i, label %if.then.i, label %if.end14.i
+
+if.then.i:                                        ; preds = %reduced_genmove.exit.i
+  %33 = load i32* @verbose, align 4, !tbaa !8
+  %cmp6.i = icmp sgt i32 %33, 0
+  br i1 %cmp6.i, label %if.then7.i, label %if.end.i
+
+if.then7.i:                                       ; preds = %if.then.i
+  %dec.i = add nsw i32 %33, -1
+  store i32 %dec.i, i32* @verbose, align 4, !tbaa !8
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.then7.i, %if.then.i
+  %cmp8.i = icmp eq i32 %color_to_play.01.i, 1
+  %white_control.sink.i = select i1 %cmp8.i, [400 x i32]* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 8), [400 x i32]* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 9)
+  %arraydecay.i = getelementptr inbounds [400 x i32]* %white_control.sink.i, i64 0, i64 0
+  %call13.i = call i32 @aftermath_genmove(i32* %move.i, i32 %color_to_play.01.i, i32* %arraydecay.i, i32 0) #4
+  store i32 %33, i32* @verbose, align 4, !tbaa !8
+  br label %if.end14.i
+
+if.end14.i:                                       ; preds = %if.end.i, %reduced_genmove.exit.i
+  %34 = load i32* %move.i, align 4, !tbaa !8
+  call void @play_move(i32 %34, i32 %color_to_play.01.i) #4
+  %35 = load %struct.SGFTree_t** @aftermath_sgftree, align 8, !tbaa !10
+  %tobool15.i = icmp eq %struct.SGFTree_t* %35, null
+  br i1 %tobool15.i, label %if.end18.i, label %if.then16.i
+
+if.then16.i:                                      ; preds = %if.end14.i
+  %36 = load i32* %move.i, align 4, !tbaa !8
+  %div.i = sdiv i32 %36, 20
+  %sub.i = add nsw i32 %div.i, -1
+  %rem.i = srem i32 %36, 20
+  %sub17.i = add nsw i32 %rem.i, -1
+  call void @sgftreeAddPlay(%struct.SGFTree_t* %35, i32 %color_to_play.01.i, i32 %sub.i, i32 %sub17.i) #4
+  br label %if.end18.i
+
+if.end18.i:                                       ; preds = %if.then16.i, %if.end14.i
+  %inc.i = add nsw i32 %moves.03.i, 1
+  %37 = load i32* @debug, align 4, !tbaa !8
+  %and19.i = and i32 %37, 131072
+  %tobool20.i = icmp eq i32 %and19.i, 0
+  br i1 %tobool20.i, label %cond.end30.i, label %cond.false22.i
+
+cond.false22.i:                                   ; preds = %if.end18.i
+  %38 = load i32* @movenum, align 4, !tbaa !8
+  %39 = load i32* %move.i, align 4, !tbaa !8
+  %call23.i = call i32 @get_owl_node_counter() #4
+  %sub24.i = sub nsw i32 %call23.i, %call3.i
+  %call25.i = call i32 @get_reading_node_counter() #4
+  %sub26.i = sub nsw i32 %call25.i, %call2.i
+  %call27.i = call i32 @get_owl_node_counter() #4
+  %call28.i = call i32 @get_reading_node_counter() #4
+  %call29.i = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([45 x i8]* @.str32, i64 0, i64 0), i32 %38, i32 %color_to_play.01.i, i32 %39, i32 %sub24.i, i32 %sub26.i, i32 %call27.i, i32 %call28.i) #4
+  br label %cond.end30.i
+
+cond.end30.i:                                     ; preds = %cond.false22.i, %if.end18.i
+  %40 = load i32* %move.i, align 4, !tbaa !8
+  %cmp31.i = icmp eq i32 %40, 0
+  %inc33.i = add nsw i32 %pass.04.i, 1
+  %sub35.i = sub nsw i32 3, %color_to_play.01.i
+  %inc33..i = select i1 %cmp31.i, i32 %inc33.i, i32 0
+  %cmp.i = icmp slt i32 %inc33..i, 2
+  br i1 %cmp.i, label %land.rhs.i, label %do_play_aftermath.exit
+
+do_play_aftermath.exit:                           ; preds = %land.rhs.i, %cond.end30.i
+  store i32 0, i32* @disable_threat_computation, align 4, !tbaa !8
+  store i32 0, i32* @disable_endgame_patterns, align 4, !tbaa !8
+  call void @llvm.lifetime.end(i64 4, i8* %7) #1
+  call void @restore_board(%struct.board_state* %saved_board) #4
+  br label %for.body27
+
+for.body27:                                       ; preds = %for.inc138, %do_play_aftermath.exit
+  %indvars.iv = phi i64 [ 21, %do_play_aftermath.exit ], [ %indvars.iv.next, %for.inc138 ]
+  %arrayidx29 = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %indvars.iv
+  %41 = load i8* %arrayidx29, align 1, !tbaa !1
+  %cmp31 = icmp eq i8 %41, 3
+  br i1 %cmp31, label %for.inc138, label %if.end34
+
+if.end34:                                         ; preds = %for.body27
+  %arrayidx36 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 9, i64 %indvars.iv
+  %42 = load i32* %arrayidx36, align 4, !tbaa !8
+  %tobool37 = icmp eq i32 %42, 0
+  br i1 %tobool37, label %if.else71, label %if.then38
+
+if.then38:                                        ; preds = %if.end34
+  %43 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  %inc40 = add nsw i32 %43, 1
+  store i32 %inc40, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  switch i8 %41, label %if.else65 [
+    i8 1, label %if.then46
+    i8 0, label %if.then59
+  ]
+
+if.then46:                                        ; preds = %if.then38
+  %44 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %inc48 = add nsw i32 %44, 1
+  store i32 %inc48, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %45 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 2), align 4, !tbaa !29
+  %inc50 = add nsw i32 %45, 1
+  store i32 %inc50, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 2), align 4, !tbaa !29
+  %arrayidx52 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 0, i32* %arrayidx52, align 4, !tbaa !8
+  br label %for.inc138
+
+if.then59:                                        ; preds = %if.then38
+  %46 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %inc61 = add nsw i32 %46, 1
+  store i32 %inc61, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %arrayidx64 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 13, i32* %arrayidx64, align 4, !tbaa !8
+  br label %for.inc138
+
+if.else65:                                        ; preds = %if.then38
+  %arrayidx68 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 1, i32* %arrayidx68, align 4, !tbaa !8
+  br label %for.inc138
+
+if.else71:                                        ; preds = %if.end34
+  %arrayidx73 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 8, i64 %indvars.iv
+  %47 = load i32* %arrayidx73, align 4, !tbaa !8
+  %tobool74 = icmp eq i32 %47, 0
+  br i1 %tobool74, label %if.else109, label %if.then75
+
+if.then75:                                        ; preds = %if.else71
+  %48 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  %inc77 = add nsw i32 %48, 1
+  store i32 %inc77, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  switch i8 %41, label %if.else103 [
+    i8 2, label %if.then83
+    i8 0, label %if.then97
+  ]
+
+if.then83:                                        ; preds = %if.then75
+  %49 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %inc85 = add nsw i32 %49, 1
+  store i32 %inc85, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %50 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 3), align 4, !tbaa !26
+  %inc87 = add nsw i32 %50, 1
+  store i32 %inc87, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 3), align 4, !tbaa !26
+  %arrayidx90 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 0, i32* %arrayidx90, align 4, !tbaa !8
+  br label %for.inc138
+
+if.then97:                                        ; preds = %if.then75
+  %51 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %inc99 = add nsw i32 %51, 1
+  store i32 %inc99, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %arrayidx102 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 14, i32* %arrayidx102, align 4, !tbaa !8
+  br label %for.inc138
+
+if.else103:                                       ; preds = %if.then75
+  %arrayidx106 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  store i32 1, i32* %arrayidx106, align 4, !tbaa !8
+  br label %for.inc138
+
+if.else109:                                       ; preds = %if.else71
+  %cmp113 = icmp eq i8 %41, 0
+  %arrayidx118 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %indvars.iv
+  br i1 %cmp113, label %if.then115, label %if.else119
+
+if.then115:                                       ; preds = %if.else109
+  store i32 15, i32* %arrayidx118, align 4, !tbaa !8
+  br label %for.inc138
+
+if.else119:                                       ; preds = %if.else109
+  store i32 7, i32* %arrayidx118, align 4, !tbaa !8
+  %cmp126 = icmp eq i8 %41, 1
+  br i1 %cmp126, label %if.then128, label %if.else131
+
+if.then128:                                       ; preds = %if.else119
+  %52 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  %inc130 = add nsw i32 %52, 1
+  store i32 %inc130, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  br label %for.inc138
+
+if.else131:                                       ; preds = %if.else119
+  %53 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  %inc133 = add nsw i32 %53, 1
+  store i32 %inc133, i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  br label %for.inc138
+
+for.inc138:                                       ; preds = %for.body27, %if.then59, %if.else65, %if.then46, %if.then115, %if.else131, %if.then128, %if.then83, %if.else103, %if.then97
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %exitcond = icmp eq i64 %indvars.iv.next, 400
+  br i1 %exitcond, label %for.end140, label %for.body27
+
+for.end140:                                       ; preds = %for.inc138
+  %54 = load i32* @debug, align 4, !tbaa !8
+  %and = and i32 %54, 131072
+  %tobool141 = icmp eq i32 %and, 0
+  br i1 %tobool141, label %cleanup, label %if.then142
+
+if.then142:                                       ; preds = %for.end140
+  %55 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 0), align 4, !tbaa !28
+  %call = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([20 x i8]* @.str23, i64 0, i64 0), i32 %55) #4
+  %56 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 1), align 4, !tbaa !25
+  %call145 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([20 x i8]* @.str24, i64 0, i64 0), i32 %56) #4
+  %57 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 2), align 4, !tbaa !29
+  %call147 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str25, i64 0, i64 0), i32 %57) #4
+  %58 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 3), align 4, !tbaa !26
+  %call149 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str26, i64 0, i64 0), i32 %58) #4
+  %59 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 4), align 4, !tbaa !24
+  %call151 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str27, i64 0, i64 0), i32 %59) #4
+  %60 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 5), align 4, !tbaa !27
+  %call153 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([21 x i8]* @.str28, i64 0, i64 0), i32 %60) #4
+  %61 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 6), align 4, !tbaa !21
+  %call155 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([16 x i8]* @.str29, i64 0, i64 0), i32 %61) #4
+  %62 = load i32* getelementptr inbounds (%struct.aftermath_data* @aftermath, i64 0, i32 7), align 4, !tbaa !23
+  %call157 = call i32 (i8*, ...)* @gprintf(i8* getelementptr inbounds ([16 x i8]* @.str30, i64 0, i64 0), i32 %62) #4
+  br label %cleanup
+
+cleanup:                                          ; preds = %if.then142, %for.end140, %for.end
+  call void @llvm.lifetime.end(i64 4888, i8* %0) #1
+  ret void
+}
+
+; Function Attrs: noimplicitfloat nounwind uwtable
+define i32 @aftermath_final_status(i32 %color, i32 %pos) #0 {
+entry:
+  %cmp = icmp ult i32 %pos, 421
+  %idxprom = sext i32 %pos to i64
+  br i1 %cmp, label %land.lhs.true, label %if.else
+
+land.lhs.true:                                    ; preds = %entry
+  %arrayidx = getelementptr inbounds [421 x i8]* @board, i64 0, i64 %idxprom
+  %0 = load i8* %arrayidx, align 1, !tbaa !1
+  %cmp1 = icmp eq i8 %0, 3
+  br i1 %cmp1, label %if.else, label %if.end
+
+if.else:                                          ; preds = %entry, %land.lhs.true
+  %div = sdiv i32 %pos, 20
+  %sub = add nsw i32 %div, -1
+  %rem = srem i32 %pos, 20
+  %sub3 = add nsw i32 %rem, -1
+  tail call void @abortgo(i8* getelementptr inbounds ([19 x i8]* @.str20, i64 0, i64 0), i32 1043, i8* getelementptr inbounds ([15 x i8]* @.str21, i64 0, i64 0), i32 %sub, i32 %sub3) #4
+  br label %if.end
+
+if.end:                                           ; preds = %land.lhs.true, %if.else
+  store %struct.SGFTree_t* null, %struct.SGFTree_t** @aftermath_sgftree, align 8, !tbaa !10
+  tail call fastcc void @play_aftermath(i32 %color) #6
+  %arrayidx5 = getelementptr inbounds %struct.aftermath_data* @aftermath, i64 0, i32 10, i64 %idxprom
+  %1 = load i32* %arrayidx5, align 4, !tbaa !8
+  ret i32 %1
+}
+
+; Function Attrs: noimplicitfloat
+declare void @abortgo(i8*, i32, i8*, i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare void @store_board(%struct.board_state*) #2
+
+; Function Attrs: noimplicitfloat
+declare void @restore_board(%struct.board_state*) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @get_reading_node_counter() #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @get_owl_node_counter() #2
+
+; Function Attrs: noimplicitfloat
+declare void @play_move(i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare void @sgftreeAddPlay(%struct.SGFTree_t*, i32, i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare void @reset_engine() #2
+
+; Function Attrs: noimplicitfloat
+declare void @examine_position(i32, i32) #2
+
+; Function Attrs: noimplicitfloat
+declare float @estimate_score(float*, float*) #2
+
+; Function Attrs: noimplicitfloat nounwind
+declare i32 @fflush(%struct._IO_FILE* nocapture) #3
+
+; Function Attrs: noimplicitfloat
+declare void @worm_reasons(i32) #2
+
+; Function Attrs: noimplicitfloat
+declare void @owl_reasons(i32) #2
+
+; Function Attrs: noimplicitfloat
+declare void @combinations(i32) #2
+
+; Function Attrs: noimplicitfloat
+declare i32 @review_move_reasons(i32*, float*, i32, float, float, i32*) #2
+
+attributes #0 = { noimplicitfloat nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind }
+attributes #2 = { noimplicitfloat "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { noimplicitfloat nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { noimplicitfloat nounwind }
+attributes #5 = { cold noimplicitfloat nounwind }
+attributes #6 = { noimplicitfloat }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"omnipotent char", metadata !3, i64 0}
+!3 = metadata !{metadata !"Simple C/C++ TBAA"}
+!4 = metadata !{metadata !5, metadata !6, i64 52}
+!5 = metadata !{metadata !"worm_data", metadata !6, i64 0, metadata !6, i64 4, metadata !7, i64 8, metadata !6, i64 12, metadata !6, i64 16, metadata !6, i64 20, metadata !6, i64 24, metadata !6, i64 28, metadata !6, i64 32, metadata !6, i64 36, metadata !6, i64 40, metadata !6, i64 44, metadata !6, i64 48, metadata !6, i64 52, metadata !6, i64 56, metadata !2, i64 60, metadata !2, i64 100, metadata !2, i64 140, metadata !2, i64 180, metadata !2, i64 220, metadata !2, i64 260, metadata !2, i64 300, metadata !2, i64 340}
+!6 = metadata !{metadata !"int", metadata !2, i64 0}
+!7 = metadata !{metadata !"float", metadata !2, i64 0}
+!8 = metadata !{metadata !6, metadata !6, i64 0}
+!9 = metadata !{metadata !5, metadata !6, i64 56}
+!10 = metadata !{metadata !11, metadata !11, i64 0}
+!11 = metadata !{metadata !"any pointer", metadata !2, i64 0}
+!12 = metadata !{metadata !13, metadata !6, i64 4}
+!13 = metadata !{metadata !"dragon_data", metadata !6, i64 0, metadata !6, i64 4, metadata !6, i64 8, metadata !6, i64 12, metadata !7, i64 16, metadata !6, i64 20, metadata !6, i64 24, metadata !6, i64 28, metadata !6, i64 32, metadata !6, i64 36, metadata !6, i64 40, metadata !6, i64 44, metadata !6, i64 48, metadata !6, i64 52, metadata !6, i64 56, metadata !6, i64 60, metadata !6, i64 64, metadata !6, i64 68, metadata !6, i64 72}
+!14 = metadata !{metadata !15, metadata !6, i64 60}
+!15 = metadata !{metadata !"dragon_data2", metadata !6, i64 0, metadata !2, i64 4, metadata !6, i64 44, metadata !6, i64 48, metadata !6, i64 52, metadata !7, i64 56, metadata !6, i64 60, metadata !7, i64 64, metadata !7, i64 68, metadata !6, i64 72, metadata !16, i64 76, metadata !6, i64 80, metadata !6, i64 84, metadata !6, i64 88, metadata !6, i64 92, metadata !6, i64 96, metadata !6, i64 100}
+!16 = metadata !{metadata !"eyevalue", metadata !2, i64 0, metadata !2, i64 1, metadata !2, i64 2, metadata !2, i64 3}
+!17 = metadata !{metadata !7, metadata !7, i64 0}
+!18 = metadata !{metadata !13, metadata !6, i64 8}
+!19 = metadata !{metadata !13, metadata !6, i64 64}
+!20 = metadata !{metadata !5, metadata !6, i64 12}
+!21 = metadata !{metadata !22, metadata !6, i64 24}
+!22 = metadata !{metadata !"aftermath_data", metadata !6, i64 0, metadata !6, i64 4, metadata !6, i64 8, metadata !6, i64 12, metadata !6, i64 16, metadata !6, i64 20, metadata !6, i64 24, metadata !6, i64 28, metadata !2, i64 32, metadata !2, i64 1632, metadata !2, i64 3232}
+!23 = metadata !{metadata !22, metadata !6, i64 28}
+!24 = metadata !{metadata !22, metadata !6, i64 16}
+!25 = metadata !{metadata !22, metadata !6, i64 4}
+!26 = metadata !{metadata !22, metadata !6, i64 12}
+!27 = metadata !{metadata !22, metadata !6, i64 20}
+!28 = metadata !{metadata !22, metadata !6, i64 0}
+!29 = metadata !{metadata !22, metadata !6, i64 8}

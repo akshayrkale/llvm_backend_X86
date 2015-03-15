@@ -1,0 +1,171 @@
+; ModuleID = 'io_nonansi.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct._IO_FILE = type opaque
+
+@.str = private unnamed_addr constant [48 x i8] c"g_open: Node %d. Append not supported in PIOFS\0A\00", align 1
+@this_node = external global i32
+@.str1 = private unnamed_addr constant [41 x i8] c"g_open: Node %d. mode %s not recognized\0A\00", align 1
+@.str2 = private unnamed_addr constant [37 x i8] c"g_open: Node %d error %d opening %s\0A\00", align 1
+@.str3 = private unnamed_addr constant [33 x i8] c"g_open: Node %d can't malloc fp\0A\00", align 1
+@stdout = external constant %struct._IO_FILE*
+
+; Function Attrs: nounwind uwtable
+define noalias %struct._IO_FILE* @g_open(i8* %filename, i8* %mode) #0 {
+entry:
+  %0 = load i8* %mode, align 1, !tbaa !1
+  switch i8 %0, label %if.else17 [
+    i8 97, label %if.then
+    i8 119, label %if.end21
+    i8 114, label %if.then12
+  ]
+
+if.then:                                          ; preds = %entry
+  %1 = load i32* @this_node, align 4, !tbaa !4
+  %call = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([48 x i8]* @.str, i64 0, i64 0), i32 %1) #5
+  br label %return
+
+if.then12:                                        ; preds = %entry
+  %call13 = tail call i8* @strchr(i8* %mode, i32 43) #5
+  %cmp14 = icmp eq i8* %call13, null
+  %. = select i1 %cmp14, i32 0, i32 2
+  br label %if.end21
+
+if.else17:                                        ; preds = %entry
+  %2 = load i32* @this_node, align 4, !tbaa !4
+  %call18 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([41 x i8]* @.str1, i64 0, i64 0), i32 %2, i8* %mode) #5
+  br label %return
+
+if.end21:                                         ; preds = %if.then12, %entry
+  %oflg.0 = phi i32 [ 65, %entry ], [ %., %if.then12 ]
+  %call22 = tail call i32 (i8*, i32, ...)* @open(i8* %filename, i32 %oflg.0, i32 420) #5
+  %cmp23 = icmp eq i32 %call22, -1
+  br i1 %cmp23, label %if.then25, label %if.end28
+
+if.then25:                                        ; preds = %if.end21
+  %3 = load i32* @this_node, align 4, !tbaa !4
+  %call26 = tail call i32* @__errno_location() #6
+  %4 = load i32* %call26, align 4, !tbaa !4
+  %call27 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([37 x i8]* @.str2, i64 0, i64 0), i32 %3, i32 %4, i8* %filename) #5
+  br label %return
+
+if.end28:                                         ; preds = %if.end21
+  %call29 = tail call i8* @calloc(i64 1, i64 4) #5
+  %5 = bitcast i8* %call29 to i32*
+  %cmp30 = icmp eq i8* %call29, null
+  br i1 %cmp30, label %if.then32, label %if.end35
+
+if.then32:                                        ; preds = %if.end28
+  %6 = load i32* @this_node, align 4, !tbaa !4
+  %call33 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([33 x i8]* @.str3, i64 0, i64 0), i32 %6) #5
+  %7 = load %struct._IO_FILE** @stdout, align 8, !tbaa !6
+  %call34 = tail call i32 @fflush(%struct._IO_FILE* %7) #5
+  tail call void @terminate(i32 1) #5
+  br label %if.end35
+
+if.end35:                                         ; preds = %if.then32, %if.end28
+  store i32 %call22, i32* %5, align 4, !tbaa !4
+  %8 = bitcast i8* %call29 to %struct._IO_FILE*
+  br label %return
+
+return:                                           ; preds = %if.end35, %if.then25, %if.else17, %if.then
+  %retval.0 = phi %struct._IO_FILE* [ null, %if.then ], [ null, %if.then25 ], [ %8, %if.end35 ], [ null, %if.else17 ]
+  ret %struct._IO_FILE* %retval.0
+}
+
+; Function Attrs: nounwind
+declare i32 @printf(i8* nocapture readonly, ...) #1
+
+; Function Attrs: nounwind readonly
+declare i8* @strchr(i8*, i32) #2
+
+declare i32 @open(i8* nocapture readonly, i32, ...) #3
+
+; Function Attrs: nounwind readnone
+declare i32* @__errno_location() #4
+
+; Function Attrs: nounwind
+declare noalias i8* @calloc(i64, i64) #1
+
+; Function Attrs: nounwind
+declare i32 @fflush(%struct._IO_FILE* nocapture) #1
+
+declare void @terminate(i32) #3
+
+; Function Attrs: nounwind uwtable
+define i32 @g_seek(%struct._IO_FILE* nocapture readonly %stream, i64 %offset, i32 %whence) #0 {
+entry:
+  %0 = bitcast %struct._IO_FILE* %stream to i32*
+  %1 = load i32* %0, align 4, !tbaa !4
+  %call = tail call i64 @lseek(i32 %1, i64 %offset, i32 %whence) #5
+  %conv = trunc i64 %call to i32
+  ret i32 %conv
+}
+
+declare i64 @lseek(i32, i64, i32) #3
+
+; Function Attrs: nounwind uwtable
+define i64 @g_write(i8* nocapture readonly %ptr, i64 %size, i64 %nmemb, %struct._IO_FILE* nocapture readonly %stream) #0 {
+entry:
+  %0 = bitcast %struct._IO_FILE* %stream to i32*
+  %1 = load i32* %0, align 4, !tbaa !4
+  %mul = shl i64 %size, 32
+  %sext = mul i64 %mul, %nmemb
+  %conv1 = ashr exact i64 %sext, 32
+  %call = tail call i64 @write(i32 %1, i8* %ptr, i64 %conv1) #5
+  %div = udiv i64 %call, %size
+  ret i64 %div
+}
+
+declare i64 @write(i32, i8* nocapture readonly, i64) #3
+
+; Function Attrs: nounwind uwtable
+define i64 @g_read(i8* nocapture %ptr, i64 %size, i64 %nmemb, %struct._IO_FILE* nocapture readonly %stream) #0 {
+entry:
+  %0 = bitcast %struct._IO_FILE* %stream to i32*
+  %1 = load i32* %0, align 4, !tbaa !4
+  %mul = shl i64 %size, 32
+  %sext = mul i64 %mul, %nmemb
+  %conv1 = ashr exact i64 %sext, 32
+  %call = tail call i64 @read(i32 %1, i8* %ptr, i64 %conv1) #5
+  %div = udiv i64 %call, %size
+  ret i64 %div
+}
+
+declare i64 @read(i32, i8* nocapture, i64) #3
+
+; Function Attrs: nounwind uwtable
+define i32 @g_close(%struct._IO_FILE* nocapture %stream) #0 {
+entry:
+  %0 = bitcast %struct._IO_FILE* %stream to i32*
+  %1 = load i32* %0, align 4, !tbaa !4
+  %call = tail call i32 @close(i32 %1) #5
+  %2 = bitcast %struct._IO_FILE* %stream to i8*
+  tail call void @free(i8* %2)
+  ret i32 %call
+}
+
+declare i32 @close(i32) #3
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind readnone "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { nounwind }
+attributes #6 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"omnipotent char", metadata !3, i64 0}
+!3 = metadata !{metadata !"Simple C/C++ TBAA"}
+!4 = metadata !{metadata !5, metadata !5, i64 0}
+!5 = metadata !{metadata !"int", metadata !2, i64 0}
+!6 = metadata !{metadata !7, metadata !7, i64 0}
+!7 = metadata !{metadata !"any pointer", metadata !2, i64 0}

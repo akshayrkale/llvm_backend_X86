@@ -1,0 +1,697 @@
+; ModuleID = 'timevar.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.timevar_def = type { %struct.timevar_time_def, %struct.timevar_time_def, i8*, i8 }
+%struct.timevar_time_def = type { float, float, float }
+%struct.timevar_stack_def = type { %struct.timevar_def*, %struct.timevar_stack_def* }
+%struct._IO_FILE = type opaque
+
+@time_report = external global i32
+@timevars = internal global [45 x %struct.timevar_def] zeroinitializer, align 16
+@.str = private unnamed_addr constant [11 x i8] c"total time\00", align 1
+@.str1 = private unnamed_addr constant [19 x i8] c"garbage collection\00", align 1
+@.str2 = private unnamed_addr constant [11 x i8] c"dump files\00", align 1
+@.str3 = private unnamed_addr constant [17 x i8] c"cfg construction\00", align 1
+@.str4 = private unnamed_addr constant [12 x i8] c"cfg cleanup\00", align 1
+@.str5 = private unnamed_addr constant [14 x i8] c"life analysis\00", align 1
+@.str6 = private unnamed_addr constant [17 x i8] c"life info update\00", align 1
+@.str7 = private unnamed_addr constant [14 x i8] c"preprocessing\00", align 1
+@.str8 = private unnamed_addr constant [17 x i8] c"lexical analysis\00", align 1
+@.str9 = private unnamed_addr constant [7 x i8] c"parser\00", align 1
+@.str10 = private unnamed_addr constant [7 x i8] c"expand\00", align 1
+@.str11 = private unnamed_addr constant [9 x i8] c"varconst\00", align 1
+@.str12 = private unnamed_addr constant [12 x i8] c"integration\00", align 1
+@.str13 = private unnamed_addr constant [5 x i8] c"jump\00", align 1
+@.str14 = private unnamed_addr constant [4 x i8] c"CSE\00", align 1
+@.str15 = private unnamed_addr constant [11 x i8] c"global CSE\00", align 1
+@.str16 = private unnamed_addr constant [14 x i8] c"loop analysis\00", align 1
+@.str17 = private unnamed_addr constant [6 x i8] c"CSE 2\00", align 1
+@.str18 = private unnamed_addr constant [18 x i8] c"branch prediction\00", align 1
+@.str19 = private unnamed_addr constant [14 x i8] c"flow analysis\00", align 1
+@.str20 = private unnamed_addr constant [9 x i8] c"combiner\00", align 1
+@.str21 = private unnamed_addr constant [14 x i8] c"if-conversion\00", align 1
+@.str22 = private unnamed_addr constant [8 x i8] c"regmove\00", align 1
+@.str23 = private unnamed_addr constant [15 x i8] c"mode switching\00", align 1
+@.str24 = private unnamed_addr constant [11 x i8] c"scheduling\00", align 1
+@.str25 = private unnamed_addr constant [12 x i8] c"local alloc\00", align 1
+@.str26 = private unnamed_addr constant [13 x i8] c"global alloc\00", align 1
+@.str27 = private unnamed_addr constant [16 x i8] c"reload CSE regs\00", align 1
+@.str28 = private unnamed_addr constant [7 x i8] c"flow 2\00", align 1
+@.str29 = private unnamed_addr constant [16 x i8] c"if-conversion 2\00", align 1
+@.str30 = private unnamed_addr constant [11 x i8] c"peephole 2\00", align 1
+@.str31 = private unnamed_addr constant [17 x i8] c"rename registers\00", align 1
+@.str32 = private unnamed_addr constant [13 x i8] c"scheduling 2\00", align 1
+@.str33 = private unnamed_addr constant [18 x i8] c"machine dep reorg\00", align 1
+@.str34 = private unnamed_addr constant [19 x i8] c"delay branch sched\00", align 1
+@.str35 = private unnamed_addr constant [15 x i8] c"reorder blocks\00", align 1
+@.str36 = private unnamed_addr constant [17 x i8] c"shorten branches\00", align 1
+@.str37 = private unnamed_addr constant [10 x i8] c"reg stack\00", align 1
+@.str38 = private unnamed_addr constant [15 x i8] c"convert to SSA\00", align 1
+@.str39 = private unnamed_addr constant [8 x i8] c"SSA CCP\00", align 1
+@.str40 = private unnamed_addr constant [19 x i8] c"SSA aggressive DCE\00", align 1
+@.str41 = private unnamed_addr constant [17 x i8] c"convert from SSA\00", align 1
+@.str42 = private unnamed_addr constant [6 x i8] c"final\00", align 1
+@.str43 = private unnamed_addr constant [7 x i8] c"symout\00", align 1
+@.str44 = private unnamed_addr constant [20 x i8] c"rest of compilation\00", align 1
+@clocks_to_msec = internal unnamed_addr global float 0.000000e+00, align 4
+@.str45 = private unnamed_addr constant [10 x i8] c"timevar.c\00", align 1
+@__FUNCTION__.timevar_push = private unnamed_addr constant [13 x i8] c"timevar_push\00", align 1
+@stack = internal unnamed_addr global %struct.timevar_stack_def* null, align 8
+@start_time = internal global %struct.timevar_time_def zeroinitializer, align 4
+@unused_stack_instances = internal unnamed_addr global %struct.timevar_stack_def* null, align 8
+@__FUNCTION__.timevar_pop = private unnamed_addr constant [12 x i8] c"timevar_pop\00", align 1
+@__FUNCTION__.timevar_start = private unnamed_addr constant [14 x i8] c"timevar_start\00", align 1
+@__FUNCTION__.timevar_stop = private unnamed_addr constant [13 x i8] c"timevar_stop\00", align 1
+@stderr = external constant %struct._IO_FILE*
+@.str46 = private unnamed_addr constant [28 x i8] c"\0AExecution times (seconds)\0A\00", align 1
+@.str47 = private unnamed_addr constant [8 x i8] c" %-22s:\00", align 1
+@.str48 = private unnamed_addr constant [20 x i8] c"%7.2f (%2.0f%%) usr\00", align 1
+@.str49 = private unnamed_addr constant [25 x i8] c" TOTAL                 :\00", align 1
+@.str50 = private unnamed_addr constant [16 x i8] c"%7.2f          \00", align 1
+@.str51 = private unnamed_addr constant [31 x i8] c"time in %s: %ld.%06ld (%ld%%)\0A\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @init_timevar() #0 {
+entry:
+  %0 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  tail call void @llvm.memset.p0i8.i64(i8* bitcast ([45 x %struct.timevar_def]* @timevars to i8*), i8 0, i64 1800, i32 16, i1 false)
+  store i8* getelementptr inbounds ([11 x i8]* @.str, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 0, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([19 x i8]* @.str1, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 1, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([11 x i8]* @.str2, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 2, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str3, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 3, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([12 x i8]* @.str4, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 4, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([14 x i8]* @.str5, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 5, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str6, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 6, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([14 x i8]* @.str7, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 7, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str8, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 8, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([7 x i8]* @.str9, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 9, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([7 x i8]* @.str10, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 10, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([9 x i8]* @.str11, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 11, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([12 x i8]* @.str12, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 12, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([5 x i8]* @.str13, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 13, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([4 x i8]* @.str14, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 14, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([11 x i8]* @.str15, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 15, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([14 x i8]* @.str16, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 16, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([6 x i8]* @.str17, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 17, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([18 x i8]* @.str18, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 18, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([14 x i8]* @.str19, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 19, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([9 x i8]* @.str20, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 20, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([14 x i8]* @.str21, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 21, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([8 x i8]* @.str22, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 22, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([15 x i8]* @.str23, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 23, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([11 x i8]* @.str24, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 24, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([12 x i8]* @.str25, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 25, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([13 x i8]* @.str26, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 26, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([16 x i8]* @.str27, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 27, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([7 x i8]* @.str28, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 28, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([16 x i8]* @.str29, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 29, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([11 x i8]* @.str30, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 30, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str31, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 31, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([13 x i8]* @.str32, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 32, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([18 x i8]* @.str33, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 33, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([19 x i8]* @.str34, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 34, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([15 x i8]* @.str35, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 35, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str36, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 36, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([10 x i8]* @.str37, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 37, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([15 x i8]* @.str38, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 38, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([8 x i8]* @.str39, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 39, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([19 x i8]* @.str40, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 40, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([17 x i8]* @.str41, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 41, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([6 x i8]* @.str42, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 42, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([7 x i8]* @.str43, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 43, i32 2), align 8, !tbaa !5
+  store i8* getelementptr inbounds ([20 x i8]* @.str44, i64 0, i64 0), i8** getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 44, i32 2), align 8, !tbaa !5
+  store float 0x3EB0C6F7A0000000, float* @clocks_to_msec, align 4, !tbaa !10
+  br label %return
+
+return:                                           ; preds = %entry, %if.end
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #1
+
+; Function Attrs: nounwind uwtable
+define void @timevar_push(i32 %timevar) #0 {
+entry:
+  %idxprom = zext i32 %timevar to i64
+  %arrayidx = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom
+  %0 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %used = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 3
+  %bf.load = load i8* %used, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %used, align 8
+  %bf.clear2 = and i8 %bf.load, 1
+  %tobool3 = icmp eq i8 %bf.clear2, 0
+  br i1 %tobool3, label %get_time.exit, label %if.then4
+
+if.then4:                                         ; preds = %if.end
+  tail call void @fancy_abort(i8* getelementptr inbounds ([10 x i8]* @.str45, i64 0, i64 0), i32 272, i8* getelementptr inbounds ([13 x i8]* @__FUNCTION__.timevar_push, i64 0, i64 0)) #5
+  unreachable
+
+get_time.exit:                                    ; preds = %if.end
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %1 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %1
+  %2 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %tobool6 = icmp eq %struct.timevar_stack_def* %2, null
+  br i1 %tobool6, label %if.end9, label %if.then7
+
+if.then7:                                         ; preds = %get_time.exit
+  %timevar8 = getelementptr inbounds %struct.timevar_stack_def* %2, i64 0, i32 0
+  %3 = load %struct.timevar_def** %timevar8, align 8, !tbaa !12
+  %start_time.idx.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4, !tbaa !14
+  %start_time.idx18.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4, !tbaa !15
+  %start_time.idx19.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4, !tbaa !16
+  %sub.i = fsub float %mul.i, %start_time.idx.val
+  %user2.i = getelementptr inbounds %struct.timevar_def* %3, i64 0, i32 0, i32 0
+  %4 = load float* %user2.i, align 4, !tbaa !14
+  %add.i = fadd float %sub.i, %4
+  store float %add.i, float* %user2.i, align 4, !tbaa !14
+  %sub4.i = fsub float 0.000000e+00, %start_time.idx18.val
+  %sys5.i = getelementptr inbounds %struct.timevar_def* %3, i64 0, i32 0, i32 1
+  %5 = load float* %sys5.i, align 4, !tbaa !15
+  %add6.i = fadd float %sub4.i, %5
+  store float %add6.i, float* %sys5.i, align 4, !tbaa !15
+  %sub8.i = fsub float 0.000000e+00, %start_time.idx19.val
+  %wall9.i = getelementptr inbounds %struct.timevar_def* %3, i64 0, i32 0, i32 2
+  %6 = load float* %wall9.i, align 4, !tbaa !16
+  %add10.i = fadd float %sub8.i, %6
+  store float %add10.i, float* %wall9.i, align 4, !tbaa !16
+  br label %if.end9
+
+if.end9:                                          ; preds = %get_time.exit, %if.then7
+  store float %mul.i, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4
+  %7 = load %struct.timevar_stack_def** @unused_stack_instances, align 8, !tbaa !11
+  %cmp = icmp eq %struct.timevar_stack_def* %7, null
+  br i1 %cmp, label %if.else, label %if.then10
+
+if.then10:                                        ; preds = %if.end9
+  %next = getelementptr inbounds %struct.timevar_stack_def* %7, i64 0, i32 1
+  %8 = load %struct.timevar_stack_def** %next, align 8, !tbaa !17
+  store %struct.timevar_stack_def* %8, %struct.timevar_stack_def** @unused_stack_instances, align 8, !tbaa !11
+  br label %if.end11
+
+if.else:                                          ; preds = %if.end9
+  %call = tail call noalias i8* @xmalloc(i64 16) #1
+  %9 = bitcast i8* %call to %struct.timevar_stack_def*
+  br label %if.end11
+
+if.end11:                                         ; preds = %if.else, %if.then10
+  %context.0 = phi %struct.timevar_stack_def* [ %7, %if.then10 ], [ %9, %if.else ]
+  %timevar12 = getelementptr inbounds %struct.timevar_stack_def* %context.0, i64 0, i32 0
+  store %struct.timevar_def* %arrayidx, %struct.timevar_def** %timevar12, align 8, !tbaa !12
+  %10 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %next13 = getelementptr inbounds %struct.timevar_stack_def* %context.0, i64 0, i32 1
+  store %struct.timevar_stack_def* %10, %struct.timevar_stack_def** %next13, align 8, !tbaa !17
+  store %struct.timevar_stack_def* %context.0, %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  br label %return
+
+return:                                           ; preds = %entry, %if.end11
+  ret void
+}
+
+; Function Attrs: noreturn
+declare void @fancy_abort(i8*, i32, i8*) #2
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #1
+
+declare noalias i8* @xmalloc(i64) #3
+
+; Function Attrs: nounwind uwtable
+define void @timevar_pop(i32 %timevar) #0 {
+entry:
+  %0 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %1 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %1, 0
+  br i1 %tobool, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %idxprom = zext i32 %timevar to i64
+  %arrayidx = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom
+  %timevar1 = getelementptr inbounds %struct.timevar_stack_def* %0, i64 0, i32 0
+  %2 = load %struct.timevar_def** %timevar1, align 8, !tbaa !12
+  %cmp = icmp eq %struct.timevar_def* %arrayidx, %2
+  br i1 %cmp, label %get_time.exit, label %if.then2
+
+if.then2:                                         ; preds = %if.end
+  tail call void @fancy_abort(i8* getelementptr inbounds ([10 x i8]* @.str45, i64 0, i64 0), i32 320, i8* getelementptr inbounds ([12 x i8]* @__FUNCTION__.timevar_pop, i64 0, i64 0)) #5
+  unreachable
+
+get_time.exit:                                    ; preds = %if.end
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %3 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %3
+  %4 = load %struct.timevar_def** %timevar1, align 8, !tbaa !12
+  %start_time.idx.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4, !tbaa !14
+  %start_time.idx8.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4, !tbaa !15
+  %start_time.idx9.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4, !tbaa !16
+  %sub.i = fsub float %mul.i, %start_time.idx.val
+  %user2.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 0
+  %5 = load float* %user2.i, align 4, !tbaa !14
+  %add.i = fadd float %sub.i, %5
+  store float %add.i, float* %user2.i, align 4, !tbaa !14
+  %sub4.i = fsub float 0.000000e+00, %start_time.idx8.val
+  %sys5.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 1
+  %6 = load float* %sys5.i, align 4, !tbaa !15
+  %add6.i = fadd float %sub4.i, %6
+  store float %add6.i, float* %sys5.i, align 4, !tbaa !15
+  %sub8.i = fsub float 0.000000e+00, %start_time.idx9.val
+  %wall9.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 2
+  %7 = load float* %wall9.i, align 4, !tbaa !16
+  %add10.i = fadd float %sub8.i, %7
+  store float %add10.i, float* %wall9.i, align 4, !tbaa !16
+  store float %mul.i, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4
+  %8 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %next = getelementptr inbounds %struct.timevar_stack_def* %8, i64 0, i32 1
+  %9 = load %struct.timevar_stack_def** %next, align 8, !tbaa !17
+  store %struct.timevar_stack_def* %9, %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %10 = load %struct.timevar_stack_def** @unused_stack_instances, align 8, !tbaa !11
+  %next5 = getelementptr inbounds %struct.timevar_stack_def* %0, i64 0, i32 1
+  store %struct.timevar_stack_def* %10, %struct.timevar_stack_def** %next5, align 8, !tbaa !17
+  store %struct.timevar_stack_def* %0, %struct.timevar_stack_def** @unused_stack_instances, align 8, !tbaa !11
+  br label %return
+
+return:                                           ; preds = %entry, %get_time.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @timevar_start(i32 %timevar) #0 {
+entry:
+  %idxprom = zext i32 %timevar to i64
+  %0 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %used = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 3
+  %bf.load = load i8* %used, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %used, align 8
+  %bf.clear2 = and i8 %bf.load, 1
+  %tobool3 = icmp eq i8 %bf.clear2, 0
+  br i1 %tobool3, label %if.end.i, label %if.then4
+
+if.then4:                                         ; preds = %if.end
+  tail call void @fancy_abort(i8* getelementptr inbounds ([10 x i8]* @.str45, i64 0, i64 0), i32 360, i8* getelementptr inbounds ([14 x i8]* @__FUNCTION__.timevar_start, i64 0, i64 0)) #5
+  unreachable
+
+if.end.i:                                         ; preds = %if.end
+  %bf.set9 = or i8 %bf.load, 3
+  store i8 %bf.set9, i8* %used, align 8
+  %user.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 0
+  store float 0.000000e+00, float* %user.i, align 4, !tbaa !14
+  %sys.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 1
+  store float 0.000000e+00, float* %sys.i, align 4, !tbaa !15
+  %wall.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 2
+  store float 0.000000e+00, float* %wall.i, align 4, !tbaa !16
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %1 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %1
+  store float %mul.i, float* %user.i, align 4, !tbaa !14
+  br label %return
+
+return:                                           ; preds = %if.end.i, %entry
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @timevar_stop(i32 %timevar) #0 {
+entry:
+  %idxprom = zext i32 %timevar to i64
+  %0 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %standalone = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 3
+  %bf.load = load i8* %standalone, align 8
+  %bf.clear = and i8 %bf.load, 1
+  %tobool1 = icmp eq i8 %bf.clear, 0
+  br i1 %tobool1, label %if.then2, label %get_time.exit
+
+if.then2:                                         ; preds = %if.end
+  tail call void @fancy_abort(i8* getelementptr inbounds ([10 x i8]* @.str45, i64 0, i64 0), i32 381, i8* getelementptr inbounds ([13 x i8]* @__FUNCTION__.timevar_stop, i64 0, i64 0)) #5
+  unreachable
+
+get_time.exit:                                    ; preds = %if.end
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %1 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %1
+  %start_time.idx = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 0
+  %start_time.idx.val = load float* %start_time.idx, align 4, !tbaa !14
+  %start_time.idx6 = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 1
+  %start_time.idx6.val = load float* %start_time.idx6, align 4, !tbaa !15
+  %start_time.idx7 = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 2
+  %start_time.idx7.val = load float* %start_time.idx7, align 4, !tbaa !16
+  %sub.i = fsub float %mul.i, %start_time.idx.val
+  %user2.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 0, i32 0
+  %2 = load float* %user2.i, align 8, !tbaa !14
+  %add.i = fadd float %sub.i, %2
+  store float %add.i, float* %user2.i, align 8, !tbaa !14
+  %sub4.i = fsub float 0.000000e+00, %start_time.idx6.val
+  %sys5.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 0, i32 1
+  %3 = load float* %sys5.i, align 4, !tbaa !15
+  %add6.i = fadd float %sub4.i, %3
+  store float %add6.i, float* %sys5.i, align 4, !tbaa !15
+  %sub8.i = fsub float 0.000000e+00, %start_time.idx7.val
+  %wall9.i = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 0, i32 2
+  %4 = load float* %wall9.i, align 8, !tbaa !16
+  %add10.i = fadd float %sub8.i, %4
+  store float %add10.i, float* %wall9.i, align 8, !tbaa !16
+  br label %return
+
+return:                                           ; preds = %entry, %get_time.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @timevar_get(i32 %timevar, %struct.timevar_time_def* nocapture %elapsed) #0 {
+entry:
+  %idxprom = zext i32 %timevar to i64
+  %arrayidx = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom
+  %0 = bitcast %struct.timevar_time_def* %elapsed to i8*
+  %1 = bitcast %struct.timevar_def* %arrayidx to i8*
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %0, i8* %1, i64 12, i32 4, i1 false), !tbaa.struct !18
+  %standalone = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 3
+  %bf.load = load i8* %standalone, align 8
+  %bf.clear = and i8 %bf.load, 1
+  %tobool = icmp eq i8 %bf.clear, 0
+  br i1 %tobool, label %if.else, label %if.then
+
+if.then:                                          ; preds = %entry
+  %2 = load i32* @time_report, align 4, !tbaa !1
+  %tobool.i = icmp eq i32 %2, 0
+  br i1 %tobool.i, label %get_time.exit, label %if.end.i
+
+if.end.i:                                         ; preds = %if.then
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %3 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %3
+  br label %get_time.exit
+
+get_time.exit:                                    ; preds = %if.then, %if.end.i
+  %now.sroa.0.0.now.idx.val39 = phi float [ 0.000000e+00, %if.then ], [ %mul.i, %if.end.i ]
+  %start_time.idx14 = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 0
+  %start_time.idx14.val = load float* %start_time.idx14, align 4, !tbaa !14
+  %start_time.idx15 = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 1
+  %start_time.idx15.val = load float* %start_time.idx15, align 4, !tbaa !15
+  %start_time.idx16 = getelementptr [45 x %struct.timevar_def]* @timevars, i64 0, i64 %idxprom, i32 1, i32 2
+  %start_time.idx16.val = load float* %start_time.idx16, align 4, !tbaa !16
+  %sub.i = fsub float %now.sroa.0.0.now.idx.val39, %start_time.idx14.val
+  %user2.i = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 0
+  %4 = load float* %user2.i, align 4, !tbaa !14
+  %add.i = fadd float %sub.i, %4
+  store float %add.i, float* %user2.i, align 4, !tbaa !14
+  %sub4.i = fsub float 0.000000e+00, %start_time.idx15.val
+  %sys5.i = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 1
+  %5 = load float* %sys5.i, align 4, !tbaa !15
+  %add6.i = fadd float %sub4.i, %5
+  store float %add6.i, float* %sys5.i, align 4, !tbaa !15
+  %sub8.i = fsub float 0.000000e+00, %start_time.idx16.val
+  %wall9.i = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 2
+  %6 = load float* %wall9.i, align 4, !tbaa !16
+  %add10.i = fadd float %sub8.i, %6
+  store float %add10.i, float* %wall9.i, align 4, !tbaa !16
+  br label %if.end4
+
+if.else:                                          ; preds = %entry
+  %7 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %timevar2 = getelementptr inbounds %struct.timevar_stack_def* %7, i64 0, i32 0
+  %8 = load %struct.timevar_def** %timevar2, align 8, !tbaa !12
+  %cmp = icmp eq %struct.timevar_def* %8, %arrayidx
+  br i1 %cmp, label %if.then3, label %if.end4
+
+if.then3:                                         ; preds = %if.else
+  %9 = load i32* @time_report, align 4, !tbaa !1
+  %tobool.i32 = icmp eq i32 %9, 0
+  br i1 %tobool.i32, label %get_time.exit37, label %if.end.i36
+
+if.end.i36:                                       ; preds = %if.then3
+  %call.i33 = tail call i64 @clock() #1
+  %conv.i34 = sitofp i64 %call.i33 to float
+  %10 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i35 = fmul float %conv.i34, %10
+  br label %get_time.exit37
+
+get_time.exit37:                                  ; preds = %if.then3, %if.end.i36
+  %now.sroa.0.0.now.idx.val38 = phi float [ 0.000000e+00, %if.then3 ], [ %mul.i35, %if.end.i36 ]
+  %start_time.idx.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4, !tbaa !14
+  %start_time.idx10.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4, !tbaa !15
+  %start_time.idx11.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4, !tbaa !16
+  %sub.i20 = fsub float %now.sroa.0.0.now.idx.val38, %start_time.idx.val
+  %user2.i21 = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 0
+  %11 = load float* %user2.i21, align 4, !tbaa !14
+  %add.i22 = fadd float %sub.i20, %11
+  store float %add.i22, float* %user2.i21, align 4, !tbaa !14
+  %sub4.i23 = fsub float 0.000000e+00, %start_time.idx10.val
+  %sys5.i24 = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 1
+  %12 = load float* %sys5.i24, align 4, !tbaa !15
+  %add6.i25 = fadd float %sub4.i23, %12
+  store float %add6.i25, float* %sys5.i24, align 4, !tbaa !15
+  %sub8.i26 = fsub float 0.000000e+00, %start_time.idx11.val
+  %wall9.i27 = getelementptr inbounds %struct.timevar_time_def* %elapsed, i64 0, i32 2
+  %13 = load float* %wall9.i27, align 4, !tbaa !16
+  %add10.i28 = fadd float %sub8.i26, %13
+  store float %add10.i28, float* %wall9.i27, align 4, !tbaa !16
+  br label %if.end4
+
+if.end4:                                          ; preds = %if.else, %get_time.exit37, %get_time.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @timevar_print(%struct._IO_FILE* %fp) #0 {
+entry:
+  %0 = load i32* @time_report, align 4, !tbaa !1
+  %tobool = icmp eq i32 %0, 0
+  br i1 %tobool, label %return, label %get_time.exit
+
+get_time.exit:                                    ; preds = %entry
+  %cmp = icmp eq %struct._IO_FILE* %fp, null
+  %1 = load %struct._IO_FILE** @stderr, align 8, !tbaa !11
+  %.fp = select i1 %cmp, %struct._IO_FILE* %1, %struct._IO_FILE* %fp
+  %call.i = tail call i64 @clock() #1
+  %conv.i = sitofp i64 %call.i to float
+  %2 = load float* @clocks_to_msec, align 4, !tbaa !10
+  %mul.i = fmul float %conv.i, %2
+  %3 = load %struct.timevar_stack_def** @stack, align 8, !tbaa !11
+  %tobool3 = icmp eq %struct.timevar_stack_def* %3, null
+  br i1 %tobool3, label %if.end5, label %if.then4
+
+if.then4:                                         ; preds = %get_time.exit
+  %timevar = getelementptr inbounds %struct.timevar_stack_def* %3, i64 0, i32 0
+  %4 = load %struct.timevar_def** %timevar, align 8, !tbaa !12
+  %start_time.idx.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4, !tbaa !14
+  %start_time.idx56.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4, !tbaa !15
+  %start_time.idx57.val = load float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4, !tbaa !16
+  %sub.i = fsub float %mul.i, %start_time.idx.val
+  %user2.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 0
+  %5 = load float* %user2.i, align 4, !tbaa !14
+  %add.i = fadd float %sub.i, %5
+  store float %add.i, float* %user2.i, align 4, !tbaa !14
+  %sub4.i = fsub float 0.000000e+00, %start_time.idx56.val
+  %sys5.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 1
+  %6 = load float* %sys5.i, align 4, !tbaa !15
+  %add6.i = fadd float %sub4.i, %6
+  store float %add6.i, float* %sys5.i, align 4, !tbaa !15
+  %sub8.i = fsub float 0.000000e+00, %start_time.idx57.val
+  %wall9.i = getelementptr inbounds %struct.timevar_def* %4, i64 0, i32 0, i32 2
+  %7 = load float* %wall9.i, align 4, !tbaa !16
+  %add10.i = fadd float %sub8.i, %7
+  store float %add10.i, float* %wall9.i, align 4, !tbaa !16
+  br label %if.end5
+
+if.end5:                                          ; preds = %get_time.exit, %if.then4
+  store float %mul.i, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 0), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 1), align 4
+  store float 0.000000e+00, float* getelementptr inbounds (%struct.timevar_time_def* @start_time, i64 0, i32 2), align 4
+  %8 = tail call i64 @fwrite(i8* getelementptr inbounds ([28 x i8]* @.str46, i64 0, i64 0), i64 27, i64 1, %struct._IO_FILE* %.fp)
+  br label %for.body
+
+for.body:                                         ; preds = %for.inc, %if.end5
+  %indvars.iv = phi i64 [ 0, %if.end5 ], [ %indvars.iv.next, %for.inc ]
+  %9 = trunc i64 %indvars.iv to i32
+  %cmp7 = icmp eq i32 %9, 0
+  br i1 %cmp7, label %for.inc, label %if.end9
+
+if.end9:                                          ; preds = %for.body
+  %used = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %indvars.iv, i32 3
+  %bf.load = load i8* %used, align 8
+  %bf.clear = and i8 %bf.load, 2
+  %tobool10 = icmp eq i8 %bf.clear, 0
+  br i1 %tobool10, label %for.inc, label %if.end12
+
+if.end12:                                         ; preds = %if.end9
+  %user = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %indvars.iv, i32 0, i32 0
+  %10 = load float* %user, align 8, !tbaa !19
+  %cmp14 = fcmp olt float %10, 0x3F747AE140000000
+  br i1 %cmp14, label %land.lhs.true, label %if.end21
+
+land.lhs.true:                                    ; preds = %if.end12
+  %sys = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %indvars.iv, i32 0, i32 1
+  %11 = load float* %sys, align 4, !tbaa !20
+  %cmp16 = fcmp olt float %11, 0x3F747AE140000000
+  br i1 %cmp16, label %land.lhs.true17, label %if.end21
+
+land.lhs.true17:                                  ; preds = %land.lhs.true
+  %wall = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %indvars.iv, i32 0, i32 2
+  %12 = load float* %wall, align 8, !tbaa !21
+  %cmp19 = fcmp olt float %12, 0x3F747AE140000000
+  br i1 %cmp19, label %for.inc, label %if.end21
+
+if.end21:                                         ; preds = %land.lhs.true17, %land.lhs.true, %if.end12
+  %name = getelementptr inbounds [45 x %struct.timevar_def]* @timevars, i64 0, i64 %indvars.iv, i32 2
+  %13 = load i8** %name, align 8, !tbaa !5
+  %call22 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %.fp, i8* getelementptr inbounds ([8 x i8]* @.str47, i64 0, i64 0), i8* %13) #1
+  %14 = load float* %user, align 8, !tbaa !19
+  %conv = fpext float %14 to double
+  %15 = load float* getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 0, i32 0, i32 0), align 16, !tbaa !14
+  %cmp26 = fcmp oeq float %15, 0.000000e+00
+  br i1 %cmp26, label %cond.end, label %cond.false
+
+cond.false:                                       ; preds = %if.end21
+  %div = fdiv float %14, %15
+  %phitmp = fmul float %div, 1.000000e+02
+  %phitmp55 = fpext float %phitmp to double
+  br label %cond.end
+
+cond.end:                                         ; preds = %if.end21, %cond.false
+  %cond = phi double [ %phitmp55, %cond.false ], [ 0.000000e+00, %if.end21 ]
+  %call32 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %.fp, i8* getelementptr inbounds ([20 x i8]* @.str48, i64 0, i64 0), double %conv, double %cond) #1
+  %call33 = tail call i32 @putc(i32 10, %struct._IO_FILE* %.fp) #1
+  br label %for.inc
+
+for.inc:                                          ; preds = %if.end9, %land.lhs.true17, %for.body, %cond.end
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %exitcond = icmp eq i64 %indvars.iv.next, 45
+  br i1 %exitcond, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.inc
+  %16 = tail call i64 @fwrite(i8* getelementptr inbounds ([25 x i8]* @.str49, i64 0, i64 0), i64 24, i64 1, %struct._IO_FILE* %.fp)
+  %17 = load float* getelementptr inbounds ([45 x %struct.timevar_def]* @timevars, i64 0, i64 0, i32 0, i32 0), align 16, !tbaa !14
+  %conv36 = fpext float %17 to double
+  %call37 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %.fp, i8* getelementptr inbounds ([16 x i8]* @.str50, i64 0, i64 0), double %conv36) #1
+  br label %return
+
+return:                                           ; preds = %entry, %for.end
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #4
+
+; Function Attrs: nounwind
+declare i32 @putc(i32, %struct._IO_FILE* nocapture) #4
+
+; Function Attrs: nounwind uwtable
+define i64 @get_run_time() #0 {
+entry:
+  %total_elapsed = alloca %struct.timevar_time_def, align 4
+  call void @timevar_get(i32 0, %struct.timevar_time_def* %total_elapsed)
+  %user = getelementptr inbounds %struct.timevar_time_def* %total_elapsed, i64 0, i32 0
+  %0 = load float* %user, align 4, !tbaa !14
+  %sys = getelementptr inbounds %struct.timevar_time_def* %total_elapsed, i64 0, i32 1
+  %1 = load float* %sys, align 4, !tbaa !15
+  %add = fadd float %0, %1
+  %conv = fptosi float %add to i64
+  ret i64 %conv
+}
+
+; Function Attrs: nounwind uwtable
+define void @print_time(i8* %str, i64 %total) #0 {
+entry:
+  %total_elapsed.i = alloca %struct.timevar_time_def, align 4
+  %0 = bitcast %struct.timevar_time_def* %total_elapsed.i to i8*
+  call void @llvm.lifetime.start(i64 12, i8* %0) #1
+  call void @timevar_get(i32 0, %struct.timevar_time_def* %total_elapsed.i) #1
+  %user.i = getelementptr inbounds %struct.timevar_time_def* %total_elapsed.i, i64 0, i32 0
+  %1 = load float* %user.i, align 4, !tbaa !14
+  %sys.i = getelementptr inbounds %struct.timevar_time_def* %total_elapsed.i, i64 0, i32 1
+  %2 = load float* %sys.i, align 4, !tbaa !15
+  %add.i = fadd float %1, %2
+  %conv.i = fptosi float %add.i to i64
+  call void @llvm.lifetime.end(i64 12, i8* %0) #1
+  %3 = load %struct._IO_FILE** @stderr, align 8, !tbaa !11
+  %div = sdiv i64 %total, 1000000
+  %rem = srem i64 %total, 1000000
+  %cmp = icmp eq i64 %conv.i, 0
+  br i1 %cmp, label %cond.end, label %cond.false
+
+cond.false:                                       ; preds = %entry
+  %conv = sitofp i64 %total to double
+  %mul = fmul double %conv, 1.000000e+02
+  %conv1 = sitofp i64 %conv.i to double
+  %div2 = fdiv double %mul, %conv1
+  %add = fadd double %div2, 5.000000e-01
+  %conv3 = fptosi double %add to i64
+  br label %cond.end
+
+cond.end:                                         ; preds = %entry, %cond.false
+  %cond = phi i64 [ %conv3, %cond.false ], [ 0, %entry ]
+  %call4 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %3, i8* getelementptr inbounds ([31 x i8]* @.str51, i64 0, i64 0), i8* %str, i64 %div, i64 %rem, i64 %cond) #6
+  ret void
+}
+
+declare i64 @clock() #3
+
+; Function Attrs: nounwind
+declare i64 @fwrite(i8* nocapture, i64, i64, %struct._IO_FILE* nocapture) #1
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #1
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.end(i64, i8* nocapture) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind }
+attributes #2 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { noreturn nounwind }
+attributes #6 = { cold nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !9, i64 24}
+!6 = metadata !{metadata !"timevar_def", metadata !7, i64 0, metadata !7, i64 12, metadata !9, i64 24, metadata !2, i64 32, metadata !2, i64 32}
+!7 = metadata !{metadata !"timevar_time_def", metadata !8, i64 0, metadata !8, i64 4, metadata !8, i64 8}
+!8 = metadata !{metadata !"float", metadata !3, i64 0}
+!9 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!10 = metadata !{metadata !8, metadata !8, i64 0}
+!11 = metadata !{metadata !9, metadata !9, i64 0}
+!12 = metadata !{metadata !13, metadata !9, i64 0}
+!13 = metadata !{metadata !"timevar_stack_def", metadata !9, i64 0, metadata !9, i64 8}
+!14 = metadata !{metadata !7, metadata !8, i64 0}
+!15 = metadata !{metadata !7, metadata !8, i64 4}
+!16 = metadata !{metadata !7, metadata !8, i64 8}
+!17 = metadata !{metadata !13, metadata !9, i64 8}
+!18 = metadata !{i64 0, i64 4, metadata !10, i64 4, i64 4, metadata !10, i64 8, i64 4, metadata !10}
+!19 = metadata !{metadata !6, metadata !8, i64 0}
+!20 = metadata !{metadata !6, metadata !8, i64 4}
+!21 = metadata !{metadata !6, metadata !8, i64 8}
