@@ -125,7 +125,6 @@ def RIZ : Cse523Reg<"riz", 4>;
 def GR64 : RegisterClass<"Cse523", [i64], 64,
                          (add RAX, RCX, RDX, RSI, RDI, R8, R9, R10, R11,
                               RBX, R14, R15, R12, R13, RBP, RSP, RIP)>;
-
 // Segment registers for use by MOV instructions (and others) that have a
 //   segment register as one operand.  Always contain a 16-bit segment
 //   descriptor.

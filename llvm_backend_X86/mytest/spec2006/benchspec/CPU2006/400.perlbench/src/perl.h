@@ -7,7 +7,7 @@
  *    License or the Artistic License, as specified in the README file.
  *
  */
-
+#include<INTERN.h>
 #ifndef H_PERL
 #define H_PERL 1
 

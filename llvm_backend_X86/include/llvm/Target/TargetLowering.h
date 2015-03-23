@@ -96,8 +96,8 @@ public:
     TypeExpandFloat,     // Split this float into two of half the size.
     TypeScalarizeVector, // Replace this one-element vector with its element.
     TypeSplitVector,     // Split this vector into two of half the size.
-    TypeWidenVector      // This vector should be widened into a larger vector.
-  };
+    TypeWidenVector,      // This vector should be widened into a larger vector.
+     };
 
   /// LegalizeKind holds the legalization kind that needs to happen to EVT
   /// in order to type-legalize it.

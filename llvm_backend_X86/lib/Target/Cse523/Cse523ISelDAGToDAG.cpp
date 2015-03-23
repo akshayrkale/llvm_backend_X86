@@ -260,7 +260,7 @@ namespace {
             if (AM.Segment.getNode())
                 Segment = AM.Segment;
             else
-                Segment = CurDAG->getRegister(0, MVT::i32);
+                Segment = CurDAG->getRegister(0, MVT::i64);
         }
 
         /// getI8Imm - Return a target constant with the specified value, of type
@@ -1462,7 +1462,7 @@ bool Cse523DAGToDAGISel::SelectLEAAddr(SDValue N,
     // Set AM.Segment to prevent MatchAddress from using one. LEA doesn't support
     // segments.
     SDValue Copy = AM.Segment;
-    SDValue T = CurDAG->getRegister(0, MVT::i32);
+    SDValue T = CurDAG->getRegister(0, MVT::i64);
     AM.Segment = T;
     if (MatchAddress(N, AM))
         return false;
@@ -2036,7 +2036,7 @@ SDNode *Cse523DAGToDAGISel::SelectGather(SDNode *Node, unsigned Opc) {
 
     // Memory Operands: Base, Scale, Index, Disp, Segment
     SDValue Disp = CurDAG->getTargetConstant(0, MVT::i32);
-    SDValue Segment = CurDAG->getRegister(0, MVT::i32);
+    SDValue Segment = CurDAG->getRegister(0, MVT::i64);
     const SDValue Ops[] = { VSrc, Base, getI8Imm(Scale->getSExtValue()), VIdx,
         Disp, Segment, VMask, Chain};
     SDNode *ResNode = CurDAG->getMachineNode(Opc, SDLoc(Node), VTs, Ops);
@@ -2208,7 +2208,7 @@ SDNode *Cse523DAGToDAGISel::Select(SDNode *Node) {
                                   SDValue InFlag = CurDAG->getCopyToReg(CurDAG->getEntryNode(), dl, LoReg,
                                           N0, SDValue()).getValue(1);
 
-                                  SDVTList VTs = CurDAG->getVTList(NVT, NVT, MVT::i32);
+                                  SDVTList VTs = CurDAG->getVTList(NVT, NVT, MVT::i64);
                                   SDValue Ops[] = {N1, InFlag};
                                   SDNode *CNode = CurDAG->getMachineNode(Opc, dl, VTs, Ops);
 

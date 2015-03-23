@@ -7,7 +7,8 @@
  *    License or the Artistic License, as specified in the README file.
  *
  */
-
+#include<spec_config.h>
+#include<perl.h>
 #if !defined(__STDC__)
 #ifdef NULL
 #undef NULL

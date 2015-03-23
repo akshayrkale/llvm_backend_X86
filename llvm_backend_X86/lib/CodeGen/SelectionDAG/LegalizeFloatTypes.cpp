@@ -40,6 +40,22 @@ static RTLIB::Libcall GetFPLibCall(EVT VT,
     RTLIB::UNKNOWN_LIBCALL;
 }
 
+
+using namespace llvm;
+void DAGTypeLegalizer::SoftenPromoteFloatResult(SDNode *N, unsigned ResNo) {
+//SDValue DAGTypeLegalizer::SoftenFloatRes_FP_EXTEND(SDNode *N) {
+SDValue R = SDValue();
+
+  //EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), N->getValueType(0));
+  EVT NVT = EVT(MVT::f64);
+  SDValue Op = N->getOperand(0);
+  RTLIB::Libcall LC = RTLIB::getFPEXT(MVT::f32, MVT::f64);
+  assert(LC != RTLIB::UNKNOWN_LIBCALL && "Unsupported FP_EXTEND!");
+  R= TLI.makeLibCall(DAG, LC, NVT, &Op, 1, false, SDLoc(N)).first;
+
+SoftenFloatResult(N, ResNo);
+
+}
 //===----------------------------------------------------------------------===//
 //  Result Float to Integer Conversion.
 //===----------------------------------------------------------------------===//
@@ -603,7 +619,10 @@ SDValue DAGTypeLegalizer::SoftenFloatRes_XINT_TO_FP(SDNode *N) {
                          &Op, 1, false, dl).first;
 }
 
-
+bool DAGTypeLegalizer::SoftenPromoteFloatOperand(SDNode *N, unsigned OpNo) {
+  SoftenFloatOperand(N, OpNo);
+  PromoteIntegerOperand(N, OpNo);
+}
 //===----------------------------------------------------------------------===//
 //  Operand Float to Integer Conversion..
 //===----------------------------------------------------------------------===//

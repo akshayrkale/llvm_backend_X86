@@ -32,6 +32,10 @@ holds the key and hash value.
 #include "perl.h"
 
 #define HV_MAX_LENGTH_BEFORE_SPLIT 14
+#ifndef PERL_ARENA_SIZE
+#define PERL_ARENA_SIZE 4080
+#endif
+
 
 STATIC HE*
 S_new_he(pTHX)

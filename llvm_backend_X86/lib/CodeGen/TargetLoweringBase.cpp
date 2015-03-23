@@ -1059,7 +1059,7 @@ void TargetLoweringBase::computeRegisterProperties() {
       RegisterTypeForVT[MVT::f32] = RegisterTypeForVT[MVT::f64];
       TransformToType[MVT::f32] = MVT::f64;
       ValueTypeActions.setTypeAction(MVT::f32, TypePromoteInteger);
-    } else {
+    }  else {
       NumRegistersForVT[MVT::f32] = NumRegistersForVT[MVT::i32];
       RegisterTypeForVT[MVT::f32] = RegisterTypeForVT[MVT::i32];
       TransformToType[MVT::f32] = MVT::i32;
@@ -1067,6 +1067,7 @@ void TargetLoweringBase::computeRegisterProperties() {
     }
   }
 
+	
   // Loop over all of the vector value types to see which need transformations.
   for (unsigned i = MVT::FIRST_VECTOR_VALUETYPE;
        i <= (unsigned)MVT::LAST_VECTOR_VALUETYPE; ++i) {

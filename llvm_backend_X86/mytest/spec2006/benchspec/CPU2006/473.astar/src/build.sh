@@ -11,7 +11,7 @@ exit 1;
 fi
 LIBC_PATH=../musl-1.0.4
 LIBS=`echo $LIBC_PATH/lib/{crt1.o,libc.a,softfloat.o}`
-TOOLS_PATH=~/llvm523/llvm_backend/build_523/Debug+Asserts/bin
+TOOLS_PATH=~/llvm523/llvm_backend_X86/build_523/Debug+Asserts/bin
 for c in *.cpp; do
      if [ -f $c.o ]
      then
@@ -20,7 +20,7 @@ for c in *.cpp; do
     #echo "[Running] gcc $c"
     #gcc -nostdinc -c -o $c.o -I$LIBC_PATH/include $c
     echo "[Running] clang $c"
-    $TOOLS_PATH/clang -Wno-main-return-type -emit-llvm -DENABLE_SCORE -DENABLE_PREVIEW -DENABLE_HIGH_SCORE -O3 -S -c -o $c.bc -nobuiltininc -isystem $LIBC_PATH/include $c -isystem .  -DFN
+    $TOOLS_PATH/clang -Wno-main-return-type -emit-llvm -DENABLE_SCORE -DENABLE_PREVIEW -DENABLE_HIGH_SCORE -O3 -S -c -o $c.bc -nobuiltininc -isystem $LIBC_PATH/include $c -isystem . -DFN
     echo "[Running] llc $c.bc"
     $TOOLS_PATH/llc -soft-float -march=cse523 -O3 $c.bc -o $c.S
     #~/llvm/build/Debug+Asserts/bin/llc -soft-float -O3 $c.bc -o $c.S

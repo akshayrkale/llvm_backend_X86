@@ -9,7 +9,7 @@
 #ifndef EXTERN
 #define EXTERN extern
 #endif
-
+#include "perl.h"
 
 EXTERN SV*
 sv_lower(pTHX_ SV* sv)

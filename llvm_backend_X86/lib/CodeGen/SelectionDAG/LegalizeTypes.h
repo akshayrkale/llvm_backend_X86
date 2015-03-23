@@ -382,6 +382,7 @@ private:
 
   // Result Float to Integer Conversion.
   void SoftenFloatResult(SDNode *N, unsigned OpNo);
+  void SoftenPromoteFloatResult(SDNode *N, unsigned OpNo);
   SDValue SoftenFloatRes_MERGE_VALUES(SDNode *N, unsigned ResNo);
   SDValue SoftenFloatRes_BITCAST(SDNode *N);
   SDValue SoftenFloatRes_BUILD_PAIR(SDNode *N);
@@ -424,6 +425,7 @@ private:
 
   // Operand Float to Integer Conversion.
   bool SoftenFloatOperand(SDNode *N, unsigned OpNo);
+  bool SoftenPromoteFloatOperand(SDNode *N, unsigned OpNo);
   SDValue SoftenFloatOp_BITCAST(SDNode *N);
   SDValue SoftenFloatOp_BR_CC(SDNode *N);
   SDValue SoftenFloatOp_FP_ROUND(SDNode *N);

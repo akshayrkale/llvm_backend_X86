@@ -283,11 +283,14 @@ void Cse523TargetLowering::resetOperationActions() {
         setUseUnderscoreLongJmp(true);
     }
 
+   
     // Set up the register classes.
     addRegisterClass(MVT::i64, &Cse523::GR64RegClass);
+//    addRegisterClass(MVT::i32, &Cse523::GR64RegClass);
 
     setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
 
+   
     // SETOEQ and SETUNE require checking two conditions.
     setCondCodeAction(ISD::SETOEQ, MVT::f32, Expand);
     setCondCodeAction(ISD::SETOEQ, MVT::f64, Expand);
@@ -479,6 +482,7 @@ void Cse523TargetLowering::resetOperationActions() {
         setOperationAction(ISD::SETCC         , MVT::i64  , Custom);
     }
     setOperationAction(ISD::EH_RETURN       , MVT::Other, Custom);
+    	
     // NOTE: EH_SJLJ_SETJMP/_LONGJMP supported here is NOT intended to support
     // SjLj exception handling but a light-weight setjmp/longjmp replacement to
     // support continuation, user-level threading, and etc.. As a result, no

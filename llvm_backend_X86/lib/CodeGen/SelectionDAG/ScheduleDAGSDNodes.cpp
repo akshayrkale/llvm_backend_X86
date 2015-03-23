@@ -127,7 +127,7 @@ static void CheckForPhysRegDependency(SDNode *Def, SDNode *User, unsigned Op,
       const TargetRegisterClass *RC =
         TRI->getMinimalPhysRegClass(Reg, Def->getValueType(ResNo));
       Cost = RC->getCopyCost();
-    }
+    }//LIFETIME_START
   }
 }
 

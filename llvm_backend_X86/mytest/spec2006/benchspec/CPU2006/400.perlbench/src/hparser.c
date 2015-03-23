@@ -10,10 +10,21 @@
 #ifndef EXTERN
 #define EXTERN extern
 #endif
+#if PATCHLEVEL > 6 || (PATCHLEVEL == 6 && SUBVERSION > 0)
+   #define RETHROW	   croak(Nullch)
+#else
+   #define RETHROW    { STRLEN my_na; croak("%s", SvPV(ERRSV, my_na)); }
+#endif
+#ifdef G_WARN_ON
+   #define DOWARN (PL_dowarn & G_WARN_ON)
+#else
+   #define DOWARN PL_dowarn
+#endif
+
 
 #include "hctype.h"    /* isH...() macros */
 #include "tokenpos.h"  /* dTOKEN; PUSH_TOKEN() */
-
+#include "hparser.h"
 
 static
 struct literal_tag {

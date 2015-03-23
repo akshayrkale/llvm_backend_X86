@@ -229,6 +229,10 @@ bool DAGTypeLegalizer::run() {
       // with a legal type).  Results can be remapped using ReplaceValueWith,
       // or their promoted/expanded/etc values registered in PromotedIntegers,
       // ExpandedIntegers etc.
+      case TargetLowering::TypeSoftenPromoteFloat:
+        SoftenPromoteFloatResult(N, i);
+        Changed = true;
+        goto NodeDone;
       case TargetLowering::TypePromoteInteger:
         PromoteIntegerResult(N, i);
         Changed = true;
@@ -278,6 +282,10 @@ ScanOperands:
       // The following calls must either replace all of the node's results
       // using ReplaceValueWith, and return "false"; or update the node's
       // operands in place, and return "true".
+      case TargetLowering::TypeSoftenPromoteFloat:
+        NeedsReanalyzing = SoftenPromoteFloatOperand(N, i);
+        Changed = true;
+        break;
       case TargetLowering::TypePromoteInteger:
         NeedsReanalyzing = PromoteIntegerOperand(N, i);
         Changed = true;

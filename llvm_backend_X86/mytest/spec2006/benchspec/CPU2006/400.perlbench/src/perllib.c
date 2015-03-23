@@ -9,6 +9,7 @@
 
 #ifdef PERL_IMPLICIT_SYS
 #include "win32iop.h"
+#include<win32.h>
 #include <fcntl.h>
 #endif /* PERL_IMPLICIT_SYS */
 
@@ -243,7 +244,7 @@ EndSockets(void);
 #ifdef __MINGW32__
 EXTERN_C		/* GCC in C++ mode mangles the name, otherwise */
 #endif
-BOOL APIENTRY
+BOOL APIENTRY;
 DllMain(HANDLE hModule,		/* DLL module handle */
 	DWORD fdwReason,	/* reason called */
 	LPVOID lpvReserved)	/* reserved */
