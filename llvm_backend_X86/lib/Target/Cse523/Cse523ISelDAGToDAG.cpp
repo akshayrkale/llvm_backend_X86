@@ -2588,7 +2588,7 @@ SDNode *Cse523DAGToDAGISel::Select(SDNode *Node) {
                              unsigned newOpc = getFusedLdStOpcode(LdVT, Opc);
                              MachineSDNode *Result = CurDAG->getMachineNode(newOpc,
                                      SDLoc(Node),
-                                     MVT::i32, MVT::Other, Ops);
+                                     MVT::i64, MVT::Other, Ops);
                              Result->setMemRefs(MemOp, MemOp + 2);
 
                              ReplaceUses(SDValue(StoreNode, 0), SDValue(Result, 1));
