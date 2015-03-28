@@ -825,8 +825,18 @@ void Cse523TargetLowering::resetOperationActions() {
 }
 
 EVT Cse523TargetLowering::getSetCCResultType(LLVMContext &, EVT VT) const {
-    assert(!VT.isVector());
+//    assert(!VT.isVector());
+ if (!VT.isVector())
     return MVT::i64;
+
+    switch(VT.getVectorNumElements()) {
+    case  2: return MVT::v2i1;
+    case  4: return MVT::v4i1;
+    case  8: return MVT::v8i1;
+    case 16: return MVT::v16i1;
+  }
+
+  return VT.changeVectorElementTypeToInteger();
 }
 
 /// getMaxByValAlign - Helper for getByValTypeAlignment to determine
