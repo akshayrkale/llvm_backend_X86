@@ -1522,6 +1522,7 @@ public:
       MVT NVT = TransformToType[SVT.SimpleTy];
       LegalizeTypeAction LA = ValueTypeActions.getTypeAction(SVT);
 
+      if(!(SVT==MVT::f32 && NVT == MVT::i32 && ValueTypeActions.getTypeAction(NVT) == TypePromoteInteger))
       assert(
         (LA == TypeLegal ||
          ValueTypeActions.getTypeAction(NVT) != TypePromoteInteger)
