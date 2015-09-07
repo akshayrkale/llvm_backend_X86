@@ -212,10 +212,6 @@ static SDValue getCopyFromParts(SelectionDAG &DAG, SDLoc DL,
   if (PartEVT.getSizeInBits() == ValueVT.getSizeInBits())
     return DAG.getNode(ISD::BITCAST, DL, ValueVT, Val);
 
-  if(ValueVT == EVT(MVT::f32))  {
-     SDValue IntMVal = DAG.getNode(ISD::TRUNCATE, DL, EVT(MVT::i32), Val);
-     return DAG.getNode(ISD::BITCAST, DL, ValueVT, IntMVal);
-  }
   llvm_unreachable("Unknown mismatch!");
 }
 
@@ -372,9 +368,6 @@ static void getCopyToParts(SelectionDAG &DAG, SDLoc DL,
     if (PartVT.isFloatingPoint() && ValueVT.isFloatingPoint()) {
       assert(NumParts == 1 && "Do not know what to promote to!");
       Val = DAG.getNode(ISD::FP_EXTEND, DL, PartVT, Val);
-    }else if(ValueVT == EVT(MVT::f32) && PartVT == MVT::i64){
-      SDValue IntMVal = DAG.getNode(ISD::FP_EXTEND, DL, MVT::f64, Val);
-      Val = DAG.getNode(ISD::BITCAST, DL, PartVT, IntMVal);
     }else {
       assert((PartVT.isInteger() || PartVT == MVT::x86mmx) &&
              ValueVT.isInteger() &&
@@ -793,7 +786,7 @@ void RegsForValue::getCopyToRegs(SDValue Val, SelectionDAG &DAG, SDLoc dl,
   for (unsigned Value = 0, Part = 0, e = ValueVTs.size(); Value != e; ++Value) {
     EVT ValueVT = ValueVTs[Value];
     unsigned NumParts = TLI.getNumRegisters(*DAG.getContext(), ValueVT);
-    MVT RegisterVT = RegVTs[Value];
+    MVT RegisterVT= RegVTs[Value];
     ISD::NodeType ExtendKind =
       TLI.isZExtFree(Val, RegisterVT)? ISD::ZERO_EXTEND: ISD::ANY_EXTEND;
 

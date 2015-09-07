@@ -551,7 +551,16 @@ SDValue DAGTypeLegalizer::SoftenFloatRes_LOAD(SDNode *N) {
   // Legalized the chain result - switch anything that used the old chain to
   // use the new one.
   ReplaceValueWith(SDValue(N, 1), NewL.getValue(1));
-  return BitConvertToInteger(DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL));
+  unsigned BitWidth = NewL.getValueType().getSizeInBits();
+  SDValue IntNewL = DAG.getNode(ISD::BITCAST, SDLoc(NewL),
+                     EVT::getIntegerVT(*DAG.getContext(), BitWidth), NewL);
+  //return DAG.getNode(ISD::FP_EXTEND, dl, VT, IntNewL) 
+
+  return DAG.getNode(ISD::SIGN_EXTEND_INREG, dl, NVT, IntNewL,
+                           DAG.getValueType(IntNewL.getValueType()));
+  //DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL)
+
+	//  return BitConvertToInteger(DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL));
 }
 
 SDValue DAGTypeLegalizer::SoftenFloatRes_SELECT(SDNode *N) {
