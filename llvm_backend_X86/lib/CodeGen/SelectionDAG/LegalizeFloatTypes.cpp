@@ -556,9 +556,9 @@ SDValue DAGTypeLegalizer::SoftenFloatRes_LOAD(SDNode *N) {
                      EVT::getIntegerVT(*DAG.getContext(), BitWidth), NewL);
   //return DAG.getNode(ISD::FP_EXTEND, dl, VT, IntNewL) 
 
-  return DAG.getNode(ISD::SIGN_EXTEND_INREG, dl, NVT, IntNewL,
-                           DAG.getValueType(IntNewL.getValueType()));
-  //DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL)
+  return DAG.getNode(ISD::SIGN_EXTEND, dl, NVT, IntNewL);
+  
+	//DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL)
 
 	//  return BitConvertToInteger(DAG.getNode(ISD::FP_EXTEND, dl, VT, NewL));
 }
