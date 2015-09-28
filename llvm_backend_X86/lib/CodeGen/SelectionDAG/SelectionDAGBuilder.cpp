@@ -368,7 +368,10 @@ static void getCopyToParts(SelectionDAG &DAG, SDLoc DL,
     if (PartVT.isFloatingPoint() && ValueVT.isFloatingPoint()) {
       assert(NumParts == 1 && "Do not know what to promote to!");
       Val = DAG.getNode(ISD::FP_EXTEND, DL, PartVT, Val);
-    }else {
+    }else if(ValueVT == EVT(MVT::f32) && PartVT == MVT::i64){
+      SDValue IntMVal = DAG.getNode(ISD::BITCAST, DL, MVT::i32, Val);
+      Val = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, IntMVal);
+    }else{
       assert((PartVT.isInteger() || PartVT == MVT::x86mmx) &&
              ValueVT.isInteger() &&
              "Unknown mismatch!");
@@ -377,7 +380,7 @@ static void getCopyToParts(SelectionDAG &DAG, SDLoc DL,
       if (PartVT == MVT::x86mmx)
         Val = DAG.getNode(ISD::BITCAST, DL, PartVT, Val);
     }
-  } else if (PartBits == ValueVT.getSizeInBits()) {
+  }else if (PartBits == ValueVT.getSizeInBits()) {
     // Different types of the same size.
     assert(NumParts == 1 && PartEVT != ValueVT);
     Val = DAG.getNode(ISD::BITCAST, DL, PartVT, Val);
@@ -7661,3 +7664,4 @@ AddSuccessorMBB(const BasicBlock *BB,
   ParentMBB->addSuccessor(SuccMBB);
   return SuccMBB;
 }
+//===-- SelectionDAGBuilder.cpp - Selection-DAG building ------------------===//
