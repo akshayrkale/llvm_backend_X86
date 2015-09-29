@@ -211,7 +211,10 @@ static SDValue getCopyFromParts(SelectionDAG &DAG, SDLoc DL,
   
   if (PartEVT.getSizeInBits() == ValueVT.getSizeInBits())
     return DAG.getNode(ISD::BITCAST, DL, ValueVT, Val);
-
+  if (ValueVT == EVT(MVT::f32))  {
+     SDValue IntMVal = DAG.getNode(ISD::TRUNCATE, DL, EVT(MVT::i32), Val);
+     return DAG.getNode(ISD::BITCAST, DL, ValueVT, IntMVal);
+  } 
   llvm_unreachable("Unknown mismatch!");
 }
 
