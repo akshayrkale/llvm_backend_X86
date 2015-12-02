@@ -19,9 +19,6 @@ public static void listFilesForFolder(final File folder) {
 	    }
         }
     }
-    for(Map.Entry<String, Integer> obj : insnCount.entrySet())
-	System.out.println(obj.getValue()+" : "+obj.getKey());
-
 }
 
 static void updateHashMap(String filename)
@@ -48,7 +45,9 @@ static void updateHashMap(String filename)
 			if(insnCount.containsKey(opcode))
 				insnCount.put(opcode,insnCount.get(opcode) +1);
 			else
+			{
 				insnCount.put(opcode, 1);
+			}
 		}
     }
 }catch(Exception e)
@@ -63,5 +62,9 @@ public static void main(String args[])
 
 	final File folder = new File(".");
 	listFilesForFolder(folder);
+	for(Map.Entry<String, Integer> obj : insnCount.entrySet())
+		System.out.println(obj.getValue()+" : "+obj.getKey());
+
+
 }
 }
