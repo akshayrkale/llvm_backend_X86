@@ -1241,7 +1241,7 @@ def : MnemonicAlias<"smovw", "movsw", "att">;
 def : MnemonicAlias<"smovl", "movsl", "att">;
 def : MnemonicAlias<"smovq", "movsq", "att">;
 
-def : MnemonicAlias<"ud2a",  "ud2",  "att">;
+//def : MnemonicAlias<"ud2a",  "ud2",  "att">;
 def : MnemonicAlias<"verrw", "verr", "att">;
 
 // System instruction aliases.
