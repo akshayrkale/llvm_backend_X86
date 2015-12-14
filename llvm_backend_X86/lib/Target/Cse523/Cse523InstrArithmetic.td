@@ -753,8 +753,8 @@ defm SUB : ArithBinOp_RF<0x28, 0x2A, 0x2C, "sub", MRM5r, MRM5m,
 // Arithmetic.
 defm ADC : ArithBinOp_RFF<0x10, 0x12, 0x14, "adc", MRM2r, MRM2m, Cse523adc_flag,
                           1, 0>;
-defm SBB : ArithBinOp_RFF<0x18, 0x1A, 0x1C, "sbb", MRM3r, MRM3m, Cse523sbb_flag,
-                          0, 0>;
+//defm SBB : ArithBinOp_RFF<0x18, 0x1A, 0x1C, "sbb", MRM3r, MRM3m, Cse523sbb_flag,
+//                          0, 0>;
 
 let isCompare = 1 in {
 defm CMP : ArithBinOp_F<0x38, 0x3A, 0x3C, "cmp", MRM7r, MRM7m, Cse523cmp, 0, 0>;

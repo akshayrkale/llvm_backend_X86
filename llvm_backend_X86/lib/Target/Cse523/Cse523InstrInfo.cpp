@@ -125,7 +125,7 @@ Cse523InstrInfo::Cse523InstrInfo(Cse523TargetMachine &tm)
         { Cse523::SAR64rCL,    Cse523::SAR64mCL,   0 },
         { Cse523::SAR64ri,     Cse523::SAR64mi,    0 },
         //{ Cse523::SBB64ri32,   Cse523::SBB64mi32,  0 },
-        { Cse523::SBB64rr,     Cse523::SBB64mr,    0 },
+        //{ Cse523::SBB64rr,     Cse523::SBB64mr,    0 },
         { Cse523::SHL64rCL,    Cse523::SHL64mCL,   0 },
         { Cse523::SHL64ri,     Cse523::SHL64mi,    0 },
         //{ Cse523::SHLD64rrCL,  Cse523::SHLD64mrCL, 0 },
@@ -1707,7 +1707,7 @@ inline static bool isDefConvertible(MachineInstr *MI) {
         case Cse523::ADC64rr:
         //case Cse523::ADC64ri32:
         //case Cse523::SBB64ri32:
-        case Cse523::SBB64rr:
+        //case Cse523::SBB64rr:
         //case Cse523::ANDN64rr:
         //case Cse523::ANDN64rm:
         //case Cse523::BEXTR64rr:
@@ -2067,7 +2067,7 @@ bool Cse523InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
 //        case Cse523::SETB_C32r:
 //            return Expand2AddrUndef(MIB, get(Cse523::SBB32rr));
         case Cse523::SETB_C64r:
-            return Expand2AddrUndef(MIB, get(Cse523::SBB64rr));
+            return Expand2AddrUndef(MIB, get(Cse523::SUB64rr));
 //        case Cse523::TEST8ri_NOREX:
 //            MI->setDesc(get(Cse523::TEST8ri));
 //            return true;

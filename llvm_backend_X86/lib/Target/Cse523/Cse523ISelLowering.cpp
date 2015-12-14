@@ -6319,7 +6319,7 @@ static bool isCse523LogicalCmp(SDValue Op) {
             (Opc == Cse523ISD::ADD ||
              Opc == Cse523ISD::SUB ||
              Opc == Cse523ISD::ADC ||
-             Opc == Cse523ISD::SBB ||
+//             Opc == Cse523ISD::SBB ||
              Opc == Cse523ISD::SMUL ||
              Opc == Cse523ISD::UMUL ||
              Opc == Cse523ISD::INC ||
@@ -8675,7 +8675,7 @@ static SDValue LowerADDC_ADDE_SUBC_SUBE(SDValue Op, SelectionDAG &DAG) {
         case ISD::ADDC: Opc = Cse523ISD::ADD; break;
         case ISD::ADDE: Opc = Cse523ISD::ADC; ExtraOp = true; break;
         case ISD::SUBC: Opc = Cse523ISD::SUB; break;
-        case ISD::SUBE: Opc = Cse523ISD::SBB; ExtraOp = true; break;
+        case ISD::SUBE: Opc = Cse523ISD::SUB; ExtraOp = true; break;
     }
 
     if (!ExtraOp)
@@ -9167,7 +9167,7 @@ const char *Cse523TargetLowering::getTargetNodeName(unsigned Opcode) const {
         case Cse523ISD::ADD:                return "Cse523ISD::ADD";
         case Cse523ISD::SUB:                return "Cse523ISD::SUB";
         case Cse523ISD::ADC:                return "Cse523ISD::ADC";
-        case Cse523ISD::SBB:                return "Cse523ISD::SBB";
+//        case Cse523ISD::SBB:                return "Cse523ISD::SBB";
         case Cse523ISD::SMUL:               return "Cse523ISD::SMUL";
         case Cse523ISD::UMUL:               return "Cse523ISD::UMUL";
         case Cse523ISD::INC:                return "Cse523ISD::INC";
@@ -11121,7 +11121,7 @@ void Cse523TargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
         case Cse523ISD::ADD:
         case Cse523ISD::SUB:
         case Cse523ISD::ADC:
-        case Cse523ISD::SBB:
+//        case Cse523ISD::SBB:
         case Cse523ISD::SMUL:
         case Cse523ISD::UMUL:
         case Cse523ISD::INC:
@@ -13778,10 +13778,10 @@ static SDValue OptimizeConditionalInDecrement(SDNode *N, SelectionDAG &DAG) {
 
     SDValue OtherVal = N->getOperand(N->getOpcode() == ISD::SUB ? 0 : 1);
     if (CC == Cse523::COND_NE)
-        return DAG.getNode(N->getOpcode() == ISD::SUB ? Cse523ISD::ADC : Cse523ISD::SBB,
+        return DAG.getNode(N->getOpcode() == ISD::SUB ? Cse523ISD::ADC : Cse523ISD::SUB,
                 DL, OtherVal.getValueType(), OtherVal,
                 DAG.getConstant(-1ULL, OtherVal.getValueType()), NewCmp);
-    return DAG.getNode(N->getOpcode() == ISD::SUB ? Cse523ISD::SBB : Cse523ISD::ADC,
+    return DAG.getNode(N->getOpcode() == ISD::SUB ? Cse523ISD::SUB : Cse523ISD::ADC,
             DL, OtherVal.getValueType(), OtherVal,
             DAG.getConstant(0, OtherVal.getValueType()), NewCmp);
 }

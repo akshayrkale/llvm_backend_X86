@@ -289,7 +289,7 @@ namespace llvm {
       CMPMU,
 
       // ADD, SUB, SMUL, etc. - Arithmetic operations with FLAGS results.
-      ADD, SUB, ADC, SBB, SMUL,
+      ADD, SUB, ADC,  SMUL,
       INC, DEC, OR, XOR, AND,
 
       BZHI,   // BZHI - Zero high bits

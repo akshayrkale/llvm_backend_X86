@@ -236,7 +236,7 @@ def Cse523smul_flag : SDNode<"Cse523ISD::SMUL", SDTBinaryArithWithFlags,
 def Cse523umul_flag : SDNode<"Cse523ISD::UMUL", SDT2ResultBinaryArithWithFlags,
                           [SDNPCommutative]>;
 def Cse523adc_flag  : SDNode<"Cse523ISD::ADC",  SDTBinaryArithWithFlagsInOut>;
-def Cse523sbb_flag  : SDNode<"Cse523ISD::SBB",  SDTBinaryArithWithFlagsInOut>;
+//def Cse523sbb_flag  : SDNode<"Cse523ISD::SBB",  SDTBinaryArithWithFlagsInOut>;
 
 def Cse523inc_flag  : SDNode<"Cse523ISD::INC",  SDTUnaryArithWithFlags>;
 def Cse523dec_flag  : SDNode<"Cse523ISD::DEC",  SDTUnaryArithWithFlags>;
