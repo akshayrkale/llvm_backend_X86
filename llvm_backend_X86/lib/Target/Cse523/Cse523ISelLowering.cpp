@@ -5961,14 +5961,14 @@ SDValue Cse523TargetLowering::EmitTest(SDValue Op, unsigned Cse523CC,
                 // An add of one will be selected as an INC.
                 if (C->getAPIntValue() == 1) {
                     Opcode = Cse523ISD::ADD;
-                    NumOperands = 1;
+                    NumOperands = 2;
                     break;
                 }
 
                 // An add of negative one (subtract of one) will be selected as a DEC.
                 if (C->getAPIntValue().isAllOnesValue()) {
                     Opcode = Cse523ISD::SUB;
-                    NumOperands = 1;
+                    NumOperands = 2;
                     break;
                 }
             }
