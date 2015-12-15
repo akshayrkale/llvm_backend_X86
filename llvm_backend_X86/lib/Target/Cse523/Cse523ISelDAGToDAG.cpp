@@ -1586,8 +1586,8 @@ SDNode *Cse523DAGToDAGISel::SelectAtomic64(SDNode *Node, unsigned Opc) {
 enum AtomicOpc {
     ADD,
     SUB,
-    INC,
-    DEC,
+//    INC,
+//    DEC,
     OR,
     AND,
     XOR,
@@ -1722,7 +1722,7 @@ static SDValue getAtomicLoadArithTargetConstant(SelectionDAG *CurDAG,
         if (Op == ADD) {
             // Translate to INC/DEC if ADD by 1 or -1.
             if ((CNVal == 1) || (CNVal == -1)) {
-                Op = (CNVal == 1) ? INC : DEC;
+                Op = (CNVal == 1) ? ADD : SUB;
                 // No more constant operand after being translated into INC/DEC.
                 return SDValue();
             }
@@ -1928,7 +1928,7 @@ static bool isLoadIncOrDecStore(StoreSDNode *StoreNode, unsigned Opc,
         LoadSDNode* &LoadNode, SDValue &InputChain) {
 
     // is the value stored the result of a DEC or INC?
-    if (!(Opc == Cse523ISD::DEC || Opc == Cse523ISD::INC)) return false;
+    if (!(Opc == Cse523ISD::SUB || Opc == Cse523ISD::ADD)) return false;
 
     // is the stored value result 0 of the load?
     if (StoredVal.getResNo() != 0) return false;
@@ -2009,11 +2009,11 @@ static bool isLoadIncOrDecStore(StoreSDNode *StoreNode, unsigned Opc,
 /// getFusedLdStOpcode - Get the appropriate Cse523 opcode for an in memory
 /// increment or decrement. Opc should be Cse523ISD::DEC or Cse523ISD::INC.
 static unsigned getFusedLdStOpcode(EVT &LdVT, unsigned Opc) {
-    if (Opc == Cse523ISD::DEC) {
-        if (LdVT == MVT::i64) return Cse523::DEC64m;
+    if (Opc == Cse523ISD::SUB) {
+        if (LdVT == MVT::i64) return Cse523ISD::SUB;
     } else {
-        assert(Opc == Cse523ISD::INC && "unrecognized opcode");
-        if (LdVT == MVT::i64) return Cse523::INC64m;
+        assert(Opc == Cse523ISD::ADD && "unrecognized opcode");
+        if (LdVT == MVT::i64) return Cse523ISD::ADD;
     }
     llvm_unreachable("unrecognized size for LdVT");
 }

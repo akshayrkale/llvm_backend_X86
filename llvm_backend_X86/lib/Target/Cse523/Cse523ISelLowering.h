@@ -290,7 +290,7 @@ namespace llvm {
 
       // ADD, SUB, SMUL, etc. - Arithmetic operations with FLAGS results.
       ADD, SUB, ADC,  SMUL,
-      INC, DEC, OR, XOR, AND,
+      OR, XOR, AND,
 
       BZHI,   // BZHI - Zero high bits
       BEXTR,  // BEXTR - Bit field extract

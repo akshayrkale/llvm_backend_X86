@@ -109,8 +109,8 @@ Cse523InstrInfo::Cse523InstrInfo(Cse523TargetMachine &tm)
         { Cse523::ADD64rr,     Cse523::ADD64mr,    0 },
         { Cse523::AND64ri32,   Cse523::AND64mi32,  0 },
         { Cse523::AND64rr,     Cse523::AND64mr,    0 },
-        { Cse523::DEC64r,      Cse523::DEC64m,     0 },
-        { Cse523::INC64r,      Cse523::INC64m,     0 },
+        //{ Cse523::DEC64r,      Cse523::DEC64m,     0 },
+        //{ Cse523::INC64r,      Cse523::INC64m,     0 },
         { Cse523::NEG64r,      Cse523::NEG64m,     0 },
         { Cse523::NOT64r,      Cse523::NOT64m,     0 },
         { Cse523::OR64ri32,    Cse523::OR64mi32,   0 },
@@ -698,13 +698,13 @@ Cse523InstrInfo::convertToThreeAddress(MachineFunction::iterator &MFI,
 
             switch (MIOpc) {
                 default: return 0;
-                case Cse523::INC64r:   {
+                /*case Cse523::INC64r:   {
                                             assert(MI->getNumOperands() >= 2 && "Unknown inc instruction!");
                                             unsigned Opc = Cse523::LEA64r;
                                             bool isKill, isUndef;
                                             unsigned SrcReg;
                                             MachineOperand ImplicitOp = MachineOperand::CreateReg(0, false);
-                                            if (!classifyLEAReg(MI, Src, Opc, /*AllowSP=*/ false,
+                                            if (!classifyLEAReg(MI, Src, Opc, AllowSP= false,
                                                         SrcReg, isKill, isUndef, ImplicitOp))
                                                 return 0;
 
@@ -716,15 +716,15 @@ Cse523InstrInfo::convertToThreeAddress(MachineFunction::iterator &MFI,
 
                                             NewMI = addOffset(MIB, 1);
                                             break;
-                                       }
-                case Cse523::DEC64r:   {
+                                       }*/
+/*                case Cse523::DEC64r:   {
                                            assert(MI->getNumOperands() >= 2 && "Unknown dec instruction!");
                                            unsigned Opc =  Cse523::LEA64r;
 
                                            bool isKill, isUndef;
                                            unsigned SrcReg;
                                            MachineOperand ImplicitOp = MachineOperand::CreateReg(0, false);
-                                           if (!classifyLEAReg(MI, Src, Opc, /*AllowSP=*/ false,
+                                           if (!classifyLEAReg(MI, Src, Opc, AllowSP= false,
                                                        SrcReg, isKill, isUndef, ImplicitOp))
                                                return 0;
 
@@ -737,7 +737,7 @@ Cse523InstrInfo::convertToThreeAddress(MachineFunction::iterator &MFI,
                                            NewMI = addOffset(MIB, -1);
 
                                            break;
-                                       }
+                                       }*/
                 case Cse523::ADD64rr:
                                        {
                                            assert(MI->getNumOperands() >= 3 && "Unknown add instruction!");
@@ -1686,11 +1686,11 @@ inline static bool isDefConvertible(MachineInstr *MI) {
         case Cse523::SUB64ri32:
         case Cse523::SUB64rr:
         //case Cse523::SUB64rm:
-        case Cse523::DEC64r:
+        //case Cse523::DEC64r:
         case Cse523::ADD64ri32:
         case Cse523::ADD64rr:
         //case Cse523::ADD64rm:
-        case Cse523::INC64r:
+        //case Cse523::INC64r:
         case Cse523::AND64ri32:
         case Cse523::AND64rr:
         //case Cse523::AND64rm:

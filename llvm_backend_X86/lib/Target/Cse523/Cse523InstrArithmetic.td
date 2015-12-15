@@ -196,34 +196,34 @@ def NOT64m : RI<0xF7, MRM2m, (outs), (ins i64mem:$dst), "not{q}\t$dst",
 let Defs = [EFLAGS] in {
 let Constraints = "$src1 = $dst", SchedRW = [WriteALU] in {
 
-let isConvertibleToThreeAddress = 1, CodeSize = 1 in {  // Can xform into LEA.
-def INC64r : RI<0xFF, MRM0r, (outs GR64:$dst), (ins GR64:$src1), "inc{q}\t$dst",
-                [(set GR64:$dst, EFLAGS, (Cse523inc_flag GR64:$src1))],
-                IIC_UNARY_REG>;
-} // isConvertibleToThreeAddress = 1, CodeSize = 1
+//let isConvertibleToThreeAddress = 1, CodeSize = 1 in {  // Can xform into LEA.
+//def INC64r : RI<0xFF, MRM0r, (outs GR64:$dst), (ins GR64:$src1), "inc{q}\t$dst",
+//                [(set GR64:$dst, EFLAGS, (Cse523inc_flag GR64:$src1))],
+//                IIC_UNARY_REG>;
+//} // isConvertibleToThreeAddress = 1, CodeSize = 1
 
 } // Constraints = "$src1 = $dst", SchedRW
 
-let CodeSize = 2, SchedRW = [WriteALULd, WriteRMW] in {
-  def INC64m : RI<0xFF, MRM0m, (outs), (ins i64mem:$dst), "inc{q}\t$dst",
-                  [(store (add (loadi64 addr:$dst), 1), addr:$dst),
-                   (implicit EFLAGS)], IIC_UNARY_MEM>;
-} // CodeSize = 2, SchedRW
+//let CodeSize = 2, SchedRW = [WriteALULd, WriteRMW] in {
+//  def INC64m : RI<0xFF, MRM0m, (outs), (ins i64mem:$dst), "inc{q}\t$dst",
+//                  [(store (add (loadi64 addr:$dst), 1), addr:$dst),
+//                   (implicit EFLAGS)], IIC_UNARY_MEM>;
+//} // CodeSize = 2, SchedRW
 
-let Constraints = "$src1 = $dst", SchedRW = [WriteALU] in {
-let isConvertibleToThreeAddress = 1, CodeSize = 1 in {   // Can xform into LEA.
-def DEC64r : RI<0xFF, MRM1r, (outs GR64:$dst), (ins GR64:$src1), "dec{q}\t$dst",
-                [(set GR64:$dst, EFLAGS, (Cse523dec_flag GR64:$src1))],
-                IIC_UNARY_REG>;
-} // CodeSize = 2
-} // Constraints = "$src1 = $dst", SchedRW
+//let Constraints = "$src1 = $dst", SchedRW = [WriteALU] in {
+//let isConvertibleToThreeAddress = 1, CodeSize = 1 in {   // Can xform into LEA.
+//def DEC64r : RI<0xFF, MRM1r, (outs GR64:$dst), (ins GR64:$src1), "dec{q}\t$dst",
+//                [(set GR64:$dst, EFLAGS, (Cse523dec_flag GR64:$src1))],
+//                IIC_UNARY_REG>;
+//} // CodeSize = 2
+//} // Constraints = "$src1 = $dst", SchedRW
 
 
-let CodeSize = 2, SchedRW = [WriteALULd, WriteRMW] in {
-  def DEC64m : RI<0xFF, MRM1m, (outs), (ins i64mem:$dst), "dec{q}\t$dst",
-                  [(store (add (loadi64 addr:$dst), -1), addr:$dst),
-                   (implicit EFLAGS)], IIC_UNARY_MEM>;
-} // CodeSize = 2, SchedRW
+//let CodeSize = 2, SchedRW = [WriteALULd, WriteRMW] in {
+//  def DEC64m : RI<0xFF, MRM1m, (outs), (ins i64mem:$dst), "dec{q}\t$dst",
+//                  [(store (add (loadi64 addr:$dst), -1), addr:$dst),
+//                   (implicit EFLAGS)], IIC_UNARY_MEM>;
+//} // CodeSize = 2, SchedRW
 } // Defs = [EFLAGS]
 
 /// Cse523TypeInfo - This is a bunch of information that describes relevant Cse523

@@ -1484,10 +1484,10 @@ def : Pat<(mul GR64:$src1, i64immSExt32:$src2),
 //    (IMUL64rmi32 addr:$src1, i64immSExt32:$src2)>;
 
 // Increment reg.
-def : Pat<(add GR64:$src, 1), (INC64r    GR64:$src)>;
+//def : Pat<(add GR64:$src, 1), (INC64r    GR64:$src)>;
 
 // Decrement reg.
-def : Pat<(add GR64:$src, -1), (DEC64r    GR64:$src)>;
+//def : Pat<(add GR64:$src, -1), (DEC64r    GR64:$src)>;
 
 // or reg/reg.
 def : Pat<(or GR64:$src1, GR64:$src2), (OR64rr GR64:$src1, GR64:$src2)>;
