@@ -5960,14 +5960,14 @@ SDValue Cse523TargetLowering::EmitTest(SDValue Op, unsigned Cse523CC,
                     dyn_cast<ConstantSDNode>(ArithOp.getNode()->getOperand(1))) {
                 // An add of one will be selected as an INC.
                 if (C->getAPIntValue() == 1) {
-                    Opcode = Cse523ISD::INC;
+                    Opcode = Cse523ISD::ADD;
                     NumOperands = 1;
                     break;
                 }
 
                 // An add of negative one (subtract of one) will be selected as a DEC.
                 if (C->getAPIntValue().isAllOnesValue()) {
-                    Opcode = Cse523ISD::DEC;
+                    Opcode = Cse523ISD::SUB;
                     NumOperands = 1;
                     break;
                 }
@@ -6034,8 +6034,8 @@ SDValue Cse523TargetLowering::EmitTest(SDValue Op, unsigned Cse523CC,
                        break;
         case Cse523ISD::ADD:
         case Cse523ISD::SUB:
-        case Cse523ISD::INC:
-        case Cse523ISD::DEC:
+//        case Cse523ISD::INC:
+//        case Cse523ISD::DEC:
         case Cse523ISD::OR:
         case Cse523ISD::XOR:
         case Cse523ISD::AND:
@@ -6322,8 +6322,8 @@ static bool isCse523LogicalCmp(SDValue Op) {
 //             Opc == Cse523ISD::SBB ||
              Opc == Cse523ISD::SMUL ||
              Opc == Cse523ISD::UMUL ||
-             Opc == Cse523ISD::INC ||
-             Opc == Cse523ISD::DEC ||
+//             Opc == Cse523ISD::INC ||
+//             Opc == Cse523ISD::DEC ||
              Opc == Cse523ISD::OR ||
              Opc == Cse523ISD::XOR ||
              Opc == Cse523ISD::AND))
@@ -6735,7 +6735,7 @@ SDValue Cse523TargetLowering::LowerBRCOND(SDValue Op, SelectionDAG &DAG) const {
             case ISD::SADDO:
                              if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(RHS))
                                  if (C->isOne()) {
-                                     Cse523Opcode = Cse523ISD::INC; Cse523Cond = Cse523::COND_O;
+                                     Cse523Opcode = Cse523ISD::ADD; Cse523Cond = Cse523::COND_O;
                                      break;
                                  }
                              Cse523Opcode = Cse523ISD::ADD; Cse523Cond = Cse523::COND_O; break;
@@ -6743,7 +6743,7 @@ SDValue Cse523TargetLowering::LowerBRCOND(SDValue Op, SelectionDAG &DAG) const {
             case ISD::SSUBO:
                              if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(RHS))
                                  if (C->isOne()) {
-                                     Cse523Opcode = Cse523ISD::DEC; Cse523Cond = Cse523::COND_O;
+                                     Cse523Opcode = Cse523ISD::SUB; Cse523Cond = Cse523::COND_O;
                                      break;
                                  }
                              Cse523Opcode = Cse523ISD::SUB; Cse523Cond = Cse523::COND_O; break;
@@ -8421,7 +8421,7 @@ static SDValue LowerXALUO(SDValue Op, SelectionDAG &DAG) {
                  // set CF, so we can't do this for UADDO.
                  if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(RHS))
                      if (C->isOne()) {
-                         BaseOp = Cse523ISD::INC;
+                         BaseOp = Cse523ISD::ADD;
                          Cond = Cse523::COND_O;
                          break;
                      }
@@ -8437,7 +8437,7 @@ static SDValue LowerXALUO(SDValue Op, SelectionDAG &DAG) {
                  // set CF, so we can't do this for USUBO.
                  if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(RHS))
                      if (C->isOne()) {
-                         BaseOp = Cse523ISD::DEC;
+                         BaseOp = Cse523ISD::SUB;
                          Cond = Cse523::COND_O;
                          break;
                      }
@@ -9170,8 +9170,8 @@ const char *Cse523TargetLowering::getTargetNodeName(unsigned Opcode) const {
 //        case Cse523ISD::SBB:                return "Cse523ISD::SBB";
         case Cse523ISD::SMUL:               return "Cse523ISD::SMUL";
         case Cse523ISD::UMUL:               return "Cse523ISD::UMUL";
-        case Cse523ISD::INC:                return "Cse523ISD::INC";
-        case Cse523ISD::DEC:                return "Cse523ISD::DEC";
+//        case Cse523ISD::INC:                return "Cse523ISD::INC";
+//        case Cse523ISD::DEC:                return "Cse523ISD::DEC";
         case Cse523ISD::OR:                 return "Cse523ISD::OR";
         case Cse523ISD::XOR:                return "Cse523ISD::XOR";
         case Cse523ISD::AND:                return "Cse523ISD::AND";
@@ -11124,8 +11124,8 @@ void Cse523TargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
 //        case Cse523ISD::SBB:
         case Cse523ISD::SMUL:
         case Cse523ISD::UMUL:
-        case Cse523ISD::INC:
-        case Cse523ISD::DEC:
+//        case Cse523ISD::INC:
+//        case Cse523ISD::DEC:
         case Cse523ISD::OR:
         case Cse523ISD::XOR:
         case Cse523ISD::AND:
