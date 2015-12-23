@@ -1,0 +1,912 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+A	LJTable.h	/^    BigReal A;$/;"	m	struct:LJTable::TableEntry
+ADD_TENSOR	ReductionMgr.h	27;"	d
+ADD_TENSOR_OBJECT	ReductionMgr.h	38;"	d
+ADD_VECTOR	ReductionMgr.h	17;"	d
+ADD_VECTOR_OBJECT	ReductionMgr.h	22;"	d
+AtomID	NamdTypes.h	/^typedef int AtomID;$/;"	t
+AtomIDList	NamdTypes.h	/^typedef ResizeArray<AtomID> AtomIDList;$/;"	t
+AtomType	NamdTypes.h	/^typedef int AtomType;$/;"	t
+B	LJTable.h	/^    BigReal B;$/;"	m	struct:LJTable::TableEntry
+BOLTZMAN	common.h	32;"	d
+BigReal	common.h	/^typedef double  BigReal;$/;"	t
+Bool	common.h	/^typedef int Bool;$/;"	t
+Boolean	NamdTypes.h	/^typedef int Boolean;$/;"	t
+C1	SimParameters.h	29;"	d
+CALCENERGY	ComputeNonbondedUtil.C	589;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	591;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	594;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	596;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	599;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	601;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	605;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	607;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	614;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	616;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	619;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	621;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	624;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	626;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	630;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	632;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	638;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	666;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	673;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	675;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	678;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	680;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	683;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	685;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	689;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	691;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	698;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	700;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	703;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	705;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	708;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	710;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	714;"	d	file:
+CALCENERGY	ComputeNonbondedUtil.C	716;"	d	file:
+CLASS	ComputeNonbondedBase.h	19;"	d
+CLASS	ComputeNonbondedBase.h	26;"	d
+CLASS	ComputeNonbondedBase.h	35;"	d
+CLASSNAME	ComputeNonbondedBase.h	20;"	d
+CLASSNAME	ComputeNonbondedBase.h	27;"	d
+CLASSNAME	ComputeNonbondedBase.h	36;"	d
+COLOUMB	common.h	31;"	d
+COMMON_H	common.h	12;"	d
+COMPUTELIST_H	ComputeList.h	8;"	d
+COMPUTENONBONDEDUTIL_H	ComputeNonbondedUtil.h	12;"	d
+COMPUTE_H	Compute.h	8;"	d
+CYCLE_BARRIER	common.h	113;"	d
+Charge	NamdTypes.h	/^typedef float Charge;$/;"	t
+CompAtom	NamdTypes.h	/^  CompAtom() { ; }$/;"	f	struct:CompAtom
+CompAtom	NamdTypes.h	/^  inline CompAtom(const CompAtom &a) :$/;"	f	struct:CompAtom
+CompAtom	NamdTypes.h	/^struct CompAtom {$/;"	s
+CompAtomList	NamdTypes.h	/^typedef ResizeArray<CompAtom> CompAtomList;$/;"	t
+ComputeID	NamdTypes.h	/^typedef int ComputeID;$/;"	t
+ComputeList	ComputeList.C	/^ComputeList::ComputeList() {$/;"	f	class:ComputeList
+ComputeList	ComputeList.h	/^class ComputeList {$/;"	c
+ComputeNonbondedUtil	ComputeNonbondedUtil.h	/^  ComputeNonbondedUtil() {}$/;"	f	class:ComputeNonbondedUtil
+ComputeNonbondedUtil	ComputeNonbondedUtil.h	/^class ComputeNonbondedUtil {$/;"	c
+Coordinate	NamdTypes.h	/^typedef double Coordinate;$/;"	t
+DPMTATAG	common.h	108;"	d
+ENERGY	ComputeNonbondedBase.h	42;"	d
+ENERGY	ComputeNonbondedBase.h	45;"	d
+ENERGY	ComputeNonbondedBase.h	49;"	d
+ENERGYNAME	ComputeNonbondedBase.h	41;"	d
+ENERGYNAME	ComputeNonbondedBase.h	47;"	d
+ENERGYNAME	ComputeNonbondedBase.h	51;"	d
+EXCHCK_FULL	Molecule.h	32;"	d
+EXCHCK_MOD	Molecule.h	33;"	d
+EXCLUDED	ComputeNonbondedBase.h	589;"	d
+EXCLUDED	ComputeNonbondedBase.h	593;"	d
+EXCLUDED	ComputeNonbondedBase.h	600;"	d
+EXCLUDED	ComputeNonbondedBase.h	604;"	d
+EXCLUDED	ComputeNonbondedBase.h	614;"	d
+EXCLUDED	ComputeNonbondedBase.h	624;"	d
+ExclusionCheck	Molecule.h	/^class ExclusionCheck {$/;"	c
+ExclusionSettings	SimParameters.h	/^typedef int  ExclusionSettings;$/;"	t
+ExtForce	NamdTypes.h	/^  ExtForce() : replace(0) {;}$/;"	f	struct:ExtForce
+ExtForce	NamdTypes.h	/^struct ExtForce {$/;"	s
+FALSE	common.h	71;"	d
+FAST	ComputeNonbondedBase.h	55;"	d
+FAST	ComputeNonbondedBase.h	57;"	d
+FAST	ComputeNonbondedBase.h	60;"	d
+FAST	ComputeNonbondedBase.h	611;"	d
+FAST	ComputeNonbondedBase.h	612;"	d
+FAST	ComputeNonbondedBase.h	617;"	d
+FAST	ComputeNonbondedBase.h	619;"	d
+FEP	ComputeNonbondedBase.h	102;"	d
+FEP	ComputeNonbondedBase.h	105;"	d
+FEP	ComputeNonbondedBase.h	91;"	d
+FEP	ComputeNonbondedBase.h	96;"	d
+FEPFLAG	ComputeNonbondedUtil.C	637;"	d	file:
+FEPFLAG	ComputeNonbondedUtil.C	667;"	d	file:
+FEPNAME	ComputeNonbondedBase.h	101;"	d
+FEPNAME	ComputeNonbondedBase.h	104;"	d
+FEPNAME	ComputeNonbondedBase.h	109;"	d
+FEPNAME	ComputeNonbondedBase.h	112;"	d
+FEPNAME	ComputeNonbondedBase.h	117;"	d
+FEPNAME	ComputeNonbondedBase.h	119;"	d
+FEPNAME	ComputeNonbondedBase.h	90;"	d
+FEPNAME	ComputeNonbondedBase.h	95;"	d
+FULL	ComputeNonbondedBase.h	78;"	d
+FULL	ComputeNonbondedBase.h	82;"	d
+FULL	ComputeNonbondedBase.h	86;"	d
+FULLELECT	ComputeNonbondedUtil.C	592;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	609;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	617;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	634;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	642;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	650;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	655;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	663;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	676;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	693;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	701;"	d	file:
+FULLELECT	ComputeNonbondedUtil.C	718;"	d	file:
+FULLELECTNAME	ComputeNonbondedBase.h	77;"	d
+FULLELECTNAME	ComputeNonbondedBase.h	81;"	d
+FULLELECTNAME	ComputeNonbondedBase.h	85;"	d
+FULLFORCETAG	common.h	107;"	d
+FULLTAG	common.h	106;"	d
+FloatVector	Vector.h	/^  inline FloatVector(void) { ; }$/;"	f	class:FloatVector
+FloatVector	Vector.h	/^class FloatVector {$/;"	c
+FloatVector	Vector.h	/^inline FloatVector::FloatVector(const Vector &v) : x(v.x), y(v.y), z(v.z) { ; }$/;"	f	class:FloatVector
+Force	NamdTypes.h	/^typedef Vector Force;$/;"	t
+ForceList	NamdTypes.h	/^typedef ResizeArray<Force> ForceList;$/;"	t
+FullAtom	NamdTypes.h	/^struct FullAtom : CompAtom {$/;"	s
+FullAtomList	NamdTypes.h	/^typedef ResizeArray<FullAtom> FullAtomList;$/;"	t
+GET_HIGH_WORD	erf.C	136;"	d	file:
+GET_TENSOR	ReductionMgr.h	54;"	d
+GET_VECTOR	ReductionMgr.h	49;"	d
+GrowthFactor	ResizeArrayRaw.h	22;"	d
+INT	ComputeNonbondedBase.h	118;"	d
+INT	ComputeNonbondedBase.h	120;"	d
+INT	ComputeNonbondedBase.h	93;"	d
+INT	ComputeNonbondedBase.h	98;"	d
+Index	common.h	/^typedef unsigned short Index;$/;"	t
+LAM	ComputeNonbondedBase.h	103;"	d
+LAM	ComputeNonbondedBase.h	106;"	d
+LAM	ComputeNonbondedBase.h	111;"	d
+LAM	ComputeNonbondedBase.h	114;"	d
+LAM	ComputeNonbondedBase.h	94;"	d
+LAM	ComputeNonbondedBase.h	99;"	d
+LAST	ComputeNonbondedBase.h	123;"	d
+LATTICE_H	Lattice.h	8;"	d
+LES	ComputeNonbondedBase.h	110;"	d
+LES	ComputeNonbondedBase.h	113;"	d
+LES	ComputeNonbondedBase.h	92;"	d
+LES	ComputeNonbondedBase.h	97;"	d
+LESFLAG	ComputeNonbondedUtil.C	669;"	d	file:
+LESFLAG	ComputeNonbondedUtil.C	721;"	d	file:
+LJTABLE_H	LJTable.h	8;"	d
+LJTable	LJTable.C	/^LJTable::LJTable()$/;"	f	class:LJTable
+LJTable	LJTable.h	/^class LJTable$/;"	c
+Lattice	Lattice.h	/^  Lattice(void) : a1(0,0,0), a2(0,0,0), a3(0,0,0),$/;"	f	class:Lattice
+Lattice	Lattice.h	/^class Lattice$/;"	c
+LocalID	NamdTypes.h	/^struct LocalID$/;"	s
+MAX_NEIGHBORS	common.h	84;"	d
+MERGEELECT	ComputeNonbondedUtil.C	597;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	602;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	622;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	627;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	644;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	646;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	657;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	659;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	681;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	686;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	706;"	d	file:
+MERGEELECT	ComputeNonbondedUtil.C	711;"	d	file:
+MERGEELECTNAME	ComputeNonbondedBase.h	64;"	d
+MERGEELECTNAME	ComputeNonbondedBase.h	70;"	d
+MERGEELECTNAME	ComputeNonbondedBase.h	74;"	d
+MODIFIED	ComputeNonbondedBase.h	590;"	d
+MODIFIED	ComputeNonbondedBase.h	594;"	d
+MODIFIED	ComputeNonbondedBase.h	601;"	d
+MODIFIED	ComputeNonbondedBase.h	605;"	d
+MODIFIED	ComputeNonbondedBase.h	615;"	d
+MODIFIED	ComputeNonbondedBase.h	625;"	d
+MOLECULETAG	common.h	105;"	d
+MOLECULE_H	Molecule.h	18;"	d
+Mass	NamdTypes.h	/^typedef float Mass;$/;"	t
+MinSize	ResizeArrayRaw.h	23;"	d
+Molecule	Molecule.C	/^Molecule::Molecule()$/;"	f	class:Molecule
+Molecule	Molecule.h	/^class Molecule$/;"	c
+NAMDTYPES_H	NamdTypes.h	9;"	d
+NAMD_die	spec_namd.C	/^void NAMD_die(const char *msg) {$/;"	f
+NAME	ComputeNonbondedBase.h	/^void ComputeNonbondedUtil :: NAME$/;"	f	class:ComputeNonbondedUtil
+NAME	ComputeNonbondedBase.h	18;"	d
+NAME	ComputeNonbondedBase.h	21;"	d
+NBPAIR	ComputeNonbondedUtil.C	584;"	d	file:
+NBSELF	ComputeNonbondedUtil.C	585;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	587;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	610;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	612;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	635;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	640;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	651;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	653;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	664;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	671;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	694;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	696;"	d	file:
+NBTYPE	ComputeNonbondedUtil.C	719;"	d	file:
+NO	common.h	76;"	d
+NOENERGY	ComputeNonbondedBase.h	43;"	d
+NOENERGY	ComputeNonbondedBase.h	46;"	d
+NOENERGY	ComputeNonbondedBase.h	50;"	d
+NOFULL	ComputeNonbondedBase.h	79;"	d
+NOFULL	ComputeNonbondedBase.h	83;"	d
+NOFULL	ComputeNonbondedBase.h	87;"	d
+NONE	SimParameters.h	19;"	d
+NORMAL	ComputeNonbondedBase.h	588;"	d
+NORMAL	ComputeNonbondedBase.h	592;"	d
+NORMAL	ComputeNonbondedBase.h	599;"	d
+NORMAL	ComputeNonbondedBase.h	603;"	d
+NORMAL	ComputeNonbondedBase.h	613;"	d
+NORMAL	ComputeNonbondedBase.h	623;"	d
+NOSHORT	ComputeNonbondedBase.h	66;"	d
+NOSHORT	ComputeNonbondedBase.h	69;"	d
+NOSHORT	ComputeNonbondedBase.h	73;"	d
+NodeID	NamdTypes.h	/^typedef int NodeID;$/;"	t
+NodeIDList	NamdTypes.h	/^typedef ResizeArray<NodeID> NodeIDList;$/;"	t
+OBJECTARENA_H	ObjectArena.h	12;"	d
+ONE	common.h	48;"	d
+ONEFOUR	SimParameters.h	22;"	d
+ONETHREE	SimParameters.h	21;"	d
+ONETWO	SimParameters.h	20;"	d
+ObjectArena	ObjectArena.h	/^    ObjectArena(void) : blockSize(1024), alignment(1), pos(0), end(0) { };$/;"	f	class:ObjectArena
+ObjectArena	ObjectArena.h	/^template <class Type> class ObjectArena {$/;"	c
+PAIR	ComputeNonbondedBase.h	23;"	d
+PAIR	ComputeNonbondedBase.h	25;"	d
+PAIR	ComputeNonbondedBase.h	29;"	d
+PATCHLIST_H	PatchList.h	8;"	d
+PATCH_H	Patch.h	8;"	d
+PDBVELFACTOR	common.h	35;"	d
+PDBVELINVFACTOR	common.h	36;"	d
+PI	common.h	40;"	d
+PME_BARRIER	common.h	114;"	d
+PNPERKCALMOL	common.h	37;"	d
+PRESSUREFACTOR	common.h	34;"	d
+PROXY_SPAN_DIM	common.h	111;"	d
+PairCompute	Compute.h	/^  PairCompute() {};$/;"	f	class:PairCompute
+PairCompute	Compute.h	/^class PairCompute : private ComputeNonbondedUtil {$/;"	c
+Patch	Patch.C	/^Patch::Patch() {$/;"	f	class:Patch
+Patch	Patch.h	/^class Patch {$/;"	c
+PatchID	NamdTypes.h	/^typedef int PatchID;$/;"	t
+PatchIDList	NamdTypes.h	/^typedef ResizeArray<PatchID> PatchIDList;$/;"	t
+PatchList	PatchList.C	/^PatchList::PatchList(Lattice &l) : lattice(l) {$/;"	f	class:PatchList
+PatchList	PatchList.h	/^class PatchList {$/;"	c
+Position	NamdTypes.h	/^typedef Vector Position;$/;"	t
+PositionList	NamdTypes.h	/^typedef ResizeArray<Position> PositionList;$/;"	t
+REDUCTIONMGR_H	ReductionMgr.h	8;"	d
+REDUCTIONS_BASIC	ReductionMgr.h	/^  REDUCTIONS_BASIC,$/;"	e	enum:__anon5
+REDUCTIONS_USER1	ReductionMgr.h	/^  REDUCTIONS_USER1,$/;"	e	enum:__anon5
+REDUCTIONS_USER2	ReductionMgr.h	/^  REDUCTIONS_USER2,$/;"	e	enum:__anon5
+REDUCTION_ANGLE_CHECKSUM	ReductionMgr.h	/^  REDUCTION_ANGLE_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_ANGLE_ENERGY	ReductionMgr.h	/^  REDUCTION_ANGLE_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_ATOM_CHECKSUM	ReductionMgr.h	/^  REDUCTION_ATOM_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_BC_ENERGY	ReductionMgr.h	/^  REDUCTION_BC_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_BOND_CHECKSUM	ReductionMgr.h	/^  REDUCTION_BOND_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_BOND_ENERGY	ReductionMgr.h	/^  REDUCTION_BOND_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_CENTERED_KINETIC_ENERGY	ReductionMgr.h	/^  REDUCTION_CENTERED_KINETIC_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_COMPUTE_CHECKSUM	ReductionMgr.h	/^  REDUCTION_COMPUTE_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_DIHEDRAL_CHECKSUM	ReductionMgr.h	/^  REDUCTION_DIHEDRAL_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_DIHEDRAL_ENERGY	ReductionMgr.h	/^  REDUCTION_DIHEDRAL_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_ELECT_ENERGY	ReductionMgr.h	/^  REDUCTION_ELECT_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_ELECT_ENERGY_F	ReductionMgr.h	/^  REDUCTION_ELECT_ENERGY_F,$/;"	e	enum:__anon4
+REDUCTION_ELECT_ENERGY_SLOW	ReductionMgr.h	/^  REDUCTION_ELECT_ENERGY_SLOW,$/;"	e	enum:__anon4
+REDUCTION_ELECT_ENERGY_SLOW_F	ReductionMgr.h	/^  REDUCTION_ELECT_ENERGY_SLOW_F,$/;"	e	enum:__anon4
+REDUCTION_EXCLUSION_CHECKSUM	ReductionMgr.h	/^  REDUCTION_EXCLUSION_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_IMPROPER_CHECKSUM	ReductionMgr.h	/^  REDUCTION_IMPROPER_CHECKSUM,$/;"	e	enum:__anon4
+REDUCTION_IMPROPER_ENERGY	ReductionMgr.h	/^  REDUCTION_IMPROPER_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_KINETIC_ENERGY	ReductionMgr.h	/^  REDUCTION_KINETIC_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_LJ_ENERGY	ReductionMgr.h	/^  REDUCTION_LJ_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_LJ_ENERGY_F	ReductionMgr.h	/^  REDUCTION_LJ_ENERGY_F,$/;"	e	enum:__anon4
+REDUCTION_MARGIN_VIOLATIONS	ReductionMgr.h	/^  REDUCTION_MARGIN_VIOLATIONS,$/;"	e	enum:__anon4
+REDUCTION_MAX_RESERVED	ReductionMgr.h	/^  REDUCTION_MAX_RESERVED$/;"	e	enum:__anon4
+REDUCTION_MAX_SET_ID	ReductionMgr.h	/^  REDUCTION_MAX_SET_ID$/;"	e	enum:__anon5
+REDUCTION_MIN_F_DOT_F	ReductionMgr.h	/^  REDUCTION_MIN_F_DOT_F,$/;"	e	enum:__anon4
+REDUCTION_MIN_F_DOT_V	ReductionMgr.h	/^  REDUCTION_MIN_F_DOT_V,$/;"	e	enum:__anon4
+REDUCTION_MIN_HUGE_COUNT	ReductionMgr.h	/^  REDUCTION_MIN_HUGE_COUNT,$/;"	e	enum:__anon4
+REDUCTION_MIN_V_DOT_V	ReductionMgr.h	/^  REDUCTION_MIN_V_DOT_V,$/;"	e	enum:__anon4
+REDUCTION_MISC_ENERGY	ReductionMgr.h	/^  REDUCTION_MISC_ENERGY,$/;"	e	enum:__anon4
+REDUCTION_SMD_ENERGY	ReductionMgr.h	/^  REDUCTION_SMD_ENERGY,$/;"	e	enum:__anon4
+RESIZEARRAYRAW_H	ResizeArrayRaw.h	17;"	d
+RESIZEARRAY_H	ResizeArray.h	17;"	d
+RESULTSET_H	ResultSet.h	3;"	d
+RINT	Lattice.h	15;"	d
+RUN_AND_CHECKSUM	spec_namd.C	121;"	d	file:
+Real	common.h	/^typedef float	Real;$/;"	t
+ReductionTag	ReductionMgr.h	/^} ReductionTag;$/;"	t	typeref:enum:__anon4
+ResizeArray	ResizeArray.h	/^    ResizeArray(Elem * * array, int arraySize, int allocSize=0) {$/;"	f	class:ResizeArray
+ResizeArray	ResizeArray.h	/^    ResizeArray(ResizeArray<Elem> &ra) {$/;"	f	class:ResizeArray
+ResizeArray	ResizeArray.h	/^    ResizeArray(const ResizeArray<Elem>* ra) {$/;"	f	class:ResizeArray
+ResizeArray	ResizeArray.h	/^    ResizeArray(int s) {$/;"	f	class:ResizeArray
+ResizeArray	ResizeArray.h	/^    ResizeArray(void) {$/;"	f	class:ResizeArray
+ResizeArray	ResizeArray.h	/^template <class Elem> class ResizeArray {$/;"	c
+ResizeArrayRaw	ResizeArrayRaw.h	/^    ResizeArrayRaw( Elem * * const array, int arraySize, int allocSize) {$/;"	f	class:ResizeArrayRaw
+ResizeArrayRaw	ResizeArrayRaw.h	/^    ResizeArrayRaw(const ResizeArrayRaw<Elem> &rar ) : $/;"	f	class:ResizeArrayRaw
+ResizeArrayRaw	ResizeArrayRaw.h	/^    ResizeArrayRaw(void) : $/;"	f	class:ResizeArrayRaw
+ResizeArrayRaw	ResizeArrayRaw.h	/^template <class Elem> class ResizeArrayRaw {$/;"	c
+ResultSet	ResultSet.h	/^  ResultSet(int n) {$/;"	f	class:ResultSet
+ResultSet	ResultSet.h	/^class ResultSet {$/;"	c
+SCALED14	SimParameters.h	23;"	d
+SELF	ComputeNonbondedBase.h	32;"	d
+SELF	ComputeNonbondedBase.h	34;"	d
+SELF	ComputeNonbondedBase.h	38;"	d
+SET_LOW_WORD	erf.C	146;"	d	file:
+SET_MODE	spec_namd.C	130;"	d	file:
+SHARP	SimParameters.h	27;"	d
+SHORT	ComputeNonbondedBase.h	65;"	d
+SHORT	ComputeNonbondedBase.h	68;"	d
+SHORT	ComputeNonbondedBase.h	72;"	d
+SIMPARAM	SimParameters.C	14;"	d	file:
+SIMPARAM	SimParameters.C	16;"	d	file:
+SIMPARAM	SimParameters.C	41;"	d	file:
+SIMPARAM	SimParameters.C	43;"	d	file:
+SIMPARAM	SimParameters.h	36;"	d
+SIMPARAM	SimParameters.h	38;"	d
+SIMPARAMETERS_H	SimParameters.h	8;"	d
+SIMPARAMSTAG	common.h	103;"	d
+SLOWONLY	ComputeNonbondedUtil.C	603;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	608;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	628;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	633;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	647;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	649;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	660;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	662;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	687;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	692;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	712;"	d	file:
+SLOWONLY	ComputeNonbondedUtil.C	717;"	d	file:
+SLOWONLYNAME	ComputeNonbondedBase.h	54;"	d
+SLOWONLYNAME	ComputeNonbondedBase.h	58;"	d
+SLOWONLYNAME	ComputeNonbondedBase.h	61;"	d
+SMALLRAD	common.h	56;"	d
+SMALLRAD2	common.h	60;"	d
+SPLIT_C1	ComputeNonbondedUtil.C	110;"	d	file:
+SPLIT_NONE	ComputeNonbondedUtil.C	108;"	d	file:
+SPLIT_SHIFT	ComputeNonbondedUtil.C	109;"	d	file:
+SPLIT_XPLOR	ComputeNonbondedUtil.C	111;"	d	file:
+STATICPARAMSTAG	common.h	104;"	d
+STRINGNULL	common.h	81;"	d
+ScaledPosition	Lattice.h	/^typedef Vector ScaledPosition;$/;"	t
+SelfCompute	Compute.h	/^  SelfCompute() {};$/;"	f	class:SelfCompute
+SelfCompute	Compute.h	/^class SelfCompute : private ComputeNonbondedUtil {$/;"	c
+SimParameters	SimParameters.C	/^SimParameters::SimParameters() {$/;"	f	class:SimParameters
+SimParameters	SimParameters.h	/^class SimParameters$/;"	c
+TENSOR	ReductionMgr.h	/^         TENSOR(virialIndex), TENSOR(fullElectVirialIndex),$/;"	e	enum:__anon3
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_ALT_VIRIAL_NBOND),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_ALT_VIRIAL_NORMAL),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_ALT_VIRIAL_SLOW),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_INT_VIRIAL_NBOND),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_INT_VIRIAL_NORMAL),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_INT_VIRIAL_SLOW),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_VIRIAL_NBOND),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_VIRIAL_NORMAL),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	/^  TENSOR(REDUCTION_VIRIAL_SLOW),$/;"	e	enum:__anon4
+TENSOR	ReductionMgr.h	13;"	d
+TENSOR_H	Tensor.h	8;"	d
+TIMEFACTOR	common.h	33;"	d
+TRUE	common.h	72;"	d
+TWOPI	common.h	44;"	d
+TableEntry	LJTable.h	/^  struct TableEntry$/;"	s	class:LJTable
+Tensor	Tensor.h	/^     inline Tensor(const Tensor &t2) {$/;"	f	class:Tensor
+Tensor	Tensor.h	/^     inline Tensor(void) {$/;"	f	class:Tensor
+Tensor	Tensor.h	/^class Tensor {$/;"	c
+Transform	NamdTypes.h	/^  Transform(void) { i=0; j=0; k=0; }$/;"	f	struct:Transform
+Transform	NamdTypes.h	/^struct Transform$/;"	s
+TransformList	NamdTypes.h	/^typedef ResizeArray<Transform> TransformList;$/;"	t
+USE_BARRIER	common.h	116;"	d
+VECTOR	ReductionMgr.h	/^         VECTOR(pairVDWForceIndex), VECTOR(pairElectForceIndex),$/;"	e	enum:__anon3
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_ANGULAR_MOMENTUM),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_EXT_FORCE_NBOND),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_EXT_FORCE_NORMAL),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_EXT_FORCE_SLOW),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_MOMENTUM),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_PAIR_ELECT_FORCE),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	/^  VECTOR(REDUCTION_PAIR_VDW_FORCE),$/;"	e	enum:__anon4
+VECTOR	ReductionMgr.h	12;"	d
+VECTOR_H	Vector.h	8;"	d
+Vector	Vector.h	/^     inline Vector( BigReal newv )  \/\/ allow Vector v = 0; etc.$/;"	f	class:Vector
+Vector	Vector.h	/^     inline Vector( BigReal newx, BigReal newy, BigReal newz)$/;"	f	class:Vector
+Vector	Vector.h	/^     inline Vector(const FloatVector &v) : x(v.x), y(v.y), z(v.z) { ; }$/;"	f	class:Vector
+Vector	Vector.h	/^     inline Vector(void) : x(-99999), y(-99999), z(-99999) { ; }$/;"	f	class:Vector
+Vector	Vector.h	/^class Vector {$/;"	c
+Velocity	NamdTypes.h	/^typedef Vector Velocity;$/;"	t
+VelocityList	NamdTypes.h	/^typedef ResizeArray<Velocity> VelocityList;$/;"	t
+WRITE	spec_namd.C	136;"	d	file:
+XPLOR	SimParameters.h	28;"	d
+XYZ	ResultSet.C	12;"	d	file:
+XYZ	ResultSet.C	16;"	d	file:
+XYZ	ResultSet.C	32;"	d	file:
+XYZ	ResultSet.C	36;"	d	file:
+YES	common.h	77;"	d
+ZERO	common.h	52;"	d
+__ieee754_exp	erf.C	157;"	d	file:
+a	Lattice.h	/^  Vector a() const { return a1; }$/;"	f	class:Lattice
+a1	Lattice.h	/^  Vector a1,a2,a3; \/\/ real lattice vectors$/;"	m	class:Lattice
+a2	Lattice.h	/^  Vector a1,a2,a3; \/\/ real lattice vectors$/;"	m	class:Lattice
+a3	Lattice.h	/^  Vector a1,a2,a3; \/\/ real lattice vectors$/;"	m	class:Lattice
+a_p	Lattice.h	/^  int a_p() const { return p1; }$/;"	f	class:Lattice
+a_r	Lattice.h	/^  Vector a_r() const { return b1; }$/;"	f	class:Lattice
+add	ResizeArray.h	/^    int add (const Elem &elem) {$/;"	f	class:ResizeArray
+alignment	ObjectArena.h	/^    int alignment;$/;"	m	class:ObjectArena
+all_exclusions	Molecule.h	/^	ExclusionCheck *all_exclusions;$/;"	m	class:Molecule
+allocSize	ResizeArrayRaw.h	/^    int allocSize;$/;"	m	class:ResizeArrayRaw
+apply_transform	Lattice.h	/^  Position apply_transform(Position data, const Transform &t) const$/;"	f	class:Lattice
+array	ResizeArrayRaw.h	/^    Elem *array;$/;"	m	class:ResizeArrayRaw
+arraySize	ResizeArrayRaw.h	/^    int arraySize;$/;"	m	class:ResizeArrayRaw
+atomFixed	NamdTypes.h	/^  unsigned int atomFixed : 1;$/;"	m	struct:CompAtom
+atomVdwType	Molecule.h	/^        int *atomVdwType;$/;"	m	class:Molecule
+atoms	Patch.h	/^  CompAtom *atoms;$/;"	m	class:Patch
+atomvdwtype	Molecule.h	/^	Index atomvdwtype(int anum) const$/;"	f	class:Molecule
+b	Lattice.h	/^  Vector b() const { return a2; }$/;"	f	class:Lattice
+b1	Lattice.h	/^  Vector b1,b2,b3; \/\/ reciprocal lattice vectors (more or less)$/;"	m	class:Lattice
+b2	Lattice.h	/^  Vector b1,b2,b3; \/\/ reciprocal lattice vectors (more or less)$/;"	m	class:Lattice
+b3	Lattice.h	/^  Vector b1,b2,b3; \/\/ reciprocal lattice vectors (more or less)$/;"	m	class:Lattice
+b_p	Lattice.h	/^  int b_p() const { return p2; }$/;"	f	class:Lattice
+b_r	Lattice.h	/^  Vector b_r() const { return b2; }$/;"	f	class:Lattice
+begin	ResizeArray.h	/^    iterator begin(void) { return rep->array; }$/;"	f	class:ResizeArray
+blockSize	ObjectArena.h	/^    int blockSize;$/;"	m	class:ObjectArena
+blocks	ObjectArena.h	/^    ResizeArray<Type*> blocks;$/;"	m	class:ObjectArena
+c	Lattice.h	/^  Vector c() const { return a3; }$/;"	f	class:Lattice
+c0	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c0;$/;"	m	class:ComputeNonbondedUtil	file:
+c0	ComputeNonbondedUtil.h	/^  static BigReal c0;$/;"	m	class:ComputeNonbondedUtil
+c1	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c1;$/;"	m	class:ComputeNonbondedUtil	file:
+c1	ComputeNonbondedUtil.h	/^  static BigReal c1;$/;"	m	class:ComputeNonbondedUtil
+c3	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c3;$/;"	m	class:ComputeNonbondedUtil	file:
+c3	ComputeNonbondedUtil.h	/^  static BigReal c3;$/;"	m	class:ComputeNonbondedUtil
+c5	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c5;$/;"	m	class:ComputeNonbondedUtil	file:
+c5	ComputeNonbondedUtil.h	/^  static BigReal c5;$/;"	m	class:ComputeNonbondedUtil
+c6	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c6;$/;"	m	class:ComputeNonbondedUtil	file:
+c6	ComputeNonbondedUtil.h	/^  static BigReal c6;$/;"	m	class:ComputeNonbondedUtil
+c7	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c7;$/;"	m	class:ComputeNonbondedUtil	file:
+c7	ComputeNonbondedUtil.h	/^  static BigReal c7;$/;"	m	class:ComputeNonbondedUtil
+c8	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::c8;$/;"	m	class:ComputeNonbondedUtil	file:
+c8	ComputeNonbondedUtil.h	/^  static BigReal c8;$/;"	m	class:ComputeNonbondedUtil
+c_p	Lattice.h	/^  int c_p() const { return p3; }$/;"	f	class:Lattice
+c_r	Lattice.h	/^  Vector c_r() const { return b3; }$/;"	f	class:Lattice
+calcFullPair	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcFullPair)(nonbonded *);$/;"	v
+calcFullPair	ComputeNonbondedUtil.h	/^  static void (*calcFullPair)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcFullPairEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcFullPairEnergy)(nonbonded *);$/;"	v
+calcFullPairEnergy	ComputeNonbondedUtil.h	/^  static void (*calcFullPairEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcFullSelf	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcFullSelf)(nonbonded *);$/;"	v
+calcFullSelf	ComputeNonbondedUtil.h	/^  static void (*calcFullSelf)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcFullSelfEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcFullSelfEnergy)(nonbonded *);$/;"	v
+calcFullSelfEnergy	ComputeNonbondedUtil.h	/^  static void (*calcFullSelfEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcMergePair	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcMergePair)(nonbonded *);$/;"	v
+calcMergePair	ComputeNonbondedUtil.h	/^  static void (*calcMergePair)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcMergePairEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcMergePairEnergy)(nonbonded *);$/;"	v
+calcMergePairEnergy	ComputeNonbondedUtil.h	/^  static void (*calcMergePairEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcMergeSelf	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcMergeSelf)(nonbonded *);$/;"	v
+calcMergeSelf	ComputeNonbondedUtil.h	/^  static void (*calcMergeSelf)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcMergeSelfEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcMergeSelfEnergy)(nonbonded *);$/;"	v
+calcMergeSelfEnergy	ComputeNonbondedUtil.h	/^  static void (*calcMergeSelfEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcPair	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcPair)(nonbonded *);$/;"	v
+calcPair	ComputeNonbondedUtil.h	/^  static void (*calcPair)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcPairEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcPairEnergy)(nonbonded *);$/;"	v
+calcPairEnergy	ComputeNonbondedUtil.h	/^  static void (*calcPairEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSelf	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSelf)(nonbonded *);$/;"	v
+calcSelf	ComputeNonbondedUtil.h	/^  static void (*calcSelf)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSelfEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSelfEnergy)(nonbonded *);$/;"	v
+calcSelfEnergy	ComputeNonbondedUtil.h	/^  static void (*calcSelfEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSlowPair	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSlowPair)(nonbonded *);$/;"	v
+calcSlowPair	ComputeNonbondedUtil.h	/^  static void (*calcSlowPair)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSlowPairEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSlowPairEnergy)(nonbonded *);$/;"	v
+calcSlowPairEnergy	ComputeNonbondedUtil.h	/^  static void (*calcSlowPairEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSlowSelf	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSlowSelf)(nonbonded *);$/;"	v
+calcSlowSelf	ComputeNonbondedUtil.h	/^  static void (*calcSlowSelf)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+calcSlowSelfEnergy	ComputeNonbondedUtil.C	/^void (*ComputeNonbondedUtil::calcSlowSelfEnergy)(nonbonded *);$/;"	v
+calcSlowSelfEnergy	ComputeNonbondedUtil.h	/^  static void (*calcSlowSelfEnergy)(nonbonded *);$/;"	m	class:ComputeNonbondedUtil
+charge	NamdTypes.h	/^  Charge charge;$/;"	m	struct:CompAtom
+check	ResultSet.C	/^void ResultSet::check() {$/;"	f	class:ResultSet
+clearimages	Patch.C	/^void Patch::clearimages() {$/;"	f	class:Patch
+commOnly	ComputeNonbondedUtil.C	/^Bool		ComputeNonbondedUtil::commOnly;$/;"	m	class:ComputeNonbondedUtil	file:
+commOnly	ComputeNonbondedUtil.h	/^  static Bool commOnly;$/;"	m	class:ComputeNonbondedUtil
+compare	ResultSet.C	/^void ResultSet::compare(ResultSet &r) {$/;"	f	class:ResultSet
+compute_vdw_params	LJTable.C	/^void LJTable::compute_vdw_params(int i, int j,$/;"	f	class:LJTable
+const_begin	ResizeArray.h	/^    const_iterator const_begin(void) const { return rep->array; }$/;"	f	class:ResizeArray
+const_end	ResizeArray.h	/^    const_iterator const_end(void) const { return rep->array + rep->arraySize; }$/;"	f	class:ResizeArray
+const_iterator	ResizeArray.h	/^    typedef const Elem* const_iterator;$/;"	t	class:ResizeArray
+corr_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::corr_table;$/;"	m	class:ComputeNonbondedUtil	file:
+corr_table	ComputeNonbondedUtil.h	/^  static BigReal *corr_table;$/;"	m	class:ComputeNonbondedUtil
+create	Lattice.h	/^  CompAtom* create(CompAtom *d, int n, int i) const$/;"	f	class:Lattice
+cross	Vector.h	/^     inline friend Vector cross(const BigReal &k, const Vector &v1, const Vector &v2) {$/;"	f	class:Vector
+cross	Vector.h	/^     inline friend Vector cross(const Real &k, const Vector &v1, const Vector &v2) {$/;"	f	class:Vector
+cross	Vector.h	/^     inline friend Vector cross(const Vector &v1, const Vector &v2) {$/;"	f	class:Vector
+cross	Vector.h	/^     void cross(const Vector &v2) {$/;"	f	class:Vector
+cutoff	ComputeNonbondedUtil.C	/^Real            ComputeNonbondedUtil::cutoff;$/;"	m	class:ComputeNonbondedUtil	file:
+cutoff	ComputeNonbondedUtil.h	/^  static Real cutoff;$/;"	m	class:ComputeNonbondedUtil
+cutoff2	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::cutoff2;$/;"	m	class:ComputeNonbondedUtil	file:
+cutoff2	ComputeNonbondedUtil.h	/^  static BigReal cutoff2;$/;"	m	class:ComputeNonbondedUtil
+del	ResizeArray.h	/^    int del(int index, int num=1) {$/;"	f	class:ResizeArray
+del	ResizeArrayRaw.h	/^    inline int del(int index, int number) {$/;"	f	class:ResizeArrayRaw
+delta	Lattice.h	/^  Vector delta(Position pos1) const$/;"	f	class:Lattice
+delta	Lattice.h	/^  Vector delta(Position pos1, Position pos2) const$/;"	f	class:Lattice
+destroy	Lattice.h	/^  void destroy(CompAtom **d, int i) const$/;"	f	class:Lattice
+diagonal	Tensor.h	/^     inline friend Vector diagonal(const Tensor &t1) {$/;"	f	class:Tensor
+diagonal	Tensor.h	/^     static inline Tensor diagonal(const Vector &v1) {$/;"	f	class:Tensor
+dielectric_1	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::dielectric_1;$/;"	m	class:ComputeNonbondedUtil	file:
+dielectric_1	ComputeNonbondedUtil.h	/^  static BigReal dielectric_1;$/;"	m	class:ComputeNonbondedUtil
+doEnergy	PatchList.h	/^  int doEnergy;$/;"	m	class:PatchList
+doEnergy	ResultSet.h	/^  int numAtoms, doEnergy, doFull, doMerge;$/;"	m	class:ResultSet
+doFull	PatchList.h	/^  int doFull;$/;"	m	class:PatchList
+doFull	ResultSet.h	/^  int numAtoms, doEnergy, doFull, doMerge;$/;"	m	class:ResultSet
+doMerge	PatchList.h	/^  int doMerge;$/;"	m	class:PatchList
+doMerge	ResultSet.h	/^  int numAtoms, doEnergy, doFull, doMerge;$/;"	m	class:ResultSet
+doWork	Compute.C	/^void PairCompute::doWork(PatchList *patchList) {$/;"	f	class:PairCompute
+doWork	Compute.C	/^void SelfCompute::doWork(PatchList *patchList) {$/;"	f	class:SelfCompute
+dot	Vector.h	/^     BigReal dot(const Vector &v2) {$/;"	f	class:Vector
+dummy_erf	erf.C	/^int dummy_erf(int i) { return i; }  \/* avoid empty translation unit *\/$/;"	f
+efx	erf.C	/^efx =  1.28379167095512586316e-01, \/* 0x3FC06EBA, 0x8214DB69 *\/$/;"	v	file:
+efx8	erf.C	/^efx8=  1.02703333676410069053e+00, \/* 0x3FF06EBA, 0x8214DB69 *\/$/;"	v	file:
+electEnergyIndex	ReductionMgr.h	/^  enum { electEnergyIndex, fullElectEnergyIndex, vdwEnergyIndex,$/;"	e	enum:__anon3
+electEnergyIndex_s	ReductionMgr.h	/^         electEnergyIndex_s, fullElectEnergyIndex_s, vdwEnergyIndex_s,$/;"	e	enum:__anon3
+end	ObjectArena.h	/^    Type *pos, *end;$/;"	m	class:ObjectArena
+end	ResizeArray.h	/^    iterator end(void) { return rep->array + rep->arraySize; }$/;"	f	class:ResizeArray
+equal	ResultSet.C	/^void equal(double *w, double *x, double *y, double *z) {$/;"	f
+equal	ResultSet.C	/^void equal(double *x, double *y) {$/;"	f
+equal	ResultSet.C	/^void equal(double x, double y) {$/;"	f
+erf	erf.C	/^	double erf(double x) $/;"	f
+erfc	erf.C	/^	double erfc(double x) $/;"	f
+erx	erf.C	/^erx =  8.45062911510467529297e-01, \/* 0x3FEB0AC1, 0x60000000 *\/$/;"	v	file:
+ewaldcof	ComputeNonbondedUtil.C	/^BigReal		ComputeNonbondedUtil::ewaldcof;$/;"	m	class:ComputeNonbondedUtil	file:
+ewaldcof	ComputeNonbondedUtil.h	/^  static BigReal ewaldcof;$/;"	m	class:ComputeNonbondedUtil
+exclArena	Molecule.h	/^	ObjectArena<char> *exclArena;$/;"	m	class:Molecule
+exclChecksumIndex	ReductionMgr.h	/^         outputDataSize, exclChecksumIndex,$/;"	e	enum:__anon3
+exit_usage	spec_namd.C	/^void exit_usage(const char *argv0) {$/;"	f
+f_nbond	Patch.h	/^  Vector *f_nbond;$/;"	m	class:Patch
+f_nbond	ResultSet.h	/^  Vector * f_nbond;$/;"	m	class:ResultSet
+f_slow	Patch.h	/^  Vector *f_slow;$/;"	m	class:Patch
+f_slow	ResultSet.h	/^  Vector * f_slow;$/;"	m	class:ResultSet
+false	NamdTypes.h	112;"	d
+fast_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::fast_table;$/;"	m	class:ComputeNonbondedUtil	file:
+fast_table	ComputeNonbondedUtil.h	/^  static BigReal *fast_table;$/;"	m	class:ComputeNonbondedUtil
+fepOn	ComputeNonbondedUtil.C	/^Bool            ComputeNonbondedUtil::fepOn;$/;"	m	class:ComputeNonbondedUtil	file:
+fepOn	ComputeNonbondedUtil.h	/^  static Bool fepOn;$/;"	m	class:ComputeNonbondedUtil
+ff	ComputeNonbondedUtil.h	/^  Force* ff[2];$/;"	m	struct:nonbonded
+fixedAtomsOn	ComputeNonbondedUtil.C	/^Bool		ComputeNonbondedUtil::fixedAtomsOn;$/;"	m	class:ComputeNonbondedUtil	file:
+fixedAtomsOn	ComputeNonbondedUtil.h	/^  static Bool fixedAtomsOn;$/;"	m	class:ComputeNonbondedUtil
+fixedPosition	NamdTypes.h	/^  Position fixedPosition;$/;"	m	struct:FullAtom
+flags	Molecule.h	/^  char *flags;$/;"	m	class:ExclusionCheck
+force	NamdTypes.h	/^  Force force;$/;"	m	struct:ExtForce
+fullElectEnergyIndex	ReductionMgr.h	/^  enum { electEnergyIndex, fullElectEnergyIndex, vdwEnergyIndex,$/;"	e	enum:__anon3
+fullElectEnergyIndex_s	ReductionMgr.h	/^         electEnergyIndex_s, fullElectEnergyIndex_s, vdwEnergyIndex_s,$/;"	e	enum:__anon3
+full_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::full_table;$/;"	m	class:ComputeNonbondedUtil	file:
+full_table	ComputeNonbondedUtil.h	/^  static BigReal *full_table;$/;"	m	class:ComputeNonbondedUtil
+fullf	ComputeNonbondedUtil.h	/^  Force* fullf [2];$/;"	m	struct:nonbonded
+getNewArray	ObjectArena.h	/^    inline Type* getNewArray(int n) {$/;"	f	class:ObjectArena
+get_excl_check_for_atom	Molecule.h	/^	ExclusionCheck *get_excl_check_for_atom(int anum) const$/;"	f	class:Molecule
+groupFixed	NamdTypes.h	/^  unsigned int groupFixed : 1;$/;"	m	struct:CompAtom
+groupcutoff2	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::groupcutoff2;$/;"	m	class:ComputeNonbondedUtil	file:
+groupcutoff2	ComputeNonbondedUtil.h	/^  static BigReal groupcutoff2;$/;"	m	class:ComputeNonbondedUtil
+growthFactor	ResizeArrayRaw.h	/^    float growthFactor;$/;"	m	class:ResizeArrayRaw
+half	erf.C	/^half=  5.00000000000000000000e-01, \/* 0x3FE00000, 0x00000000 *\/$/;"	v	file:
+hydrogenGroupSize	NamdTypes.h	/^  unsigned int hydrogenGroupSize : 3;$/;"	m	struct:CompAtom
+i	NamdTypes.h	/^  signed char i,j,k;$/;"	m	struct:Transform
+i_move	Patch.h	/^  int i_move;$/;"	m	class:Patch
+id	NamdTypes.h	/^  unsigned int id : 22;$/;"	m	struct:CompAtom
+identity	Tensor.h	/^     static inline Tensor identity(BigReal v1 = 1.0) {$/;"	f	class:Tensor
+ieee_double_shape_type	erf.C	/^} ieee_double_shape_type;$/;"	t	typeref:union:__anon1	file:
+image	Patch.C	/^CompAtom* Patch::image(int trans, Lattice &lattice) {$/;"	f	class:Patch
+image1	Compute.h	/^  int image1;$/;"	m	class:PairCompute
+image2	Compute.h	/^  int image2;$/;"	m	class:PairCompute
+images	Patch.h	/^  CompAtom* images[27];$/;"	m	class:Patch
+index	Lattice.h	/^  static int index(int i=0, int j=0, int k=0)$/;"	f	class:Lattice
+index	NamdTypes.h	/^  int index;$/;"	m	struct:LocalID
+ins	ResizeArrayRaw.h	/^    inline void ins(const Elem &e, int index) {$/;"	f	class:ResizeArrayRaw
+insert	ResizeArray.h	/^    int insert (const Elem& elem, int index) {$/;"	f	class:ResizeArray
+int32	common.h	/^typedef	int	int32;$/;"	t
+int32	common.h	/^typedef	short	int32;$/;"	t
+int32_t	erf.C	/^typedef int int32_t;$/;"	t	file:
+item	ResizeArray.h	/^    inline Elem & item(int i) {$/;"	f	class:ResizeArray
+iterator	ResizeArray.h	/^    typedef Elem* iterator;$/;"	t	class:ResizeArray
+j	NamdTypes.h	/^  signed char i,j,k;$/;"	m	struct:Transform
+k	NamdTypes.h	/^  signed char i,j,k;$/;"	m	struct:Transform
+lambda	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::lambda;$/;"	m	class:ComputeNonbondedUtil	file:
+lambda	ComputeNonbondedUtil.h	/^  static BigReal lambda;$/;"	m	class:ComputeNonbondedUtil
+lambda2	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::lambda2;$/;"	m	class:ComputeNonbondedUtil	file:
+lambda2	ComputeNonbondedUtil.h	/^  static BigReal lambda2;$/;"	m	class:ComputeNonbondedUtil
+lambda_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::lambda_table = 0;$/;"	m	class:ComputeNonbondedUtil	file:
+lambda_table	ComputeNonbondedUtil.h	/^  static BigReal *lambda_table;$/;"	m	class:ComputeNonbondedUtil
+lattice	PatchList.h	/^  Lattice &lattice;$/;"	m	class:PatchList
+lattice	SimParameters.h	/^	Lattice lattice;$/;"	m	class:SimParameters
+length	Vector.h	/^     inline BigReal length(void) const {$/;"	f	class:Vector
+length2	Vector.h	/^     inline BigReal length2(void) const {$/;"	f	class:Vector
+lesFactor	ComputeNonbondedUtil.C	/^int             ComputeNonbondedUtil::lesFactor;$/;"	m	class:ComputeNonbondedUtil	file:
+lesFactor	ComputeNonbondedUtil.h	/^  static int lesFactor;$/;"	m	class:ComputeNonbondedUtil
+lesOn	ComputeNonbondedUtil.C	/^Bool            ComputeNonbondedUtil::lesOn;$/;"	m	class:ComputeNonbondedUtil	file:
+lesOn	ComputeNonbondedUtil.h	/^  static Bool lesOn;$/;"	m	class:ComputeNonbondedUtil
+lesScaling	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::lesScaling;$/;"	m	class:ComputeNonbondedUtil	file:
+lesScaling	ComputeNonbondedUtil.h	/^  static BigReal lesScaling;$/;"	m	class:ComputeNonbondedUtil
+ljTable	ComputeNonbondedUtil.C	/^const LJTable*  ComputeNonbondedUtil::ljTable = 0;$/;"	m	class:ComputeNonbondedUtil	file:
+ljTable	ComputeNonbondedUtil.h	/^  static const LJTable* ljTable;$/;"	m	class:ComputeNonbondedUtil
+lsw	erf.C	/^    u_int32_t lsw;$/;"	m	struct:__anon1::__anon2	file:
+m14	ComputeNonbondedUtil.h	/^  int m14;$/;"	m	struct:nonbonded
+main	Vector.h	/^main()$/;"	f
+main	spec_namd.C	/^int main(int argc, char **argv) {$/;"	f
+mass	NamdTypes.h	/^  Mass mass;$/;"	m	struct:FullAtom
+max	Molecule.h	/^  int32 min,max;$/;"	m	class:ExclusionCheck
+maxPart	ComputeNonbondedUtil.h	/^  int maxPart;$/;"	m	struct:nonbonded
+min	Molecule.h	/^  int32 min,max;$/;"	m	class:ExclusionCheck
+minPart	ComputeNonbondedUtil.h	/^  int minPart;$/;"	m	struct:nonbonded
+minSize	ResizeArrayRaw.h	/^    int minSize;$/;"	m	class:ResizeArrayRaw
+mol	ComputeNonbondedUtil.C	/^const Molecule* ComputeNonbondedUtil::mol;$/;"	m	class:ComputeNonbondedUtil	file:
+mol	ComputeNonbondedUtil.h	/^  static const Molecule* mol;$/;"	m	class:ComputeNonbondedUtil
+moveatoms	Patch.C	/^void Patch::moveatoms() {$/;"	f	class:Patch
+moveatoms	PatchList.C	/^void PatchList::moveatoms() {$/;"	f	class:PatchList
+msw	erf.C	/^    u_int32_t msw;$/;"	m	struct:__anon1::__anon2	file:
+nearest	Lattice.h	/^  Position nearest(Position data, ScaledPosition ref) const$/;"	f	class:Lattice
+nearest	Lattice.h	/^  Position nearest(Position data, ScaledPosition ref, Transform *t) const$/;"	f	class:Lattice
+netf_both	ResultSet.h	/^  Vector netf_both;$/;"	m	class:ResultSet
+netf_nbond	ResultSet.h	/^  Vector netf_nbond;$/;"	m	class:ResultSet
+netf_slow	ResultSet.h	/^  Vector netf_slow;$/;"	m	class:ResultSet
+nonbonded	ComputeNonbondedUtil.h	/^struct nonbonded {$/;"	s
+nonbondedGroupIsAtom	NamdTypes.h	/^  unsigned int nonbondedGroupIsAtom : 1;$/;"	m	struct:CompAtom
+numAtoms	ComputeNonbondedUtil.h	/^  int numAtoms[2];$/;"	m	struct:nonbonded
+numAtoms	Molecule.h	/^	int numAtoms;		\/\/  Number of atoms $/;"	m	class:Molecule
+numAtoms	Patch.h	/^  int numAtoms;$/;"	m	class:Patch
+numAtoms	ResultSet.h	/^  int numAtoms, doEnergy, doFull, doMerge;$/;"	m	class:ResultSet
+numCalcExclusions	Molecule.h	/^	int numCalcExclusions;	\/\/  Number of exclusions requiring calculation$/;"	m	class:Molecule
+numPairComputes	ComputeList.h	/^  int numPairComputes;$/;"	m	class:ComputeList
+numParts	ComputeNonbondedUtil.h	/^  int numParts;$/;"	m	struct:nonbonded
+numPatches	PatchList.h	/^  int numPatches;$/;"	m	class:PatchList
+numSelfComputes	ComputeList.h	/^  int numSelfComputes;$/;"	m	class:ComputeList
+o	Lattice.h	/^  Vector o; \/\/ origin (fixed center of cell)$/;"	m	class:Lattice
+off_diagonal	Tensor.h	/^     inline friend Vector off_diagonal(const Tensor &t1) {$/;"	f	class:Tensor
+one	erf.C	/^one =  1.00000000000000000000e+00, \/* 0x3FF00000, 0x00000000 *\/$/;"	v	file:
+operator !=	Tensor.h	/^     inline friend int operator!=(const Tensor &t1, const Tensor &t2) {$/;"	f	class:Tensor
+operator !=	Vector.h	/^     inline friend int operator != (const Vector& v1, const Vector& v2) {$/;"	f	class:Vector
+operator *	Tensor.h	/^     inline friend Tensor operator*(const BigReal &r1, const Tensor &t2) {$/;"	f	class:Tensor
+operator *	Tensor.h	/^     inline friend Tensor operator*(const Tensor &t1, const BigReal &r2) {$/;"	f	class:Tensor
+operator *	Tensor.h	/^     inline friend Vector operator*(const Tensor &t1, const Vector &v2) {$/;"	f	class:Tensor
+operator *	Tensor.h	/^     inline friend Vector operator*(const Vector &v1, const Tensor &t2) {$/;"	f	class:Tensor
+operator *	Vector.h	/^     inline friend BigReal operator*(const Vector &v1, const Vector &v2) {$/;"	f	class:Vector
+operator *	Vector.h	/^     inline friend Vector operator*(const BigReal &f, const Vector &v1) {$/;"	f	class:Vector
+operator *	Vector.h	/^     inline friend Vector operator*(const Vector &v1, const BigReal &f) {$/;"	f	class:Vector
+operator *=	Tensor.h	/^     inline Tensor& operator*=(const BigReal &r2) {$/;"	f	class:Tensor
+operator *=	Vector.h	/^     inline void operator*=(const BigReal &v2) {$/;"	f	class:Vector
+operator +	Tensor.h	/^     inline friend Tensor operator+(const Tensor& t1, const Tensor& t2) {$/;"	f	class:Tensor
+operator +	Vector.h	/^     inline friend Vector operator+(const Vector& v1, const Vector& v2) {$/;"	f	class:Vector
+operator +=	Tensor.h	/^     inline Tensor& operator+=(const Tensor &t2) {$/;"	f	class:Tensor
+operator +=	Vector.h	/^     inline void operator+=(const Vector &v2) {$/;"	f	class:Vector
+operator -	Tensor.h	/^     inline friend Tensor operator-(const Tensor &t1) {$/;"	f	class:Tensor
+operator -	Tensor.h	/^     inline friend Tensor operator-(const Tensor& t1, const Tensor& t2) {$/;"	f	class:Tensor
+operator -	Vector.h	/^     inline friend Vector operator-(const Vector &v1) {$/;"	f	class:Vector
+operator -	Vector.h	/^     inline friend Vector operator-(const Vector &v1, const Vector &v2) {$/;"	f	class:Vector
+operator -=	Tensor.h	/^     inline Tensor& operator-=(const Tensor &t2) {$/;"	f	class:Tensor
+operator -=	Vector.h	/^     inline void operator-=(const Vector &v2) {$/;"	f	class:Vector
+operator /	Tensor.h	/^     inline friend Tensor operator\/(const Tensor &t1, const BigReal &r2) {$/;"	f	class:Tensor
+operator /	Vector.h	/^     inline friend Vector operator\/(const Vector &v1, const BigReal &f) {$/;"	f	class:Vector
+operator /=	Tensor.h	/^     inline Tensor& operator\/=(const BigReal &r2) {$/;"	f	class:Tensor
+operator /=	Vector.h	/^     inline void operator\/=(const BigReal& v2) {$/;"	f	class:Vector
+operator =	NamdTypes.h	/^  inline CompAtom& operator=(const CompAtom &a) {$/;"	f	struct:CompAtom
+operator =	ResizeArray.h	/^    ResizeArray<Elem> & operator= (ResizeArray<Elem> &ra) {$/;"	f	class:ResizeArray
+operator =	ResizeArrayRaw.h	/^    ResizeArrayRaw<Elem> & operator=(const ResizeArrayRaw<Elem> &rar ) {$/;"	f	class:ResizeArrayRaw
+operator =	Tensor.h	/^     inline Tensor& operator=(const BigReal &r2) {$/;"	f	class:Tensor
+operator =	Tensor.h	/^     inline Tensor& operator=(const Tensor &t2) {$/;"	f	class:Tensor
+operator =	Vector.h	/^     inline Vector& operator=(const BigReal &v2) {$/;"	f	class:Vector
+operator ==	Tensor.h	/^     inline friend int operator==(const Tensor &t1, const Tensor &t2) {$/;"	f	class:Tensor
+operator ==	Vector.h	/^     inline friend int operator == (const Vector& v1, const Vector& v2) {$/;"	f	class:Vector
+operator []	ResizeArray.h	/^    inline Elem & operator[](int index) { return rep->array[index]; }$/;"	f	class:ResizeArray
+operator []	ResizeArray.h	/^    inline const Elem & operator[](int index) const { return rep->array[index]; }$/;"	f	class:ResizeArray
+operator []	ResizeArrayRaw.h	/^    inline Elem &operator[](int index) const { return array[index]; }$/;"	f	class:ResizeArrayRaw
+operator []	Vector.h	/^     inline BigReal &operator[](int i) {$/;"	f	class:Vector
+operator new	common.h	/^void * ::operator new (size_t, void *p) { return p; }$/;"	f
+operator new	common.h	/^void * operator new (size_t, void *p) { return p; }$/;"	f
+origin	Lattice.h	/^  Vector origin() const$/;"	f	class:Lattice
+orthogonal	Lattice.h	/^  int orthogonal() const {$/;"	f	class:Lattice
+outer	Tensor.h	/^     inline Tensor outer(const Vector &v1, const Vector &v2) {$/;"	f
+outputDataSize	ReductionMgr.h	/^         outputDataSize, exclChecksumIndex,$/;"	e	enum:__anon3
+p	ComputeNonbondedUtil.h	/^  CompAtom* p[2];$/;"	m	struct:nonbonded
+p1	Lattice.h	/^  int p1, p2, p3; \/\/ periodic along this lattice vector?$/;"	m	class:Lattice
+p2	Lattice.h	/^  int p1, p2, p3; \/\/ periodic along this lattice vector?$/;"	m	class:Lattice
+p3	Lattice.h	/^  int p1, p2, p3; \/\/ periodic along this lattice vector?$/;"	m	class:Lattice
+p_ij	ComputeNonbondedUtil.h	/^  Position p_ij;$/;"	m	struct:nonbonded
+p_orig	Patch.h	/^  Vector *p_orig;$/;"	m	class:Patch
+pa0	erf.C	/^pa0  = -2.36211856075265944077e-03, \/* 0xBF6359B8, 0xBEF77538 *\/$/;"	v	file:
+pa1	erf.C	/^pa1  =  4.14856118683748331666e-01, \/* 0x3FDA8D00, 0xAD92B34D *\/$/;"	v	file:
+pa2	erf.C	/^pa2  = -3.72207876035701323847e-01, \/* 0xBFD7D240, 0xFBB8C3F1 *\/$/;"	v	file:
+pa3	erf.C	/^pa3  =  3.18346619901161753674e-01, \/* 0x3FD45FCA, 0x805120E4 *\/$/;"	v	file:
+pa4	erf.C	/^pa4  = -1.10894694282396677476e-01, \/* 0xBFBC6398, 0x3D3E28EC *\/$/;"	v	file:
+pa5	erf.C	/^pa5  =  3.54783043256182359371e-02, \/* 0x3FA22A36, 0x599795EB *\/$/;"	v	file:
+pa6	erf.C	/^pa6  = -2.16637559486879084300e-03, \/* 0xBF61BF38, 0x0A96073F *\/$/;"	v	file:
+pairComputes	ComputeList.h	/^  PairCompute *pairComputes;$/;"	m	class:ComputeList
+pairInteractionOn	ComputeNonbondedUtil.C	/^Bool            ComputeNonbondedUtil::pairInteractionOn;$/;"	m	class:ComputeNonbondedUtil	file:
+pairInteractionOn	ComputeNonbondedUtil.h	/^  static Bool pairInteractionOn;$/;"	m	class:ComputeNonbondedUtil
+pairInteractionSelf	ComputeNonbondedUtil.C	/^Bool            ComputeNonbondedUtil::pairInteractionSelf;$/;"	m	class:ComputeNonbondedUtil	file:
+pairInteractionSelf	ComputeNonbondedUtil.h	/^  static Bool pairInteractionSelf;$/;"	m	class:ComputeNonbondedUtil
+parse_param	SimParameters.C	/^inline int parse_param(const char *param, const char *name,$/;"	f
+partition	NamdTypes.h	/^  unsigned int partition : 4;$/;"	m	struct:CompAtom
+parts	erf.C	/^  } parts;$/;"	m	union:__anon1	typeref:struct:__anon1::__anon2	file:
+patchId	Compute.h	/^  int patchId;$/;"	m	class:SelfCompute
+patchId1	Compute.h	/^  int patchId1;$/;"	m	class:PairCompute
+patchId2	Compute.h	/^  int patchId2;$/;"	m	class:PairCompute
+patches	PatchList.h	/^  Patch *patches;$/;"	m	class:PatchList
+pi_ewaldcof	ComputeNonbondedUtil.C	/^BigReal		ComputeNonbondedUtil::pi_ewaldcof;$/;"	m	class:ComputeNonbondedUtil	file:
+pi_ewaldcof	ComputeNonbondedUtil.h	/^  static BigReal pi_ewaldcof;$/;"	m	class:ComputeNonbondedUtil
+pid	NamdTypes.h	/^  PatchID pid;$/;"	m	struct:LocalID
+pos	ObjectArena.h	/^    Type *pos, *end;$/;"	m	class:ObjectArena
+position	NamdTypes.h	/^  Position position;$/;"	m	struct:CompAtom
+pp0	erf.C	/^pp0  =  1.28379167095512558561e-01, \/* 0x3FC06EBA, 0x8214DB68 *\/$/;"	v	file:
+pp1	erf.C	/^pp1  = -3.25042107247001499370e-01, \/* 0xBFD4CD7D, 0x691CB913 *\/$/;"	v	file:
+pp2	erf.C	/^pp2  = -2.84817495755985104766e-02, \/* 0xBF9D2A51, 0xDBD7194F *\/$/;"	v	file:
+pp3	erf.C	/^pp3  = -5.77027029648944159157e-03, \/* 0xBF77A291, 0x236668E4 *\/$/;"	v	file:
+pp4	erf.C	/^pp4  = -2.37630166566501626084e-05, \/* 0xBEF8EAD6, 0x120016AC *\/$/;"	v	file:
+pressureProfileMin	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::pressureProfileMin;$/;"	m	class:ComputeNonbondedUtil	file:
+pressureProfileMin	ComputeNonbondedUtil.h	/^  static BigReal pressureProfileMin;$/;"	m	class:ComputeNonbondedUtil
+pressureProfileNonbonded	ComputeNonbondedUtil.C	/^Bool            ComputeNonbondedUtil::pressureProfileNonbonded;$/;"	m	class:ComputeNonbondedUtil	file:
+pressureProfileNonbonded	ComputeNonbondedUtil.h	/^  static Bool pressureProfileNonbonded;$/;"	m	class:ComputeNonbondedUtil
+pressureProfileReduction	ComputeNonbondedUtil.h	/^  BigReal *pressureProfileReduction;$/;"	m	struct:nonbonded
+pressureProfileSlabs	ComputeNonbondedUtil.C	/^int             ComputeNonbondedUtil::pressureProfileSlabs;$/;"	m	class:ComputeNonbondedUtil	file:
+pressureProfileSlabs	ComputeNonbondedUtil.h	/^  static int pressureProfileSlabs;$/;"	m	class:ComputeNonbondedUtil
+pressureProfileThickness	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::pressureProfileThickness;$/;"	m	class:ComputeNonbondedUtil	file:
+pressureProfileThickness	ComputeNonbondedUtil.h	/^  static BigReal pressureProfileThickness;$/;"	m	class:ComputeNonbondedUtil
+qa1	erf.C	/^qa1  =  1.06420880400844228286e-01, \/* 0x3FBB3E66, 0x18EEE323 *\/$/;"	v	file:
+qa2	erf.C	/^qa2  =  5.40397917702171048937e-01, \/* 0x3FE14AF0, 0x92EB6F33 *\/$/;"	v	file:
+qa3	erf.C	/^qa3  =  7.18286544141962662868e-02, \/* 0x3FB2635C, 0xD99FE9A7 *\/$/;"	v	file:
+qa4	erf.C	/^qa4  =  1.26171219808761642112e-01, \/* 0x3FC02660, 0xE763351F *\/$/;"	v	file:
+qa5	erf.C	/^qa5  =  1.36370839120290507362e-02, \/* 0x3F8BEDC2, 0x6B51DD1C *\/$/;"	v	file:
+qa6	erf.C	/^qa6  =  1.19844998467991074170e-02, \/* 0x3F888B54, 0x5735151D *\/$/;"	v	file:
+qq1	erf.C	/^qq1  =  3.97917223959155352819e-01, \/* 0x3FD97779, 0xCDDADC09 *\/$/;"	v	file:
+qq2	erf.C	/^qq2  =  6.50222499887672944485e-02, \/* 0x3FB0A54C, 0x5536CEBA *\/$/;"	v	file:
+qq3	erf.C	/^qq3  =  5.08130628187576562776e-03, \/* 0x3F74D022, 0xC4D36B0F *\/$/;"	v	file:
+qq4	erf.C	/^qq4  =  1.32494738004321644526e-04, \/* 0x3F215DC9, 0x221C1A10 *\/$/;"	v	file:
+qq5	erf.C	/^qq5  = -3.96022827877536812320e-06, \/* 0xBED09C43, 0x42A26120 *\/$/;"	v	file:
+r2_delta	ComputeNonbondedUtil.C	/^BigReal		ComputeNonbondedUtil::r2_delta;$/;"	m	class:ComputeNonbondedUtil	file:
+r2_delta	ComputeNonbondedUtil.h	/^  static BigReal r2_delta, r2_delta_1;$/;"	m	class:ComputeNonbondedUtil
+r2_delta_1	ComputeNonbondedUtil.C	/^BigReal		ComputeNonbondedUtil::r2_delta_1;$/;"	m	class:ComputeNonbondedUtil	file:
+r2_delta_1	ComputeNonbondedUtil.h	/^  static BigReal r2_delta, r2_delta_1;$/;"	m	class:ComputeNonbondedUtil
+r2_delta_exp	ComputeNonbondedUtil.C	/^int		ComputeNonbondedUtil::r2_delta_exp;$/;"	m	class:ComputeNonbondedUtil	file:
+r2_delta_exp	ComputeNonbondedUtil.h	/^  static int r2_delta_exp;$/;"	m	class:ComputeNonbondedUtil
+ra0	erf.C	/^ra0  = -9.86494403484714822705e-03, \/* 0xBF843412, 0x600D6435 *\/$/;"	v	file:
+ra1	erf.C	/^ra1  = -6.93858572707181764372e-01, \/* 0xBFE63416, 0xE4BA7360 *\/$/;"	v	file:
+ra2	erf.C	/^ra2  = -1.05586262253232909814e+01, \/* 0xC0251E04, 0x41B0E726 *\/$/;"	v	file:
+ra3	erf.C	/^ra3  = -6.23753324503260060396e+01, \/* 0xC04F300A, 0xE4CBA38D *\/$/;"	v	file:
+ra4	erf.C	/^ra4  = -1.62396669462573470355e+02, \/* 0xC0644CB1, 0x84282266 *\/$/;"	v	file:
+ra5	erf.C	/^ra5  = -1.84605092906711035994e+02, \/* 0xC067135C, 0xEBCCABB2 *\/$/;"	v	file:
+ra6	erf.C	/^ra6  = -8.12874355063065934246e+01, \/* 0xC0545265, 0x57E4D2F2 *\/$/;"	v	file:
+ra7	erf.C	/^ra7  = -9.81432934416914548592e+00, \/* 0xC023A0EF, 0xC69AC25C *\/$/;"	v	file:
+rb0	erf.C	/^rb0  = -9.86494292470009928597e-03, \/* 0xBF843412, 0x39E86F4A *\/$/;"	v	file:
+rb1	erf.C	/^rb1  = -7.99283237680523006574e-01, \/* 0xBFE993BA, 0x70C285DE *\/$/;"	v	file:
+rb2	erf.C	/^rb2  = -1.77579549177547519889e+01, \/* 0xC031C209, 0x555F995A *\/$/;"	v	file:
+rb3	erf.C	/^rb3  = -1.60636384855821916062e+02, \/* 0xC064145D, 0x43C5ED98 *\/$/;"	v	file:
+rb4	erf.C	/^rb4  = -6.37566443368389627722e+02, \/* 0xC083EC88, 0x1375F228 *\/$/;"	v	file:
+rb5	erf.C	/^rb5  = -1.02509513161107724954e+03, \/* 0xC0900461, 0x6A2E5992 *\/$/;"	v	file:
+rb6	erf.C	/^rb6  = -4.83519191608651397019e+02, \/* 0xC07E384E, 0x9BDC383F *\/$/;"	v	file:
+readfile	ComputeList.C	/^int ComputeList::readfile(FILE *file, PatchList *patchList) {$/;"	f	class:ComputeList
+readfile	LJTable.C	/^int LJTable::readfile(FILE *file) {$/;"	f	class:LJTable
+readfile	Molecule.C	/^int Molecule::readfile(FILE *file) {$/;"	f	class:Molecule
+readfile	Patch.C	/^int Patch::readfile(FILE *file) {$/;"	f	class:Patch
+readfile	PatchList.C	/^int PatchList::readfile(FILE *file) {$/;"	f	class:PatchList
+readfile	ResultSet.C	/^int ResultSet::readfile(FILE *file) {$/;"	f	class:ResultSet
+readfile	SimParameters.C	/^int SimParameters::readfile(FILE *file) {$/;"	f	class:SimParameters
+recalculate	Lattice.h	/^  void recalculate(void) {$/;"	f	class:Lattice
+reduce	ResizeArray.h	/^    void reduce(void) { rep->reduce(); }$/;"	f	class:ResizeArray
+reduce	ResizeArrayRaw.h	/^    void reduce(void) {}; $/;"	f	class:ResizeArrayRaw
+reduction	ComputeNonbondedUtil.h	/^  BigReal *reduction;$/;"	m	struct:nonbonded
+reductionData	PatchList.h	/^  double *reductionData;$/;"	m	class:PatchList
+reductionDataSize	ReductionMgr.h	/^         reductionDataSize };$/;"	e	enum:__anon3
+reductions	ResultSet.h	/^  double reductions[outputDataSize];$/;"	m	class:ResultSet
+refCount	ResizeArrayRaw.h	/^    int refCount;$/;"	m	class:ResizeArrayRaw
+rep	ResizeArray.h	/^    ResizeArrayRaw<Elem> *rep;$/;"	m	class:ResizeArray
+replace	NamdTypes.h	/^  int replace;$/;"	m	struct:ExtForce
+rescale	Lattice.h	/^  void rescale(Position &p, Tensor factor) const$/;"	f	class:Lattice
+rescale	Lattice.h	/^  void rescale(Tensor factor)$/;"	f	class:Lattice
+resize	ResizeArray.h	/^    void resize(int i) { rep->resize(i); }$/;"	f	class:ResizeArray
+resize	ResizeArrayRaw.h	/^    void resize(int size) {$/;"	f	class:ResizeArrayRaw
+resizeRaw	ResizeArrayRaw.h	/^    void resizeRaw(int size) {$/;"	f	class:ResizeArrayRaw
+restrict	ComputeNonbondedUtil.C	12;"	d	file:
+reverse_transform	Lattice.h	/^  Position reverse_transform(Position data, const Transform &t) const$/;"	f	class:Lattice
+rmsf_both	ResultSet.h	/^  double rmsf_both;$/;"	m	class:ResultSet
+rmsf_nbond	ResultSet.h	/^  double rmsf_nbond;$/;"	m	class:ResultSet
+rmsf_slow	ResultSet.h	/^  double rmsf_slow;$/;"	m	class:ResultSet
+runComputes	ComputeList.C	/^void ComputeList::runComputes(PatchList *patchList) {$/;"	f	class:ComputeList
+sa1	erf.C	/^sa1  =  1.96512716674392571292e+01, \/* 0x4033A6B9, 0xBD707687 *\/$/;"	v	file:
+sa2	erf.C	/^sa2  =  1.37657754143519042600e+02, \/* 0x4061350C, 0x526AE721 *\/$/;"	v	file:
+sa3	erf.C	/^sa3  =  4.34565877475229228821e+02, \/* 0x407B290D, 0xD58A1A71 *\/$/;"	v	file:
+sa4	erf.C	/^sa4  =  6.45387271733267880336e+02, \/* 0x40842B19, 0x21EC2868 *\/$/;"	v	file:
+sa5	erf.C	/^sa5  =  4.29008140027567833386e+02, \/* 0x407AD021, 0x57700314 *\/$/;"	v	file:
+sa6	erf.C	/^sa6  =  1.08635005541779435134e+02, \/* 0x405B28A3, 0xEE48AE2C *\/$/;"	v	file:
+sa7	erf.C	/^sa7  =  6.57024977031928170135e+00, \/* 0x401A47EF, 0x8E484A93 *\/$/;"	v	file:
+sa8	erf.C	/^sa8  = -6.04244152148580987438e-02, \/* 0xBFAEEFF2, 0xEE749A62 *\/$/;"	v	file:
+samemode	ResultSet.C	/^void ResultSet::samemode(ResultSet &r) {$/;"	f	class:ResultSet
+sb1	erf.C	/^sb1  =  3.03380607434824582924e+01, \/* 0x403E568B, 0x261D5190 *\/$/;"	v	file:
+sb2	erf.C	/^sb2  =  3.25792512996573918826e+02, \/* 0x40745CAE, 0x221B9F0A *\/$/;"	v	file:
+sb3	erf.C	/^sb3  =  1.53672958608443695994e+03, \/* 0x409802EB, 0x189D5118 *\/$/;"	v	file:
+sb4	erf.C	/^sb4  =  3.19985821950859553908e+03, \/* 0x40A8FFB7, 0x688C246A *\/$/;"	v	file:
+sb5	erf.C	/^sb5  =  2.55305040643316442583e+03, \/* 0x40A3F219, 0xCEDF3BE6 *\/$/;"	v	file:
+sb6	erf.C	/^sb6  =  4.74528541206955367215e+02, \/* 0x407DA874, 0xE79FE763 *\/$/;"	v	file:
+sb7	erf.C	/^sb7  = -2.24409524465858183362e+01; \/* 0xC03670E2, 0x42712D62 *\/$/;"	v	file:
+scale	Lattice.h	/^  ScaledPosition scale(Position p) const$/;"	f	class:Lattice
+scale14	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::scale14;$/;"	m	class:ComputeNonbondedUtil	file:
+scale14	ComputeNonbondedUtil.h	/^  static BigReal scale14;$/;"	m	class:ComputeNonbondedUtil
+scaling	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::scaling;$/;"	m	class:ComputeNonbondedUtil	file:
+scaling	ComputeNonbondedUtil.h	/^  static BigReal scaling;$/;"	m	class:ComputeNonbondedUtil
+scor_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::scor_table;$/;"	m	class:ComputeNonbondedUtil	file:
+scor_table	ComputeNonbondedUtil.h	/^  static BigReal *scor_table;$/;"	m	class:ComputeNonbondedUtil
+select	ComputeNonbondedUtil.C	/^void ComputeNonbondedUtil::select(SimParameters *simParams, Molecule *molecule, LJTable *ljTable_in)$/;"	f	class:ComputeNonbondedUtil
+selfComputes	ComputeList.h	/^  SelfCompute *selfComputes;$/;"	m	class:ComputeList
+set	Lattice.h	/^  void set(Vector A, Vector B, Vector C, Position Origin)$/;"	f	class:Lattice
+set	Vector.h	/^     Bool set(const char *s) {$/;"	f	class:Vector
+setAlignment	ObjectArena.h	/^    void setAlignment(int n) { alignment = n; }$/;"	f	class:ObjectArena
+setBlockSize	ObjectArena.h	/^    void setBlockSize(int n) { blockSize = n; }$/;"	f	class:ObjectArena
+setResizeParams	ResizeArrayRaw.h	/^    void setResizeParams(int min, float growth) {$/;"	f	class:ResizeArrayRaw
+setall	ResizeArray.h	/^    void setall(const Elem &elem) {$/;"	f	class:ResizeArray
+setforces	Patch.C	/^void Patch::setforces(Vector *fn, Vector *fs) {$/;"	f	class:Patch
+setparam	SimParameters.C	/^int SimParameters::setparam(const char *param, const char *value) {$/;"	f	class:SimParameters
+setresults	PatchList.C	/^void PatchList::setresults(ResultSet *r) {$/;"	f	class:PatchList
+size	ResizeArray.h	/^    inline int size(void) const { return rep->size(); }$/;"	f	class:ResizeArray
+size	ResizeArrayRaw.h	/^    inline int size(void) const { return arraySize; }$/;"	f	class:ResizeArrayRaw
+slow_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::slow_table;$/;"	m	class:ComputeNonbondedUtil	file:
+slow_table	ComputeNonbondedUtil.h	/^  static BigReal *slow_table;$/;"	m	class:ComputeNonbondedUtil
+square	ComputeNonbondedUtil.h	/^  inline static BigReal square(	const BigReal &x,$/;"	f	class:ComputeNonbondedUtil
+switchOn	ComputeNonbondedUtil.C	/^Real            ComputeNonbondedUtil::switchOn;$/;"	m	class:ComputeNonbondedUtil	file:
+switchOn	ComputeNonbondedUtil.h	/^  static Real switchOn;$/;"	m	class:ComputeNonbondedUtil
+switchOn2	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::switchOn2;$/;"	m	class:ComputeNonbondedUtil	file:
+switchOn2	ComputeNonbondedUtil.h	/^  static BigReal switchOn2;$/;"	m	class:ComputeNonbondedUtil
+switchOn_1	ComputeNonbondedUtil.C	/^BigReal         ComputeNonbondedUtil::switchOn_1;$/;"	m	class:ComputeNonbondedUtil	file:
+switchOn_1	ComputeNonbondedUtil.h	/^  static BigReal switchOn_1;$/;"	m	class:ComputeNonbondedUtil
+symmetric	Tensor.h	/^     inline friend Tensor symmetric(const Tensor &t1) {$/;"	f	class:Tensor
+symmetric	Tensor.h	/^     static inline Tensor symmetric(const Vector &v1, const Vector &v2) {$/;"	f	class:Tensor
+table	LJTable.h	/^  TableEntry *table;$/;"	m	class:LJTable
+table_alloc	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::table_alloc = 0;$/;"	m	class:ComputeNonbondedUtil	file:
+table_alloc	ComputeNonbondedUtil.h	/^  static BigReal *table_alloc;$/;"	m	class:ComputeNonbondedUtil
+table_alloc	LJTable.h	/^  char *table_alloc;$/;"	m	class:LJTable
+table_dim	LJTable.h	/^  int table_dim;$/;"	m	class:LJTable
+table_noshort	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::table_noshort;$/;"	m	class:ComputeNonbondedUtil	file:
+table_noshort	ComputeNonbondedUtil.h	/^  static BigReal *table_noshort;$/;"	m	class:ComputeNonbondedUtil
+table_row	LJTable.h	/^  const TableEntry *table_row(unsigned int i) const {$/;"	f	class:LJTable
+table_short	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::table_short;$/;"	m	class:ComputeNonbondedUtil	file:
+table_short	ComputeNonbondedUtil.h	/^  static BigReal *table_short;$/;"	m	class:ComputeNonbondedUtil
+table_val	LJTable.h	/^  const TableEntry *table_val(unsigned int i, unsigned int j) const {$/;"	f	class:LJTable
+table_val_scale14	LJTable.h	/^  const TableEntry *table_val_scale14(unsigned int i, unsigned int j) const {$/;"	f	class:LJTable
+tiny	erf.C	/^tiny	    = 1e-300,$/;"	v	file:
+trace	Tensor.h	/^     inline friend BigReal trace(const Tensor &t1) {$/;"	f	class:Tensor
+transform	NamdTypes.h	/^  Transform transform;$/;"	m	struct:FullAtom
+transpose	Tensor.h	/^     inline friend Tensor transpose(const Tensor &t1) {$/;"	f	class:Tensor
+triangular	Tensor.h	/^     inline friend Tensor triangular(const Tensor &t1) {$/;"	f	class:Tensor
+triangular	Tensor.h	/^     static inline Tensor triangular(const Vector &v1, const Vector &v2) {$/;"	f	class:Tensor
+true	NamdTypes.h	113;"	d
+two	erf.C	/^two =  2.00000000000000000000e+00, \/* 0x40000000, 0x00000000 *\/$/;"	v	file:
+u_int32_t	erf.C	/^typedef unsigned int u_int32_t;$/;"	t	file:
+unit	Vector.h	/^     inline Vector unit(void) const {$/;"	f	class:Vector
+unscale	Lattice.h	/^  Position unscale(ScaledPosition s) const$/;"	f	class:Lattice
+value	erf.C	/^  double value;$/;"	m	union:__anon1	file:
+varray	ResizeArrayRaw.h	/^    unsigned char *varray;$/;"	m	class:ResizeArrayRaw
+vdwEnergyIndex	ReductionMgr.h	/^  enum { electEnergyIndex, fullElectEnergyIndex, vdwEnergyIndex,$/;"	e	enum:__anon3
+vdwEnergyIndex_s	ReductionMgr.h	/^         electEnergyIndex_s, fullElectEnergyIndex_s, vdwEnergyIndex_s,$/;"	e	enum:__anon3
+vdwa_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::vdwa_table;$/;"	m	class:ComputeNonbondedUtil	file:
+vdwa_table	ComputeNonbondedUtil.h	/^  static BigReal *vdwa_table;$/;"	m	class:ComputeNonbondedUtil
+vdwb_table	ComputeNonbondedUtil.C	/^BigReal*	ComputeNonbondedUtil::vdwb_table;$/;"	m	class:ComputeNonbondedUtil	file:
+vdwb_table	ComputeNonbondedUtil.h	/^  static BigReal *vdwb_table;$/;"	m	class:ComputeNonbondedUtil
+velocity	NamdTypes.h	/^  Velocity velocity;$/;"	m	struct:FullAtom
+volume	Lattice.h	/^  BigReal volume(void) const$/;"	f	class:Lattice
+wrap_delta	Lattice.h	/^  Vector wrap_delta(Position pos1) const$/;"	f	class:Lattice
+wrap_nearest_delta	Lattice.h	/^  Vector wrap_nearest_delta(Position pos1) const$/;"	f	class:Lattice
+writefile	ResultSet.C	/^void ResultSet::writefile(FILE *file) {$/;"	f	class:ResultSet
+x	Vector.h	/^     BigReal x,y,z;$/;"	m	class:Vector
+x	Vector.h	/^  float x,y,z;$/;"	m	class:FloatVector
+xx	Tensor.h	/^     BigReal xx, xy, xz;$/;"	m	class:Tensor
+xy	Tensor.h	/^     BigReal xx, xy, xz;$/;"	m	class:Tensor
+xz	Tensor.h	/^     BigReal xx, xy, xz;$/;"	m	class:Tensor
+y	Vector.h	/^     BigReal x,y,z;$/;"	m	class:Vector
+y	Vector.h	/^  float x,y,z;$/;"	m	class:FloatVector
+yx	Tensor.h	/^     BigReal yx, yy, yz;$/;"	m	class:Tensor
+yy	Tensor.h	/^     BigReal yx, yy, yz;$/;"	m	class:Tensor
+yz	Tensor.h	/^     BigReal yx, yy, yz;$/;"	m	class:Tensor
+z	Vector.h	/^     BigReal x,y,z;$/;"	m	class:Vector
+z	Vector.h	/^  float x,y,z;$/;"	m	class:FloatVector
+zVector	Vector.h	/^     inline zVector(const Vector &v) : Vector(v) { ; }$/;"	f	class:zVector
+zVector	Vector.h	/^     inline zVector(void) : Vector(0,0,0) { ; }$/;"	f	class:zVector
+zVector	Vector.h	/^class zVector : public Vector {$/;"	c
+zeroforces	Patch.C	/^void Patch::zeroforces() {$/;"	f	class:Patch
+zeroresults	PatchList.C	/^void PatchList::zeroresults() {$/;"	f	class:PatchList
+zx	Tensor.h	/^     BigReal zx, zy, zz;$/;"	m	class:Tensor
+zy	Tensor.h	/^     BigReal zx, zy, zz;$/;"	m	class:Tensor
+zz	Tensor.h	/^     BigReal zx, zy, zz;$/;"	m	class:Tensor
+~ComputeList	ComputeList.C	/^ComputeList::~ComputeList() {$/;"	f	class:ComputeList
+~ComputeNonbondedUtil	ComputeNonbondedUtil.h	/^  virtual ~ComputeNonbondedUtil() {}$/;"	f	class:ComputeNonbondedUtil
+~LJTable	LJTable.C	/^LJTable::~LJTable()$/;"	f	class:LJTable
+~Molecule	Molecule.C	/^Molecule::~Molecule()$/;"	f	class:Molecule
+~ObjectArena	ObjectArena.h	/^    ~ObjectArena(void) {$/;"	f	class:ObjectArena
+~PairCompute	Compute.h	/^  ~PairCompute() {};$/;"	f	class:PairCompute
+~Patch	Patch.C	/^Patch::~Patch() {$/;"	f	class:Patch
+~PatchList	PatchList.C	/^PatchList::~PatchList() {$/;"	f	class:PatchList
+~ResizeArray	ResizeArray.h	/^    virtual ~ResizeArray(void) {$/;"	f	class:ResizeArray
+~ResizeArrayRaw	ResizeArrayRaw.h	/^    ~ResizeArrayRaw(void) {$/;"	f	class:ResizeArrayRaw
+~ResultSet	ResultSet.h	/^  ~ResultSet() {$/;"	f	class:ResultSet
+~SelfCompute	Compute.h	/^  ~SelfCompute() {};$/;"	f	class:SelfCompute
+~SimParameters	SimParameters.h	/^	~SimParameters() {};$/;"	f	class:SimParameters
+~Tensor	Tensor.h	/^     ~Tensor(void) { }$/;"	f	class:Tensor

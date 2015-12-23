@@ -1,0 +1,111 @@
+; ModuleID = 'params.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.param_info = type { i8*, i32, i8* }
+
+@compiler_params = common global %struct.param_info* null, align 8
+@num_compiler_params = internal unnamed_addr global i64 0, align 8
+@.str = private unnamed_addr constant [23 x i8] c"invalid parameter `%s'\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @add_params(%struct.param_info* nocapture readonly %params, i64 %n) #0 {
+entry:
+  %0 = load %struct.param_info** @compiler_params, align 8, !tbaa !1
+  %1 = bitcast %struct.param_info* %0 to i8*
+  %2 = load i64* @num_compiler_params, align 8, !tbaa !5
+  %add = add i64 %2, %n
+  %mul = mul i64 %add, 24
+  %call = tail call i8* @xrealloc(i8* %1, i64 %mul) #2
+  %3 = bitcast i8* %call to %struct.param_info*
+  store %struct.param_info* %3, %struct.param_info** @compiler_params, align 8, !tbaa !1
+  %4 = load i64* @num_compiler_params, align 8, !tbaa !5
+  %add.ptr = getelementptr inbounds %struct.param_info* %3, i64 %4
+  %5 = bitcast %struct.param_info* %add.ptr to i8*
+  %6 = bitcast %struct.param_info* %params to i8*
+  %mul1 = mul i64 %n, 24
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %5, i8* %6, i64 %mul1, i32 8, i1 false)
+  %7 = load i64* @num_compiler_params, align 8, !tbaa !5
+  %add2 = add i64 %7, %n
+  store i64 %add2, i64* @num_compiler_params, align 8, !tbaa !5
+  ret void
+}
+
+declare i8* @xrealloc(i8*, i64) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #2
+
+; Function Attrs: nounwind uwtable
+define void @set_param_value(i8* %name, i32 %value) #0 {
+entry:
+  %cmp = icmp eq i32 %value, -1
+  br i1 %cmp, label %if.then, label %for.cond.preheader
+
+for.cond.preheader:                               ; preds = %entry
+  %0 = load i64* @num_compiler_params, align 8, !tbaa !5
+  %cmp113 = icmp eq i64 %0, 0
+  br i1 %cmp113, label %for.end, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %for.cond.preheader
+  %1 = load %struct.param_info** @compiler_params, align 8, !tbaa !1
+  br label %for.body
+
+if.then:                                          ; preds = %entry
+  tail call void @abort() #5
+  unreachable
+
+for.cond:                                         ; preds = %for.body
+  %cmp1 = icmp ult i64 %inc, %0
+  br i1 %cmp1, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.cond
+  %i.014 = phi i64 [ 0, %for.body.lr.ph ], [ %inc, %for.cond ]
+  %option = getelementptr inbounds %struct.param_info* %1, i64 %i.014, i32 0
+  %2 = load i8** %option, align 8, !tbaa !7
+  %call = tail call i32 @strcmp(i8* %2, i8* %name) #2
+  %cmp2 = icmp eq i32 %call, 0
+  %inc = add i64 %i.014, 1
+  br i1 %cmp2, label %if.then3, label %for.cond
+
+if.then3:                                         ; preds = %for.body
+  %value5 = getelementptr inbounds %struct.param_info* %1, i64 %i.014, i32 1
+  store i32 %value, i32* %value5, align 4, !tbaa !10
+  br label %return
+
+for.end:                                          ; preds = %for.cond, %for.cond.preheader
+  tail call void (i8*, ...)* @error(i8* getelementptr inbounds ([23 x i8]* @.str, i64 0, i64 0), i8* %name) #2
+  br label %return
+
+return:                                           ; preds = %for.end, %if.then3
+  ret void
+}
+
+; Function Attrs: noreturn
+declare void @abort() #3
+
+; Function Attrs: nounwind readonly
+declare i32 @strcmp(i8* nocapture, i8* nocapture) #4
+
+declare void @error(i8*, ...) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+attributes #3 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !6, i64 0}
+!6 = metadata !{metadata !"long", metadata !3, i64 0}
+!7 = metadata !{metadata !8, metadata !2, i64 0}
+!8 = metadata !{metadata !"param_info", metadata !2, i64 0, metadata !9, i64 8, metadata !2, i64 16}
+!9 = metadata !{metadata !"int", metadata !3, i64 0}
+!10 = metadata !{metadata !8, metadata !9, i64 8}

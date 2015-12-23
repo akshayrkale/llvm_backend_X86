@@ -1,0 +1,308 @@
+; ModuleID = 'stringpool.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.ht = type { %struct.obstack, %struct.ht_identifier**, %struct.ht_identifier* (%struct.ht*)*, i32, i32, %struct.cpp_reader*, i32, i32 }
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+%struct.ht_identifier = type { i32, i8* }
+%struct.cpp_reader = type opaque
+%struct.varray_head_tag = type { i64, i64, i64, i8*, %union.varray_data_tag }
+%union.varray_data_tag = type { [1 x %struct.const_equiv_data] }
+%struct.const_equiv_data = type { %struct.rtx_def*, i32 }
+%struct.rtx_def = type opaque
+%union.tree_node = type { %struct.tree_decl }
+%struct.tree_decl = type { %struct.tree_common, i8*, i32, i32, %union.tree_node*, i48, %union.anon, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %struct.rtx_def*, %struct.rtx_def*, %union.anon.1, %union.tree_node*, %union.tree_node*, %union.tree_node*, i64, %struct.lang_decl* }
+%struct.tree_common = type { %union.tree_node*, %union.tree_node*, i32 }
+%union.anon = type { i64 }
+%union.anon.1 = type { %struct.function* }
+%struct.function = type opaque
+%struct.lang_decl = type opaque
+
+@empty_string = constant [1 x i8] zeroinitializer, align 1
+@digit_vector = constant [20 x i8] c"0\001\002\003\004\005\006\007\008\009\00", align 16
+@ident_hash = common global %struct.ht* null, align 8
+@string_stack = internal global %struct.obstack zeroinitializer, align 8
+@_sch_istable = external constant [256 x i16]
+@ggc_pending_trees = external global %struct.varray_head_tag*
+
+; Function Attrs: nounwind uwtable
+define void @init_stringpool() #0 {
+entry:
+  %call = tail call %struct.ht* @ht_create(i32 14) #3
+  store %struct.ht* %call, %struct.ht** @ident_hash, align 8, !tbaa !1
+  %alloc_node = getelementptr inbounds %struct.ht* %call, i64 0, i32 2
+  store %struct.ht_identifier* (%struct.ht*)* @alloc_node, %struct.ht_identifier* (%struct.ht*)** %alloc_node, align 8, !tbaa !5
+  tail call void @gcc_obstack_init(%struct.obstack* @string_stack) #3
+  tail call void @ggc_add_root(i8* bitcast (%struct.ht** @ident_hash to i8*), i32 1, i32 8, void (i8*)* @mark_ident_hash) #3
+  ret void
+}
+
+declare %struct.ht* @ht_create(i32) #1
+
+; Function Attrs: nounwind uwtable
+define internal %struct.ht_identifier* @alloc_node(%struct.ht* nocapture readnone %table) #0 {
+entry:
+  %call = tail call %union.tree_node* @make_node(i32 1) #3
+  %id = getelementptr inbounds %union.tree_node* %call, i64 0, i32 0, i32 1
+  %0 = bitcast i8** %id to %struct.ht_identifier*
+  ret %struct.ht_identifier* %0
+}
+
+declare void @gcc_obstack_init(%struct.obstack*) #1
+
+declare void @ggc_add_root(i8*, i32, i32, void (i8*)*) #1
+
+; Function Attrs: nounwind uwtable
+define internal void @mark_ident_hash(i8* nocapture readnone %arg) #0 {
+entry:
+  %0 = load %struct.ht** @ident_hash, align 8, !tbaa !1
+  tail call void @ht_forall(%struct.ht* %0, i32 (%struct.cpp_reader*, %struct.ht_identifier*, i8*)* @mark_ident, i8* null) #3
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define i8* @ggc_alloc_string(i8* nocapture readonly %contents, i32 %length) #0 {
+entry:
+  %cmp = icmp eq i32 %length, -1
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %call = tail call i64 @strlen(i8* %contents) #3
+  %conv = trunc i64 %call to i32
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %length.addr.0 = phi i32 [ %conv, %if.then ], [ %length, %entry ]
+  switch i32 %length.addr.0, label %if.end14 [
+    i32 0, label %return
+    i32 1, label %land.lhs.true
+  ]
+
+land.lhs.true:                                    ; preds = %if.end
+  %0 = load i8* %contents, align 1, !tbaa !10
+  %conv7 = sext i8 %0 to i32
+  %and = and i32 %conv7, 255
+  %idxprom86 = zext i32 %and to i64
+  %arrayidx8 = getelementptr inbounds [256 x i16]* @_sch_istable, i64 0, i64 %idxprom86
+  %1 = load i16* %arrayidx8, align 2, !tbaa !11
+  %and10 = and i16 %1, 4
+  %tobool = icmp eq i16 %and10, 0
+  br i1 %tobool, label %if.end14, label %if.then11
+
+if.then11:                                        ; preds = %land.lhs.true
+  %sub = shl nsw i32 %conv7, 1
+  %mul = add i32 %sub, -96
+  %idx.ext = sext i32 %mul to i64
+  %add.ptr = getelementptr inbounds [20 x i8]* @digit_vector, i64 0, i64 %idx.ext
+  br label %return
+
+if.end14:                                         ; preds = %if.end, %land.lhs.true
+  %2 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  %idx.ext15 = sext i32 %length.addr.0 to i64
+  %add.ptr16.sum = add i64 %idx.ext15, 1
+  %add.ptr17 = getelementptr inbounds i8* %2, i64 %add.ptr16.sum
+  %3 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 4), align 8, !tbaa !14
+  %cmp18 = icmp ugt i8* %add.ptr17, %3
+  br i1 %cmp18, label %if.then20, label %if.end21
+
+if.then20:                                        ; preds = %if.end14
+  %add = add nsw i32 %length.addr.0, 1
+  tail call void @_obstack_newchunk(%struct.obstack* @string_stack, i32 %add) #3
+  %.pre = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end21
+
+if.end21:                                         ; preds = %if.then20, %if.end14
+  %4 = phi i8* [ %.pre, %if.then20 ], [ %2, %if.end14 ]
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %4, i8* %contents, i64 %idx.ext15, i32 1, i1 false)
+  %5 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  %add.ptr26 = getelementptr inbounds i8* %5, i64 %idx.ext15
+  %incdec.ptr = getelementptr inbounds i8* %5, i64 %add.ptr16.sum
+  store i8* %incdec.ptr, i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  store i8 0, i8* %add.ptr26, align 1, !tbaa !10
+  %6 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 2), align 8, !tbaa !15
+  %7 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  %cmp29 = icmp eq i8* %7, %6
+  br i1 %cmp29, label %if.then31, label %if.end32
+
+if.then31:                                        ; preds = %if.end21
+  %bf.load = load i8* getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 10), align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 10), align 8
+  br label %if.end32
+
+if.end32:                                         ; preds = %if.then31, %if.end21
+  %sub.ptr.lhs.cast = ptrtoint i8* %7 to i64
+  %8 = load i32* getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 6), align 8, !tbaa !16
+  %conv34 = sext i32 %8 to i64
+  %add35 = add nsw i64 %conv34, %sub.ptr.lhs.cast
+  %neg = xor i32 %8, -1
+  %conv37 = sext i32 %neg to i64
+  %and38 = and i64 %add35, %conv37
+  %add.ptr39 = getelementptr inbounds i8* null, i64 %and38
+  store i8* %add.ptr39, i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  %9 = load %struct._obstack_chunk** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 1), align 8, !tbaa !17
+  %sub.ptr.lhs.cast42 = ptrtoint i8* %add.ptr39 to i64
+  %sub.ptr.rhs.cast = ptrtoint %struct._obstack_chunk* %9 to i64
+  %sub.ptr.sub43 = sub i64 %sub.ptr.lhs.cast42, %sub.ptr.rhs.cast
+  %10 = load i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 4), align 8, !tbaa !14
+  %sub.ptr.lhs.cast46 = ptrtoint i8* %10 to i64
+  %sub.ptr.sub48 = sub i64 %sub.ptr.lhs.cast46, %sub.ptr.rhs.cast
+  %cmp49 = icmp sgt i64 %sub.ptr.sub43, %sub.ptr.sub48
+  br i1 %cmp49, label %if.then51, label %if.end54
+
+if.then51:                                        ; preds = %if.end32
+  store i8* %10, i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end54
+
+if.end54:                                         ; preds = %if.then51, %if.end32
+  %11 = phi i8* [ %10, %if.then51 ], [ %add.ptr39, %if.end32 ]
+  store i8* %11, i8** getelementptr inbounds (%struct.obstack* @string_stack, i64 0, i32 2), align 8, !tbaa !15
+  br label %return
+
+return:                                           ; preds = %if.end, %if.end54, %if.then11
+  %retval.0 = phi i8* [ %add.ptr, %if.then11 ], [ %6, %if.end54 ], [ getelementptr inbounds ([1 x i8]* @empty_string, i64 0, i64 0), %if.end ]
+  ret i8* %retval.0
+}
+
+; Function Attrs: nounwind readonly
+declare i64 @strlen(i8* nocapture) #2
+
+declare void @_obstack_newchunk(%struct.obstack*, i32) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #3
+
+; Function Attrs: nounwind uwtable
+define %union.tree_node* @get_identifier(i8* %text) #0 {
+entry:
+  %0 = load %struct.ht** @ident_hash, align 8, !tbaa !1
+  %call = tail call i64 @strlen(i8* %text) #3
+  %conv = trunc i64 %call to i32
+  %call1 = tail call %struct.ht_identifier* @ht_lookup(%struct.ht* %0, i8* %text, i32 %conv, i32 1) #3
+  %add.ptr = getelementptr inbounds %struct.ht_identifier* %call1, i64 -2, i32 1
+  %1 = bitcast i8** %add.ptr to %union.tree_node*
+  ret %union.tree_node* %1
+}
+
+declare %struct.ht_identifier* @ht_lookup(%struct.ht*, i8*, i32, i32) #1
+
+; Function Attrs: nounwind uwtable
+define %union.tree_node* @get_identifier_with_length(i8* %text, i32 %length) #0 {
+entry:
+  %0 = load %struct.ht** @ident_hash, align 8, !tbaa !1
+  %call = tail call %struct.ht_identifier* @ht_lookup(%struct.ht* %0, i8* %text, i32 %length, i32 1) #3
+  %add.ptr = getelementptr inbounds %struct.ht_identifier* %call, i64 -2, i32 1
+  %1 = bitcast i8** %add.ptr to %union.tree_node*
+  ret %union.tree_node* %1
+}
+
+; Function Attrs: nounwind uwtable
+define %union.tree_node* @maybe_get_identifier(i8* %text) #0 {
+entry:
+  %0 = load %struct.ht** @ident_hash, align 8, !tbaa !1
+  %call = tail call i64 @strlen(i8* %text) #3
+  %conv = trunc i64 %call to i32
+  %call1 = tail call %struct.ht_identifier* @ht_lookup(%struct.ht* %0, i8* %text, i32 %conv, i32 0) #3
+  %tobool = icmp eq %struct.ht_identifier* %call1, null
+  br i1 %tobool, label %return, label %if.then
+
+if.then:                                          ; preds = %entry
+  %add.ptr = getelementptr inbounds %struct.ht_identifier* %call1, i64 -2, i32 1
+  %1 = bitcast i8** %add.ptr to %union.tree_node*
+  br label %return
+
+return:                                           ; preds = %entry, %if.then
+  %retval.0 = phi %union.tree_node* [ %1, %if.then ], [ null, %entry ]
+  ret %union.tree_node* %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define void @stringpool_statistics() #0 {
+entry:
+  %0 = load %struct.ht** @ident_hash, align 8, !tbaa !1
+  tail call void @ht_dump_statistics(%struct.ht* %0) #3
+  ret void
+}
+
+declare void @ht_dump_statistics(%struct.ht*) #1
+
+declare void @ht_forall(%struct.ht*, i32 (%struct.cpp_reader*, %struct.ht_identifier*, i8*)*, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define internal i32 @mark_ident(%struct.cpp_reader* nocapture readnone %pfile, %struct.ht_identifier* %h, i8* nocapture readnone %v) #0 {
+entry:
+  %add.ptr = getelementptr inbounds %struct.ht_identifier* %h, i64 -2, i32 1
+  %0 = bitcast i8** %add.ptr to %union.tree_node*
+  %1 = bitcast i8** %add.ptr to i8*
+  %call = tail call i32 @ggc_set_mark(i8* %1) #3
+  %tobool = icmp eq i32 %call, 0
+  br i1 %tobool, label %do.body1, label %do.end7
+
+do.body1:                                         ; preds = %entry
+  %2 = load %struct.varray_head_tag** @ggc_pending_trees, align 8, !tbaa !1
+  %elements_used = getelementptr inbounds %struct.varray_head_tag* %2, i64 0, i32 1
+  %3 = load i64* %elements_used, align 8, !tbaa !18
+  %num_elements = getelementptr inbounds %struct.varray_head_tag* %2, i64 0, i32 0
+  %4 = load i64* %num_elements, align 8, !tbaa !20
+  %cmp = icmp ult i64 %3, %4
+  br i1 %cmp, label %if.end, label %if.then2
+
+if.then2:                                         ; preds = %do.body1
+  %mul = shl i64 %4, 1
+  %call4 = tail call %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %2, i64 %mul) #3
+  store %struct.varray_head_tag* %call4, %struct.varray_head_tag** @ggc_pending_trees, align 8, !tbaa !1
+  %elements_used5.phi.trans.insert = getelementptr inbounds %struct.varray_head_tag* %call4, i64 0, i32 1
+  %.pre = load i64* %elements_used5.phi.trans.insert, align 8, !tbaa !18
+  br label %if.end
+
+if.end:                                           ; preds = %do.body1, %if.then2
+  %5 = phi i64 [ %3, %do.body1 ], [ %.pre, %if.then2 ]
+  %6 = phi %struct.varray_head_tag* [ %2, %do.body1 ], [ %call4, %if.then2 ]
+  %elements_used5 = getelementptr inbounds %struct.varray_head_tag* %6, i64 0, i32 1
+  %inc = add i64 %5, 1
+  store i64 %inc, i64* %elements_used5, align 8, !tbaa !18
+  %data = getelementptr inbounds %struct.varray_head_tag* %6, i64 0, i32 4
+  %tree = bitcast %union.varray_data_tag* %data to [1 x %union.tree_node*]*
+  %arrayidx = getelementptr inbounds [1 x %union.tree_node*]* %tree, i64 0, i64 %5
+  store %union.tree_node* %0, %union.tree_node** %arrayidx, align 8, !tbaa !1
+  br label %do.end7
+
+do.end7:                                          ; preds = %entry, %if.end
+  ret i32 1
+}
+
+declare i32 @ggc_set_mark(i8*) #1
+
+declare %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag*, i64) #1
+
+declare %union.tree_node* @make_node(i32) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !2, i64 96}
+!6 = metadata !{metadata !"ht", metadata !7, i64 0, metadata !2, i64 88, metadata !2, i64 96, metadata !9, i64 104, metadata !9, i64 108, metadata !2, i64 112, metadata !9, i64 120, metadata !9, i64 124}
+!7 = metadata !{metadata !"obstack", metadata !8, i64 0, metadata !2, i64 8, metadata !2, i64 16, metadata !2, i64 24, metadata !2, i64 32, metadata !8, i64 40, metadata !9, i64 48, metadata !2, i64 56, metadata !2, i64 64, metadata !2, i64 72, metadata !9, i64 80, metadata !9, i64 80, metadata !9, i64 80}
+!8 = metadata !{metadata !"long", metadata !3, i64 0}
+!9 = metadata !{metadata !"int", metadata !3, i64 0}
+!10 = metadata !{metadata !3, metadata !3, i64 0}
+!11 = metadata !{metadata !12, metadata !12, i64 0}
+!12 = metadata !{metadata !"short", metadata !3, i64 0}
+!13 = metadata !{metadata !7, metadata !2, i64 24}
+!14 = metadata !{metadata !7, metadata !2, i64 32}
+!15 = metadata !{metadata !7, metadata !2, i64 16}
+!16 = metadata !{metadata !7, metadata !9, i64 48}
+!17 = metadata !{metadata !7, metadata !2, i64 8}
+!18 = metadata !{metadata !19, metadata !8, i64 8}
+!19 = metadata !{metadata !"varray_head_tag", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !2, i64 24, metadata !3, i64 32}
+!20 = metadata !{metadata !19, metadata !8, i64 0}

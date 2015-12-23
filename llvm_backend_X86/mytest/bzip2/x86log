@@ -1,0 +1,42 @@
+Do not know how to custom type legalize this operation!
+UNREACHABLE executed at /var/services/homes/akale/llvm523/llvm_backend/lib/Target/X86/X86ISelLowering.cpp:13852!
+0  llc             0x0000000001164b16 llvm::sys::PrintStackTrace(_IO_FILE*) + 38
+1  llc             0x0000000001164d93
+2  llc             0x00000000011647e9
+3  libpthread.so.0 0x00007f9540536340
+4  libc.so.6       0x00007f953f772cc9 gsignal + 57
+5  libc.so.6       0x00007f953f7760d8 abort + 328
+6  llc             0x000000000115184f
+7  llc             0x000000000087ee02 llvm::X86TargetLowering::ReplaceNodeResults(llvm::SDNode*, llvm::SmallVectorImpl<llvm::SDValue>&, llvm::SelectionDAG&) const + 242
+8  llc             0x0000000000a68080
+9  llc             0x0000000000a75eab
+10 llc             0x0000000000a64f6f
+11 llc             0x0000000000a69844 llvm::SelectionDAG::LegalizeTypes() + 74
+12 llc             0x0000000000a11cb1 llvm::SelectionDAGISel::CodeGenAndEmitDAG() + 1063
+13 llc             0x0000000000a114c9 llvm::SelectionDAGISel::SelectBasicBlock(llvm::ilist_iterator<llvm::Instruction const>, llvm::ilist_iterator<llvm::Instruction const>, bool&) + 235
+14 llc             0x0000000000a13f2a llvm::SelectionDAGISel::SelectAllBasicBlocks(llvm::Function const&) + 2800
+15 llc             0x0000000000a107df llvm::SelectionDAGISel::runOnMachineFunction(llvm::MachineFunction&) + 1143
+16 llc             0x0000000000c1b593 llvm::MachineFunctionPass::runOnFunction(llvm::Function&) + 95
+17 llc             0x00000000010de282 llvm::FPPassManager::runOnFunction(llvm::Function&) + 290
+18 llc             0x00000000010de3f2 llvm::FPPassManager::runOnModule(llvm::Module&) + 84
+19 llc             0x00000000010de710
+20 llc             0x00000000010decfa llvm::legacy::PassManagerImpl::run(llvm::Module&) + 244
+21 llc             0x00000000010def05 llvm::legacy::PassManager::run(llvm::Module&) + 39
+22 llc             0x0000000000768b4e
+23 llc             0x0000000000767dd9 main + 237
+24 libc.so.6       0x00007f953f75dec5 __libc_start_main + 245
+25 llc             0x0000000000765929
+Stack dump:
+0.	Program arguments: llc -soft-float -march=x86-64 -O3 huffman.c.bc -o huffman.c.S 
+1.	Running pass 'Function Pass Manager' on module 'huffman.c.bc'.
+2.	Running pass 'X86 DAG->DAG Instruction Selection' on function '@BZ2_hbMakeCodeLengths'
+Aborted
+Assembler messages:
+Error: can't open huffman.c.S for reading: No such file or directory
+compress.c.o: In function `BZ2_compressBlock':
+compress.c.bc:(.text+0x212f): undefined reference to `BZ2_hbMakeCodeLengths'
+compress.c.bc:(.text+0x27ca): undefined reference to `BZ2_hbAssignCodes'
+compress.c.bc:(.text+0x2831): undefined reference to `BZ2_hbAssignCodes'
+decompress.c.o: In function `BZ2_decompress':
+decompress.c.bc:(.text+0x2615): undefined reference to `BZ2_hbCreateDecodeTables'
+decompress.c.bc:(.text+0x26a0): undefined reference to `BZ2_hbCreateDecodeTables'

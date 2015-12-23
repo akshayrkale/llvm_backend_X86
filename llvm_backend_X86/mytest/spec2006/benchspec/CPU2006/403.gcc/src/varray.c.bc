@@ -1,0 +1,88 @@
+; ModuleID = 'varray.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.varray_head_tag = type { i64, i64, i64, i8*, %union.varray_data_tag }
+%union.varray_data_tag = type { [1 x %struct.const_equiv_data] }
+%struct.const_equiv_data = type { %struct.rtx_def*, i32 }
+%struct.rtx_def = type { i32, [1 x %union.rtunion_def] }
+%union.rtunion_def = type { i64 }
+
+; Function Attrs: nounwind uwtable
+define noalias %struct.varray_head_tag* @varray_init(i64 %num_elements, i64 %element_size, i8* %name) #0 {
+entry:
+  %mul = mul i64 %element_size, %num_elements
+  %add = add i64 %mul, 32
+  %call = tail call noalias i8* @xcalloc(i64 %add, i64 1) #2
+  %0 = bitcast i8* %call to %struct.varray_head_tag*
+  %num_elements1 = bitcast i8* %call to i64*
+  store i64 %num_elements, i64* %num_elements1, align 8, !tbaa !1
+  %elements_used = getelementptr inbounds i8* %call, i64 8
+  %1 = bitcast i8* %elements_used to i64*
+  store i64 0, i64* %1, align 8, !tbaa !7
+  %element_size2 = getelementptr inbounds i8* %call, i64 16
+  %2 = bitcast i8* %element_size2 to i64*
+  store i64 %element_size, i64* %2, align 8, !tbaa !8
+  %name3 = getelementptr inbounds i8* %call, i64 24
+  %3 = bitcast i8* %name3 to i8**
+  store i8* %name, i8** %3, align 8, !tbaa !9
+  ret %struct.varray_head_tag* %0
+}
+
+declare noalias i8* @xcalloc(i64, i64) #1
+
+; Function Attrs: nounwind uwtable
+define %struct.varray_head_tag* @varray_grow(%struct.varray_head_tag* %va, i64 %n) #0 {
+entry:
+  %num_elements = getelementptr inbounds %struct.varray_head_tag* %va, i64 0, i32 0
+  %0 = load i64* %num_elements, align 8, !tbaa !1
+  %cmp = icmp eq i64 %0, %n
+  br i1 %cmp, label %if.end6, label %if.then
+
+if.then:                                          ; preds = %entry
+  %element_size1 = getelementptr inbounds %struct.varray_head_tag* %va, i64 0, i32 2
+  %1 = load i64* %element_size1, align 8, !tbaa !8
+  %mul = mul i64 %1, %0
+  %mul2 = mul i64 %1, %n
+  %2 = bitcast %struct.varray_head_tag* %va to i8*
+  %add = add i64 %mul2, 32
+  %call = tail call i8* @xrealloc(i8* %2, i64 %add) #2
+  %3 = bitcast i8* %call to %struct.varray_head_tag*
+  %num_elements3 = bitcast i8* %call to i64*
+  store i64 %n, i64* %num_elements3, align 8, !tbaa !1
+  %cmp4 = icmp ult i64 %0, %n
+  br i1 %cmp4, label %if.then5, label %if.end6
+
+if.then5:                                         ; preds = %if.then
+  %data.sum = add i64 %mul, 32
+  %arrayidx = getelementptr inbounds i8* %call, i64 %data.sum
+  %sub = sub i64 %mul2, %mul
+  tail call void @llvm.memset.p0i8.i64(i8* %arrayidx, i8 0, i64 %sub, i32 1, i1 false)
+  br label %if.end6
+
+if.end6:                                          ; preds = %entry, %if.then, %if.then5
+  %va.addr.0 = phi %struct.varray_head_tag* [ %3, %if.then5 ], [ %3, %if.then ], [ %va, %entry ]
+  ret %struct.varray_head_tag* %va.addr.0
+}
+
+declare i8* @xrealloc(i8*, i64) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #2
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 0}
+!2 = metadata !{metadata !"varray_head_tag", metadata !3, i64 0, metadata !3, i64 8, metadata !3, i64 16, metadata !6, i64 24, metadata !4, i64 32}
+!3 = metadata !{metadata !"long", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!7 = metadata !{metadata !2, metadata !3, i64 8}
+!8 = metadata !{metadata !2, metadata !3, i64 16}
+!9 = metadata !{metadata !2, metadata !6, i64 24}

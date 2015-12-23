@@ -1,0 +1,741 @@
+; ModuleID = 'attacks.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@board = external global [144 x i32]
+@nk_attacked.rook_o = internal unnamed_addr constant [4 x i32] [i32 12, i32 -12, i32 1, i32 -1], align 16
+@nk_attacked.bishop_o = internal unnamed_addr constant [4 x i32] [i32 11, i32 -11, i32 13, i32 -13], align 16
+@nk_attacked.knight_o = internal unnamed_addr constant [8 x i32] [i32 10, i32 -10, i32 14, i32 -14, i32 23, i32 -23, i32 25, i32 -25], align 16
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @calc_attackers(i32 %square, i32 %color) #0 {
+entry:
+  %idxprom = sext i32 %square to i64
+  %arrayidx = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom
+  %0 = load i32* %arrayidx, align 4, !tbaa !1
+  %cmp = icmp eq i32 %0, 0
+  br i1 %cmp, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %rem273 = and i32 %color, 1
+  %tobool = icmp eq i32 %rem273, 0
+  br i1 %tobool, label %for.body100, label %for.body
+
+for.body:                                         ; preds = %if.end, %for.inc
+  %indvars.iv308 = phi i64 [ %indvars.iv.next309, %for.inc ], [ 0, %if.end ]
+  %attackers.0295 = phi i32 [ %attackers.1, %for.inc ], [ 0, %if.end ]
+  %arrayidx4 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv308
+  %1 = load i32* %arrayidx4, align 4, !tbaa !1
+  %add = add nsw i32 %1, %square
+  %idxprom5 = sext i32 %add to i64
+  %arrayidx6 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom5
+  %2 = load i32* %arrayidx6, align 4, !tbaa !1
+  %cmp7 = icmp eq i32 %2, 5
+  br i1 %cmp7, label %if.then8, label %while.cond
+
+if.then8:                                         ; preds = %for.body
+  %inc = add nsw i32 %attackers.0295, 1
+  br label %for.body34
+
+while.cond:                                       ; preds = %for.body, %if.end26
+  %3 = phi i32 [ %.pre312, %if.end26 ], [ %2, %for.body ]
+  %a_sq.0 = phi i32 [ %add29, %if.end26 ], [ %add, %for.body ]
+  switch i32 %3, label %for.inc [
+    i32 13, label %if.end26
+    i32 7, label %if.then18
+    i32 9, label %if.then18
+  ]
+
+if.then18:                                        ; preds = %while.cond, %while.cond
+  %inc19 = add nsw i32 %attackers.0295, 1
+  br label %for.inc
+
+if.end26:                                         ; preds = %while.cond
+  %add29 = add nsw i32 %1, %a_sq.0
+  %idxprom9.phi.trans.insert = sext i32 %add29 to i64
+  %arrayidx10.phi.trans.insert = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom9.phi.trans.insert
+  %.pre312 = load i32* %arrayidx10.phi.trans.insert, align 4, !tbaa !1
+  br label %while.cond
+
+for.inc:                                          ; preds = %while.cond, %if.then18
+  %attackers.1 = phi i32 [ %inc19, %if.then18 ], [ %attackers.0295, %while.cond ]
+  %indvars.iv.next309 = add nuw nsw i64 %indvars.iv308, 1
+  %4 = trunc i64 %indvars.iv.next309 to i32
+  %cmp2 = icmp slt i32 %4, 4
+  br i1 %cmp2, label %for.body, label %for.body34
+
+for.cond82.preheader:                             ; preds = %for.inc79, %if.then49, %if.then43
+  %attackers.6.ph = phi i32 [ %inc44, %if.then43 ], [ %inc50, %if.then49 ], [ %attackers.4, %for.inc79 ]
+  %add87 = add nsw i32 %square, 10
+  %idxprom88 = sext i32 %add87 to i64
+  %arrayidx89 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88
+  %5 = load i32* %arrayidx89, align 4, !tbaa !1
+  %cmp90 = icmp eq i32 %5, 3
+  %inc92 = zext i1 %cmp90 to i32
+  %inc92.attackers.6 = add nsw i32 %inc92, %attackers.6.ph
+  %add87.1 = add nsw i32 %square, -10
+  %idxprom88.1 = sext i32 %add87.1 to i64
+  %arrayidx89.1 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.1
+  %6 = load i32* %arrayidx89.1, align 4, !tbaa !1
+  %cmp90.1 = icmp eq i32 %6, 3
+  %inc92.1 = zext i1 %cmp90.1 to i32
+  %inc92.attackers.6.1 = add nsw i32 %inc92.1, %inc92.attackers.6
+  %add87.2 = add nsw i32 %square, 14
+  %idxprom88.2 = sext i32 %add87.2 to i64
+  %arrayidx89.2 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.2
+  %7 = load i32* %arrayidx89.2, align 4, !tbaa !1
+  %cmp90.2 = icmp eq i32 %7, 3
+  %inc92.2 = zext i1 %cmp90.2 to i32
+  %inc92.attackers.6.2 = add nsw i32 %inc92.2, %inc92.attackers.6.1
+  %add87.3 = add nsw i32 %square, -14
+  %idxprom88.3 = sext i32 %add87.3 to i64
+  %arrayidx89.3 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.3
+  %8 = load i32* %arrayidx89.3, align 4, !tbaa !1
+  %cmp90.3 = icmp eq i32 %8, 3
+  %inc92.3 = zext i1 %cmp90.3 to i32
+  %inc92.attackers.6.3 = add nsw i32 %inc92.3, %inc92.attackers.6.2
+  %add87.4 = add nsw i32 %square, 23
+  %idxprom88.4 = sext i32 %add87.4 to i64
+  %arrayidx89.4 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.4
+  %9 = load i32* %arrayidx89.4, align 4, !tbaa !1
+  %cmp90.4 = icmp eq i32 %9, 3
+  %inc92.4 = zext i1 %cmp90.4 to i32
+  %inc92.attackers.6.4 = add nsw i32 %inc92.4, %inc92.attackers.6.3
+  %add87.5 = add nsw i32 %square, -23
+  %idxprom88.5 = sext i32 %add87.5 to i64
+  %arrayidx89.5 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.5
+  %10 = load i32* %arrayidx89.5, align 4, !tbaa !1
+  %cmp90.5 = icmp eq i32 %10, 3
+  %inc92.5 = zext i1 %cmp90.5 to i32
+  %inc92.attackers.6.5 = add nsw i32 %inc92.5, %inc92.attackers.6.4
+  %add87.6 = add nsw i32 %square, 25
+  %idxprom88.6 = sext i32 %add87.6 to i64
+  %arrayidx89.6 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.6
+  %11 = load i32* %arrayidx89.6, align 4, !tbaa !1
+  %cmp90.6 = icmp eq i32 %11, 3
+  %inc92.6 = zext i1 %cmp90.6 to i32
+  %inc92.attackers.6.6 = add nsw i32 %inc92.6, %inc92.attackers.6.5
+  %add87.7 = add nsw i32 %square, -25
+  %idxprom88.7 = sext i32 %add87.7 to i64
+  %arrayidx89.7 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom88.7
+  %12 = load i32* %arrayidx89.7, align 4, !tbaa !1
+  %cmp90.7 = icmp eq i32 %12, 3
+  %inc92.7 = zext i1 %cmp90.7 to i32
+  %inc92.attackers.6.7 = add nsw i32 %inc92.7, %inc92.attackers.6.6
+  br label %return
+
+for.body34:                                       ; preds = %if.then8, %for.inc, %for.inc79
+  %indvars.iv306 = phi i64 [ %indvars.iv.next307, %for.inc79 ], [ 0, %for.inc ], [ 0, %if.then8 ]
+  %attackers.3293 = phi i32 [ %attackers.4, %for.inc79 ], [ %inc, %if.then8 ], [ %attackers.1, %for.inc ]
+  %arrayidx36 = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv306
+  %13 = load i32* %arrayidx36, align 4, !tbaa !1
+  %add37 = add nsw i32 %13, %square
+  %idxprom38 = sext i32 %add37 to i64
+  %arrayidx39 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom38
+  %14 = load i32* %arrayidx39, align 4, !tbaa !1
+  %cmp40 = icmp ne i32 %14, 1
+  %rem41275 = and i64 %indvars.iv306, 1
+  %tobool42 = icmp eq i64 %rem41275, 0
+  %or.cond = or i1 %cmp40, %tobool42
+  br i1 %or.cond, label %if.else45, label %if.then43
+
+if.then43:                                        ; preds = %for.body34
+  %inc44 = add nsw i32 %attackers.3293, 1
+  br label %for.cond82.preheader
+
+if.else45:                                        ; preds = %for.body34
+  %cmp48 = icmp eq i32 %14, 5
+  br i1 %cmp48, label %if.then49, label %while.cond52
+
+if.then49:                                        ; preds = %if.else45
+  %inc50 = add nsw i32 %attackers.3293, 1
+  br label %for.cond82.preheader
+
+while.cond52:                                     ; preds = %if.else45, %if.end72
+  %15 = phi i32 [ %.pre311, %if.end72 ], [ %14, %if.else45 ]
+  %a_sq.1 = phi i32 [ %add75, %if.end72 ], [ %add37, %if.else45 ]
+  switch i32 %15, label %for.inc79 [
+    i32 13, label %if.end72
+    i32 11, label %if.then64
+    i32 9, label %if.then64
+  ]
+
+if.then64:                                        ; preds = %while.cond52, %while.cond52
+  %inc65 = add nsw i32 %attackers.3293, 1
+  br label %for.inc79
+
+if.end72:                                         ; preds = %while.cond52
+  %add75 = add nsw i32 %13, %a_sq.1
+  %idxprom53.phi.trans.insert = sext i32 %add75 to i64
+  %arrayidx54.phi.trans.insert = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom53.phi.trans.insert
+  %.pre311 = load i32* %arrayidx54.phi.trans.insert, align 4, !tbaa !1
+  br label %while.cond52
+
+for.inc79:                                        ; preds = %while.cond52, %if.then64
+  %attackers.4 = phi i32 [ %inc65, %if.then64 ], [ %attackers.3293, %while.cond52 ]
+  %indvars.iv.next307 = add nuw nsw i64 %indvars.iv306, 1
+  %16 = trunc i64 %indvars.iv.next307 to i32
+  %cmp33 = icmp slt i32 %16, 4
+  br i1 %cmp33, label %for.body34, label %for.cond82.preheader
+
+for.body100:                                      ; preds = %if.end, %for.inc135
+  %indvars.iv302 = phi i64 [ %indvars.iv.next303, %for.inc135 ], [ 0, %if.end ]
+  %attackers.8289 = phi i32 [ %attackers.9, %for.inc135 ], [ 0, %if.end ]
+  %arrayidx102 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv302
+  %17 = load i32* %arrayidx102, align 4, !tbaa !1
+  %add103 = add nsw i32 %17, %square
+  %idxprom104 = sext i32 %add103 to i64
+  %arrayidx105 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom104
+  %18 = load i32* %arrayidx105, align 4, !tbaa !1
+  %cmp106 = icmp eq i32 %18, 6
+  br i1 %cmp106, label %if.then107, label %while.cond110
+
+if.then107:                                       ; preds = %for.body100
+  %inc108 = add nsw i32 %attackers.8289, 1
+  br label %for.body140
+
+while.cond110:                                    ; preds = %for.body100, %if.end129
+  %19 = phi i32 [ %.pre310, %if.end129 ], [ %18, %for.body100 ]
+  %a_sq.2 = phi i32 [ %add132, %if.end129 ], [ %add103, %for.body100 ]
+  switch i32 %19, label %for.inc135 [
+    i32 13, label %if.end129
+    i32 8, label %if.then122
+    i32 10, label %if.then122
+  ]
+
+if.then122:                                       ; preds = %while.cond110, %while.cond110
+  %inc123 = add nsw i32 %attackers.8289, 1
+  br label %for.inc135
+
+if.end129:                                        ; preds = %while.cond110
+  %add132 = add nsw i32 %17, %a_sq.2
+  %idxprom111.phi.trans.insert = sext i32 %add132 to i64
+  %arrayidx112.phi.trans.insert = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom111.phi.trans.insert
+  %.pre310 = load i32* %arrayidx112.phi.trans.insert, align 4, !tbaa !1
+  br label %while.cond110
+
+for.inc135:                                       ; preds = %while.cond110, %if.then122
+  %attackers.9 = phi i32 [ %inc123, %if.then122 ], [ %attackers.8289, %while.cond110 ]
+  %indvars.iv.next303 = add nuw nsw i64 %indvars.iv302, 1
+  %20 = trunc i64 %indvars.iv.next303 to i32
+  %cmp99 = icmp slt i32 %20, 4
+  br i1 %cmp99, label %for.body100, label %for.body140
+
+for.cond189.preheader:                            ; preds = %for.inc186, %if.then156, %if.then150
+  %attackers.14.ph = phi i32 [ %inc151, %if.then150 ], [ %inc157, %if.then156 ], [ %attackers.12, %for.inc186 ]
+  %add194 = add nsw i32 %square, 10
+  %idxprom195 = sext i32 %add194 to i64
+  %arrayidx196 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195
+  %21 = load i32* %arrayidx196, align 4, !tbaa !1
+  %cmp197 = icmp eq i32 %21, 4
+  %inc199 = zext i1 %cmp197 to i32
+  %inc199.attackers.14 = add nsw i32 %inc199, %attackers.14.ph
+  %add194.1 = add nsw i32 %square, -10
+  %idxprom195.1 = sext i32 %add194.1 to i64
+  %arrayidx196.1 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.1
+  %22 = load i32* %arrayidx196.1, align 4, !tbaa !1
+  %cmp197.1 = icmp eq i32 %22, 4
+  %inc199.1 = zext i1 %cmp197.1 to i32
+  %inc199.attackers.14.1 = add nsw i32 %inc199.1, %inc199.attackers.14
+  %add194.2 = add nsw i32 %square, 14
+  %idxprom195.2 = sext i32 %add194.2 to i64
+  %arrayidx196.2 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.2
+  %23 = load i32* %arrayidx196.2, align 4, !tbaa !1
+  %cmp197.2 = icmp eq i32 %23, 4
+  %inc199.2 = zext i1 %cmp197.2 to i32
+  %inc199.attackers.14.2 = add nsw i32 %inc199.2, %inc199.attackers.14.1
+  %add194.3 = add nsw i32 %square, -14
+  %idxprom195.3 = sext i32 %add194.3 to i64
+  %arrayidx196.3 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.3
+  %24 = load i32* %arrayidx196.3, align 4, !tbaa !1
+  %cmp197.3 = icmp eq i32 %24, 4
+  %inc199.3 = zext i1 %cmp197.3 to i32
+  %inc199.attackers.14.3 = add nsw i32 %inc199.3, %inc199.attackers.14.2
+  %add194.4 = add nsw i32 %square, 23
+  %idxprom195.4 = sext i32 %add194.4 to i64
+  %arrayidx196.4 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.4
+  %25 = load i32* %arrayidx196.4, align 4, !tbaa !1
+  %cmp197.4 = icmp eq i32 %25, 4
+  %inc199.4 = zext i1 %cmp197.4 to i32
+  %inc199.attackers.14.4 = add nsw i32 %inc199.4, %inc199.attackers.14.3
+  %add194.5 = add nsw i32 %square, -23
+  %idxprom195.5 = sext i32 %add194.5 to i64
+  %arrayidx196.5 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.5
+  %26 = load i32* %arrayidx196.5, align 4, !tbaa !1
+  %cmp197.5 = icmp eq i32 %26, 4
+  %inc199.5 = zext i1 %cmp197.5 to i32
+  %inc199.attackers.14.5 = add nsw i32 %inc199.5, %inc199.attackers.14.4
+  %add194.6 = add nsw i32 %square, 25
+  %idxprom195.6 = sext i32 %add194.6 to i64
+  %arrayidx196.6 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.6
+  %27 = load i32* %arrayidx196.6, align 4, !tbaa !1
+  %cmp197.6 = icmp eq i32 %27, 4
+  %inc199.6 = zext i1 %cmp197.6 to i32
+  %inc199.attackers.14.6 = add nsw i32 %inc199.6, %inc199.attackers.14.5
+  %add194.7 = add nsw i32 %square, -25
+  %idxprom195.7 = sext i32 %add194.7 to i64
+  %arrayidx196.7 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom195.7
+  %28 = load i32* %arrayidx196.7, align 4, !tbaa !1
+  %cmp197.7 = icmp eq i32 %28, 4
+  %inc199.7 = zext i1 %cmp197.7 to i32
+  %inc199.attackers.14.7 = add nsw i32 %inc199.7, %inc199.attackers.14.6
+  br label %return
+
+for.body140:                                      ; preds = %if.then107, %for.inc135, %for.inc186
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc186 ], [ 0, %for.inc135 ], [ 0, %if.then107 ]
+  %attackers.11287 = phi i32 [ %attackers.12, %for.inc186 ], [ %inc108, %if.then107 ], [ %attackers.9, %for.inc135 ]
+  %arrayidx142 = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv
+  %29 = load i32* %arrayidx142, align 4, !tbaa !1
+  %add143 = add nsw i32 %29, %square
+  %idxprom144 = sext i32 %add143 to i64
+  %arrayidx145 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom144
+  %30 = load i32* %arrayidx145, align 4, !tbaa !1
+  %cmp146 = icmp eq i32 %30, 2
+  %rem148274 = and i64 %indvars.iv, 1
+  %tobool149 = icmp eq i64 %rem148274, 0
+  %or.cond276 = and i1 %cmp146, %tobool149
+  br i1 %or.cond276, label %if.then150, label %if.else152
+
+if.then150:                                       ; preds = %for.body140
+  %inc151 = add nsw i32 %attackers.11287, 1
+  br label %for.cond189.preheader
+
+if.else152:                                       ; preds = %for.body140
+  %cmp155 = icmp eq i32 %30, 6
+  br i1 %cmp155, label %if.then156, label %while.cond159
+
+if.then156:                                       ; preds = %if.else152
+  %inc157 = add nsw i32 %attackers.11287, 1
+  br label %for.cond189.preheader
+
+while.cond159:                                    ; preds = %if.else152, %if.end179
+  %31 = phi i32 [ %.pre, %if.end179 ], [ %30, %if.else152 ]
+  %a_sq.3 = phi i32 [ %add182, %if.end179 ], [ %add143, %if.else152 ]
+  switch i32 %31, label %for.inc186 [
+    i32 13, label %if.end179
+    i32 12, label %if.then171
+    i32 10, label %if.then171
+  ]
+
+if.then171:                                       ; preds = %while.cond159, %while.cond159
+  %inc172 = add nsw i32 %attackers.11287, 1
+  br label %for.inc186
+
+if.end179:                                        ; preds = %while.cond159
+  %add182 = add nsw i32 %29, %a_sq.3
+  %idxprom160.phi.trans.insert = sext i32 %add182 to i64
+  %arrayidx161.phi.trans.insert = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom160.phi.trans.insert
+  %.pre = load i32* %arrayidx161.phi.trans.insert, align 4, !tbaa !1
+  br label %while.cond159
+
+for.inc186:                                       ; preds = %while.cond159, %if.then171
+  %attackers.12 = phi i32 [ %inc172, %if.then171 ], [ %attackers.11287, %while.cond159 ]
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %32 = trunc i64 %indvars.iv.next to i32
+  %cmp139 = icmp slt i32 %32, 4
+  br i1 %cmp139, label %for.body140, label %for.cond189.preheader
+
+return:                                           ; preds = %for.cond82.preheader, %for.cond189.preheader, %entry
+  %retval.0 = phi i32 [ 0, %entry ], [ %inc199.attackers.14.7, %for.cond189.preheader ], [ %inc92.attackers.6.7, %for.cond82.preheader ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @is_attacked(i32 %square, i32 %color) #0 {
+entry:
+  %and = and i32 %color, 1
+  %tobool = icmp eq i32 %and, 0
+  br i1 %tobool, label %for.body66, label %for.body
+
+for.body:                                         ; preds = %entry, %for.inc
+  %indvars.iv253 = phi i64 [ %indvars.iv.next254, %for.inc ], [ 0, %entry ]
+  %arrayidx = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv253
+  %0 = load i32* %arrayidx, align 4, !tbaa !1
+  %add = add nsw i32 %0, %square
+  %idxprom1 = sext i32 %add to i64
+  %arrayidx2 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom1
+  %1 = load i32* %arrayidx2, align 4, !tbaa !1
+  %notlhs = icmp eq i32 %1, 1
+  %and4 = and i64 %indvars.iv253, 1
+  %notrhs = icmp ne i64 %and4, 0
+  %or.cond.not = and i1 %notrhs, %notlhs
+  %cmp7 = icmp eq i32 %1, 5
+  %or.cond211 = or i1 %or.cond.not, %cmp7
+  br i1 %or.cond211, label %return, label %while.cond.preheader
+
+while.cond.preheader:                             ; preds = %for.body
+  %cmp10231 = icmp eq i32 %1, 0
+  br i1 %cmp10231, label %for.inc, label %while.body
+
+while.body:                                       ; preds = %while.cond.preheader, %if.end17
+  %basq.0233 = phi i32 [ %4, %if.end17 ], [ %1, %while.cond.preheader ]
+  %a_sq.0232 = phi i32 [ %add18, %if.end17 ], [ %add, %while.cond.preheader ]
+  %2 = and i32 %basq.0233, -3
+  %3 = icmp eq i32 %2, 9
+  br i1 %3, label %return, label %if.end14
+
+if.end14:                                         ; preds = %while.body
+  %cmp15 = icmp eq i32 %basq.0233, 13
+  br i1 %cmp15, label %if.end17, label %for.inc
+
+if.end17:                                         ; preds = %if.end14
+  %add18 = add nsw i32 %a_sq.0232, %0
+  %idxprom19 = sext i32 %add18 to i64
+  %arrayidx20 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom19
+  %4 = load i32* %arrayidx20, align 4, !tbaa !1
+  %cmp10 = icmp eq i32 %4, 0
+  br i1 %cmp10, label %for.inc, label %while.body
+
+for.inc:                                          ; preds = %if.end17, %if.end14, %while.cond.preheader
+  %indvars.iv.next254 = add nuw nsw i64 %indvars.iv253, 1
+  %5 = trunc i64 %indvars.iv.next254 to i32
+  %cmp = icmp slt i32 %5, 4
+  br i1 %cmp, label %for.body, label %for.body23
+
+for.cond21:                                       ; preds = %for.body23
+  %6 = trunc i64 %indvars.iv.next249 to i32
+  %cmp22 = icmp slt i32 %6, 8
+  br i1 %cmp22, label %for.body23, label %for.body37
+
+for.body23:                                       ; preds = %for.inc, %for.cond21
+  %indvars.iv248 = phi i64 [ %indvars.iv.next249, %for.cond21 ], [ 0, %for.inc ]
+  %arrayidx25 = getelementptr inbounds [8 x i32]* @nk_attacked.knight_o, i64 0, i64 %indvars.iv248
+  %7 = load i32* %arrayidx25, align 4, !tbaa !1
+  %add26 = add nsw i32 %7, %square
+  %idxprom27 = sext i32 %add26 to i64
+  %arrayidx28 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom27
+  %8 = load i32* %arrayidx28, align 4, !tbaa !1
+  %cmp29 = icmp eq i32 %8, 3
+  %indvars.iv.next249 = add nuw nsw i64 %indvars.iv248, 1
+  br i1 %cmp29, label %return, label %for.cond21
+
+for.body37:                                       ; preds = %for.cond21, %for.inc61
+  %indvars.iv246 = phi i64 [ %indvars.iv.next247, %for.inc61 ], [ 0, %for.cond21 ]
+  %arrayidx39 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv246
+  %9 = load i32* %arrayidx39, align 4, !tbaa !1
+  %add40 = add nsw i32 %9, %square
+  %idxprom41 = sext i32 %add40 to i64
+  %arrayidx42 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom41
+  %10 = load i32* %arrayidx42, align 4, !tbaa !1
+  %cmp43 = icmp eq i32 %10, 5
+  br i1 %cmp43, label %return, label %while.cond46
+
+while.cond46:                                     ; preds = %for.body37, %if.end56
+  %a_sq.1 = phi i32 [ %add57, %if.end56 ], [ %add40, %for.body37 ]
+  %basq.1 = phi i32 [ %11, %if.end56 ], [ %10, %for.body37 ]
+  switch i32 %basq.1, label %for.inc61 [
+    i32 13, label %if.end56
+    i32 9, label %return
+    i32 7, label %return
+  ]
+
+if.end56:                                         ; preds = %while.cond46
+  %add57 = add nsw i32 %a_sq.1, %9
+  %idxprom58 = sext i32 %add57 to i64
+  %arrayidx59 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom58
+  %11 = load i32* %arrayidx59, align 4, !tbaa !1
+  br label %while.cond46
+
+for.inc61:                                        ; preds = %while.cond46
+  %indvars.iv.next247 = add nuw nsw i64 %indvars.iv246, 1
+  %12 = trunc i64 %indvars.iv.next247 to i32
+  %cmp36 = icmp slt i32 %12, 4
+  br i1 %cmp36, label %for.body37, label %return
+
+for.body66:                                       ; preds = %entry, %for.inc96
+  %indvars.iv241 = phi i64 [ %indvars.iv.next242, %for.inc96 ], [ 0, %entry ]
+  %arrayidx68 = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv241
+  %13 = load i32* %arrayidx68, align 4, !tbaa !1
+  %add69 = add nsw i32 %13, %square
+  %idxprom70 = sext i32 %add69 to i64
+  %arrayidx71 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom70
+  %14 = load i32* %arrayidx71, align 4, !tbaa !1
+  %cmp72 = icmp eq i32 %14, 2
+  %and74 = and i64 %indvars.iv241, 1
+  %tobool75 = icmp eq i64 %and74, 0
+  %or.cond210 = and i1 %cmp72, %tobool75
+  %cmp78 = icmp eq i32 %14, 6
+  %or.cond212 = or i1 %or.cond210, %cmp78
+  br i1 %or.cond212, label %return, label %while.cond81
+
+while.cond81:                                     ; preds = %for.body66, %if.end91
+  %a_sq.2 = phi i32 [ %add92, %if.end91 ], [ %add69, %for.body66 ]
+  %basq.2 = phi i32 [ %15, %if.end91 ], [ %14, %for.body66 ]
+  switch i32 %basq.2, label %for.inc96 [
+    i32 13, label %if.end91
+    i32 12, label %return
+    i32 10, label %return
+  ]
+
+if.end91:                                         ; preds = %while.cond81
+  %add92 = add nsw i32 %a_sq.2, %13
+  %idxprom93 = sext i32 %add92 to i64
+  %arrayidx94 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom93
+  %15 = load i32* %arrayidx94, align 4, !tbaa !1
+  br label %while.cond81
+
+for.inc96:                                        ; preds = %while.cond81
+  %indvars.iv.next242 = add nuw nsw i64 %indvars.iv241, 1
+  %16 = trunc i64 %indvars.iv.next242 to i32
+  %cmp65 = icmp slt i32 %16, 4
+  br i1 %cmp65, label %for.body66, label %for.body101
+
+for.cond99:                                       ; preds = %for.body101
+  %17 = trunc i64 %indvars.iv.next237 to i32
+  %cmp100 = icmp slt i32 %17, 8
+  br i1 %cmp100, label %for.body101, label %for.body115
+
+for.body101:                                      ; preds = %for.inc96, %for.cond99
+  %indvars.iv236 = phi i64 [ %indvars.iv.next237, %for.cond99 ], [ 0, %for.inc96 ]
+  %arrayidx103 = getelementptr inbounds [8 x i32]* @nk_attacked.knight_o, i64 0, i64 %indvars.iv236
+  %18 = load i32* %arrayidx103, align 4, !tbaa !1
+  %add104 = add nsw i32 %18, %square
+  %idxprom105 = sext i32 %add104 to i64
+  %arrayidx106 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom105
+  %19 = load i32* %arrayidx106, align 4, !tbaa !1
+  %cmp107 = icmp eq i32 %19, 4
+  %indvars.iv.next237 = add nuw nsw i64 %indvars.iv236, 1
+  br i1 %cmp107, label %return, label %for.cond99
+
+for.body115:                                      ; preds = %for.cond99, %for.inc141
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc141 ], [ 0, %for.cond99 ]
+  %arrayidx117 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv
+  %20 = load i32* %arrayidx117, align 4, !tbaa !1
+  %add120 = add nsw i32 %20, %square
+  %idxprom121 = sext i32 %add120 to i64
+  %arrayidx122 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom121
+  %21 = load i32* %arrayidx122, align 4, !tbaa !1
+  switch i32 %21, label %while.body128 [
+    i32 6, label %return
+    i32 0, label %for.inc141
+  ]
+
+while.body128:                                    ; preds = %for.body115, %if.end136
+  %basq.3225 = phi i32 [ %24, %if.end136 ], [ %21, %for.body115 ]
+  %a_sq.3224 = phi i32 [ %add137, %if.end136 ], [ %add120, %for.body115 ]
+  %22 = and i32 %basq.3225, -3
+  %23 = icmp eq i32 %22, 8
+  br i1 %23, label %return, label %if.end133
+
+if.end133:                                        ; preds = %while.body128
+  %cmp134 = icmp eq i32 %basq.3225, 13
+  br i1 %cmp134, label %if.end136, label %for.inc141
+
+if.end136:                                        ; preds = %if.end133
+  %add137 = add nsw i32 %a_sq.3224, %20
+  %idxprom138 = sext i32 %add137 to i64
+  %arrayidx139 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom138
+  %24 = load i32* %arrayidx139, align 4, !tbaa !1
+  %cmp127 = icmp eq i32 %24, 0
+  br i1 %cmp127, label %for.inc141, label %while.body128
+
+for.inc141:                                       ; preds = %if.end136, %if.end133, %for.body115
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %25 = trunc i64 %indvars.iv.next to i32
+  %cmp114 = icmp slt i32 %25, 4
+  br i1 %cmp114, label %for.body115, label %return
+
+return:                                           ; preds = %for.body, %while.body, %for.body23, %for.inc61, %for.body37, %while.cond46, %while.cond46, %for.body66, %while.cond81, %while.cond81, %for.body101, %for.body115, %for.inc141, %while.body128
+  %retval.0 = phi i32 [ 1, %while.body128 ], [ 1, %for.body115 ], [ 0, %for.inc141 ], [ 1, %for.body101 ], [ 1, %while.cond81 ], [ 1, %while.cond81 ], [ 1, %for.body66 ], [ 1, %while.cond46 ], [ 1, %while.cond46 ], [ 0, %for.inc61 ], [ 1, %for.body37 ], [ 1, %for.body23 ], [ 1, %while.body ], [ 1, %for.body ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @nk_attacked(i32 %square, i32 %color) #0 {
+entry:
+  %and = and i32 %color, 1
+  %tobool = icmp eq i32 %and, 0
+  br i1 %tobool, label %for.body60, label %for.body
+
+for.body:                                         ; preds = %entry, %for.inc
+  %indvars.iv237 = phi i64 [ %indvars.iv.next238, %for.inc ], [ 0, %entry ]
+  %arrayidx = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv237
+  %0 = load i32* %arrayidx, align 4, !tbaa !1
+  %add = add nsw i32 %0, %square
+  %idxprom1 = sext i32 %add to i64
+  %arrayidx2 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom1
+  %1 = load i32* %arrayidx2, align 4, !tbaa !1
+  %cmp3 = icmp ne i32 %1, 1
+  %and4 = and i64 %indvars.iv237, 1
+  %tobool5 = icmp eq i64 %and4, 0
+  %or.cond = or i1 %cmp3, %tobool5
+  br i1 %or.cond, label %while.cond.preheader, label %return
+
+while.cond.preheader:                             ; preds = %for.body
+  %cmp7215 = icmp eq i32 %1, 0
+  br i1 %cmp7215, label %for.inc, label %while.body
+
+while.body:                                       ; preds = %while.cond.preheader, %if.end14
+  %basq.0217 = phi i32 [ %4, %if.end14 ], [ %1, %while.cond.preheader ]
+  %a_sq.0216 = phi i32 [ %add15, %if.end14 ], [ %add, %while.cond.preheader ]
+  %2 = and i32 %basq.0217, -3
+  %3 = icmp eq i32 %2, 9
+  br i1 %3, label %return, label %if.end11
+
+if.end11:                                         ; preds = %while.body
+  %cmp12 = icmp eq i32 %basq.0217, 13
+  br i1 %cmp12, label %if.end14, label %for.inc
+
+if.end14:                                         ; preds = %if.end11
+  %add15 = add nsw i32 %a_sq.0216, %0
+  %idxprom16 = sext i32 %add15 to i64
+  %arrayidx17 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom16
+  %4 = load i32* %arrayidx17, align 4, !tbaa !1
+  %cmp7 = icmp eq i32 %4, 0
+  br i1 %cmp7, label %for.inc, label %while.body
+
+for.inc:                                          ; preds = %if.end14, %if.end11, %while.cond.preheader
+  %indvars.iv.next238 = add nuw nsw i64 %indvars.iv237, 1
+  %5 = trunc i64 %indvars.iv.next238 to i32
+  %cmp = icmp slt i32 %5, 4
+  br i1 %cmp, label %for.body, label %for.body20
+
+for.cond18:                                       ; preds = %for.body20
+  %6 = trunc i64 %indvars.iv.next233 to i32
+  %cmp19 = icmp slt i32 %6, 8
+  br i1 %cmp19, label %for.body20, label %for.body34
+
+for.body20:                                       ; preds = %for.inc, %for.cond18
+  %indvars.iv232 = phi i64 [ %indvars.iv.next233, %for.cond18 ], [ 0, %for.inc ]
+  %arrayidx22 = getelementptr inbounds [8 x i32]* @nk_attacked.knight_o, i64 0, i64 %indvars.iv232
+  %7 = load i32* %arrayidx22, align 4, !tbaa !1
+  %add23 = add nsw i32 %7, %square
+  %idxprom24 = sext i32 %add23 to i64
+  %arrayidx25 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom24
+  %8 = load i32* %arrayidx25, align 4, !tbaa !1
+  %cmp26 = icmp eq i32 %8, 3
+  %indvars.iv.next233 = add nuw nsw i64 %indvars.iv232, 1
+  br i1 %cmp26, label %return, label %for.cond18
+
+for.body34:                                       ; preds = %for.cond18, %for.inc55
+  %indvars.iv230 = phi i64 [ %indvars.iv.next231, %for.inc55 ], [ 0, %for.cond18 ]
+  %arrayidx36 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv230
+  %9 = load i32* %arrayidx36, align 4, !tbaa !1
+  %10 = add i32 %9, %square
+  %11 = sext i32 %10 to i64
+  %12 = sext i32 %9 to i64
+  br label %while.cond40
+
+while.cond40:                                     ; preds = %if.end50, %for.body34
+  %indvars.iv227 = phi i64 [ %indvars.iv.next228, %if.end50 ], [ %11, %for.body34 ]
+  %basq.1.in = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %indvars.iv227
+  %basq.1 = load i32* %basq.1.in, align 4
+  switch i32 %basq.1, label %for.inc55 [
+    i32 13, label %if.end50
+    i32 9, label %return
+    i32 7, label %return
+  ]
+
+if.end50:                                         ; preds = %while.cond40
+  %indvars.iv.next228 = add nsw i64 %indvars.iv227, %12
+  br label %while.cond40
+
+for.inc55:                                        ; preds = %while.cond40
+  %indvars.iv.next231 = add nuw nsw i64 %indvars.iv230, 1
+  %13 = trunc i64 %indvars.iv.next231 to i32
+  %cmp33 = icmp slt i32 %13, 4
+  br i1 %cmp33, label %for.body34, label %return
+
+for.body60:                                       ; preds = %entry, %for.inc87
+  %indvars.iv225 = phi i64 [ %indvars.iv.next226, %for.inc87 ], [ 0, %entry ]
+  %arrayidx62 = getelementptr inbounds [4 x i32]* @nk_attacked.bishop_o, i64 0, i64 %indvars.iv225
+  %14 = load i32* %arrayidx62, align 4, !tbaa !1
+  %add63 = add nsw i32 %14, %square
+  %idxprom64 = sext i32 %add63 to i64
+  %arrayidx65 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom64
+  %15 = load i32* %arrayidx65, align 4, !tbaa !1
+  %cmp66 = icmp eq i32 %15, 2
+  %and68 = and i64 %indvars.iv225, 1
+  %tobool69 = icmp eq i64 %and68, 0
+  %or.cond194 = and i1 %cmp66, %tobool69
+  br i1 %or.cond194, label %return, label %while.cond72
+
+while.cond72:                                     ; preds = %for.body60, %if.end82
+  %a_sq.2 = phi i32 [ %add83, %if.end82 ], [ %add63, %for.body60 ]
+  %basq.2 = phi i32 [ %16, %if.end82 ], [ %15, %for.body60 ]
+  switch i32 %basq.2, label %for.inc87 [
+    i32 13, label %if.end82
+    i32 12, label %return
+    i32 10, label %return
+  ]
+
+if.end82:                                         ; preds = %while.cond72
+  %add83 = add nsw i32 %a_sq.2, %14
+  %idxprom84 = sext i32 %add83 to i64
+  %arrayidx85 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom84
+  %16 = load i32* %arrayidx85, align 4, !tbaa !1
+  br label %while.cond72
+
+for.inc87:                                        ; preds = %while.cond72
+  %indvars.iv.next226 = add nuw nsw i64 %indvars.iv225, 1
+  %17 = trunc i64 %indvars.iv.next226 to i32
+  %cmp59 = icmp slt i32 %17, 4
+  br i1 %cmp59, label %for.body60, label %for.body92
+
+for.cond90:                                       ; preds = %for.body92
+  %18 = trunc i64 %indvars.iv.next221 to i32
+  %cmp91 = icmp slt i32 %18, 8
+  br i1 %cmp91, label %for.body92, label %for.body106
+
+for.body92:                                       ; preds = %for.inc87, %for.cond90
+  %indvars.iv220 = phi i64 [ %indvars.iv.next221, %for.cond90 ], [ 0, %for.inc87 ]
+  %arrayidx94 = getelementptr inbounds [8 x i32]* @nk_attacked.knight_o, i64 0, i64 %indvars.iv220
+  %19 = load i32* %arrayidx94, align 4, !tbaa !1
+  %add95 = add nsw i32 %19, %square
+  %idxprom96 = sext i32 %add95 to i64
+  %arrayidx97 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom96
+  %20 = load i32* %arrayidx97, align 4, !tbaa !1
+  %cmp98 = icmp eq i32 %20, 4
+  %indvars.iv.next221 = add nuw nsw i64 %indvars.iv220, 1
+  br i1 %cmp98, label %return, label %for.cond90
+
+for.body106:                                      ; preds = %for.cond90, %for.inc129
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc129 ], [ 0, %for.cond90 ]
+  %arrayidx108 = getelementptr inbounds [4 x i32]* @nk_attacked.rook_o, i64 0, i64 %indvars.iv
+  %21 = load i32* %arrayidx108, align 4, !tbaa !1
+  %add111 = add nsw i32 %21, %square
+  %idxprom112.pn204 = sext i32 %add111 to i64
+  %basq.3.in205 = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom112.pn204
+  %basq.3206 = load i32* %basq.3.in205, align 4
+  %cmp115207 = icmp eq i32 %basq.3206, 0
+  br i1 %cmp115207, label %for.inc129, label %while.body116
+
+while.cond114:                                    ; preds = %if.end121
+  %idxprom112.pn = sext i32 %add125 to i64
+  %basq.3.in = getelementptr inbounds [144 x i32]* @board, i64 0, i64 %idxprom112.pn
+  %basq.3 = load i32* %basq.3.in, align 4
+  %cmp115 = icmp eq i32 %basq.3, 0
+  br i1 %cmp115, label %for.inc129, label %while.body116
+
+while.body116:                                    ; preds = %for.body106, %while.cond114
+  %basq.3209 = phi i32 [ %basq.3, %while.cond114 ], [ %basq.3206, %for.body106 ]
+  %a_sq.3208 = phi i32 [ %add125, %while.cond114 ], [ %add111, %for.body106 ]
+  %22 = and i32 %basq.3209, -3
+  %23 = icmp eq i32 %22, 8
+  br i1 %23, label %return, label %if.end121
+
+if.end121:                                        ; preds = %while.body116
+  %cmp122 = icmp eq i32 %basq.3209, 13
+  %add125 = add nsw i32 %a_sq.3208, %21
+  br i1 %cmp122, label %while.cond114, label %for.inc129
+
+for.inc129:                                       ; preds = %while.cond114, %if.end121, %for.body106
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %24 = trunc i64 %indvars.iv.next to i32
+  %cmp105 = icmp slt i32 %24, 4
+  br i1 %cmp105, label %for.body106, label %return
+
+return:                                           ; preds = %for.body, %while.body, %for.body20, %for.inc55, %while.cond40, %while.cond40, %for.body60, %while.cond72, %while.cond72, %for.body92, %for.inc129, %while.body116
+  %retval.0 = phi i32 [ 1, %while.body116 ], [ 0, %for.inc129 ], [ 1, %for.body92 ], [ 1, %while.cond72 ], [ 1, %while.cond72 ], [ 1, %for.body60 ], [ 1, %while.cond40 ], [ 1, %while.cond40 ], [ 0, %for.inc55 ], [ 1, %for.body20 ], [ 1, %while.body ], [ 1, %for.body ]
+  ret i32 %retval.0
+}
+
+attributes #0 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

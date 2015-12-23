@@ -1,0 +1,1754 @@
+; ModuleID = 'bitmap.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.bitmap_element_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32, [2 x i64] }
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+%struct._IO_FILE = type opaque
+%struct.bitmap_head_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32 }
+
+@bitmap_free = internal unnamed_addr global %struct.bitmap_element_def* null, align 8
+@bitmap_obstack_init = internal unnamed_addr global i1 false
+@bitmap_obstack = internal global %struct.obstack zeroinitializer, align 8
+@bitmap_zero_bits = common global %struct.bitmap_element_def zeroinitializer, align 8
+@.str = private unnamed_addr constant [9 x i8] c"bitmap.c\00", align 1
+@__FUNCTION__.bitmap_operation = private unnamed_addr constant [17 x i8] c"bitmap_operation\00", align 1
+@.str1 = private unnamed_addr constant [10 x i8] c"\0Afirst = \00", align 1
+@.str2 = private unnamed_addr constant [3 x i8] c"%p\00", align 1
+@.str3 = private unnamed_addr constant [12 x i8] c" current = \00", align 1
+@.str4 = private unnamed_addr constant [12 x i8] c" indx = %u\0A\00", align 1
+@.str6 = private unnamed_addr constant [9 x i8] c" next = \00", align 1
+@.str7 = private unnamed_addr constant [9 x i8] c" prev = \00", align 1
+@.str8 = private unnamed_addr constant [22 x i8] c" indx = %u\0A\09\09bits = {\00", align 1
+@.str9 = private unnamed_addr constant [5 x i8] c"\0A\09\09\09\00", align 1
+@.str10 = private unnamed_addr constant [4 x i8] c" %u\00", align 1
+@.str11 = private unnamed_addr constant [4 x i8] c" }\0A\00", align 1
+@stdout = external constant %struct._IO_FILE*
+@.str12 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@.str13 = private unnamed_addr constant [5 x i8] c"%s%d\00", align 1
+@.str14 = private unnamed_addr constant [3 x i8] c", \00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_release_memory() #0 {
+entry:
+  store %struct.bitmap_element_def* null, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %.b = load i1* @bitmap_obstack_init, align 1
+  br i1 %.b, label %if.then, label %if.end3
+
+if.then:                                          ; preds = %entry
+  store i1 false, i1* @bitmap_obstack_init, align 1
+  tail call void @obstack_free(%struct.obstack* @bitmap_obstack, i8* null) #6
+  br label %if.end3
+
+if.end3:                                          ; preds = %if.then, %entry
+  ret void
+}
+
+declare void @obstack_free(%struct.obstack*, i8*) #1
+
+; Function Attrs: inlinehint nounwind uwtable
+define void @bitmap_clear(%struct.bitmap_head_def* nocapture %head) #2 {
+entry:
+  %first = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 0
+  %0 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp9 = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp9, label %for.end, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %entry
+  %.pre = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.body
+  %1 = phi %struct.bitmap_element_def* [ %.pre, %for.body.lr.ph ], [ %element.010, %for.body ]
+  %element.010 = phi %struct.bitmap_element_def* [ %0, %for.body.lr.ph ], [ %2, %for.body ]
+  %next1 = getelementptr inbounds %struct.bitmap_element_def* %element.010, i64 0, i32 0
+  %2 = load %struct.bitmap_element_def** %next1, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %1, %struct.bitmap_element_def** %next1, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.010, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp = icmp eq %struct.bitmap_element_def* %2, null
+  br i1 %cmp, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.body, %entry
+  %3 = bitcast %struct.bitmap_head_def* %head to i8*
+  call void @llvm.memset.p0i8.i64(i8* %3, i8 0, i64 16, i32 8, i1 false)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_copy(%struct.bitmap_head_def* nocapture %to, %struct.bitmap_head_def* nocapture readonly %from) #0 {
+entry:
+  %first.i = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 0
+  %0 = load %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  %cmp9.i = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp9.i, label %bitmap_clear.exit, label %for.body.lr.ph.i
+
+for.body.lr.ph.i:                                 ; preds = %entry
+  %.pre.i = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.body.i, %for.body.lr.ph.i
+  %1 = phi %struct.bitmap_element_def* [ %.pre.i, %for.body.lr.ph.i ], [ %element.010.i, %for.body.i ]
+  %element.010.i = phi %struct.bitmap_element_def* [ %0, %for.body.lr.ph.i ], [ %2, %for.body.i ]
+  %next1.i = getelementptr inbounds %struct.bitmap_element_def* %element.010.i, i64 0, i32 0
+  %2 = load %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %1, %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.010.i, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i = icmp eq %struct.bitmap_element_def* %2, null
+  br i1 %cmp.i, label %bitmap_clear.exit, label %for.body.i
+
+bitmap_clear.exit:                                ; preds = %for.body.i, %entry
+  %3 = bitcast %struct.bitmap_head_def* %to to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %3, i8 0, i64 16, i32 8, i1 false) #6
+  %first = getelementptr inbounds %struct.bitmap_head_def* %from, i64 0, i32 0
+  %from_ptr.036 = load %struct.bitmap_element_def** %first, align 8
+  %tobool37 = icmp eq %struct.bitmap_element_def* %from_ptr.036, null
+  br i1 %tobool37, label %for.end, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %bitmap_clear.exit
+  %current = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 1
+  %indx10 = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 2
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %if.end
+  %from_ptr.039 = phi %struct.bitmap_element_def* [ %from_ptr.036, %for.body.lr.ph ], [ %from_ptr.0, %if.end ]
+  %to_ptr.038 = phi %struct.bitmap_element_def* [ null, %for.body.lr.ph ], [ %element.0.i, %if.end ]
+  %4 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i34 = icmp eq %struct.bitmap_element_def* %4, null
+  br i1 %cmp.i34, label %if.else.i, label %if.then.i
+
+if.then.i:                                        ; preds = %for.body
+  %next.i = getelementptr inbounds %struct.bitmap_element_def* %4, i64 0, i32 0
+  %5 = load %struct.bitmap_element_def** %next.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %5, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %bitmap_element_allocate.exit
+
+if.else.i:                                        ; preds = %for.body
+  %.b.i = load i1* @bitmap_obstack_init, align 1
+  br i1 %.b.i, label %if.end.i, label %if.then1.i
+
+if.then1.i:                                       ; preds = %if.else.i
+  store i1 true, i1* @bitmap_obstack_init, align 1
+  %call.i = tail call i32 @_obstack_begin(%struct.obstack* @bitmap_obstack, i32 0, i32 8, i8* (i64)* @xmalloc, void (i8*)* @free) #6
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.then1.i, %if.else.i
+  %6 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %7 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %sub.ptr.lhs.cast.i = ptrtoint i8* %6 to i64
+  %sub.ptr.rhs.cast.i = ptrtoint i8* %7 to i64
+  %sub.ptr.sub.i = sub i64 %sub.ptr.lhs.cast.i, %sub.ptr.rhs.cast.i
+  %cmp2.i = icmp slt i64 %sub.ptr.sub.i, 40
+  br i1 %cmp2.i, label %if.then4.i, label %if.end5.i
+
+if.then4.i:                                       ; preds = %if.end.i
+  tail call void @_obstack_newchunk(%struct.obstack* @bitmap_obstack, i32 40) #6
+  %.pre.i35 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end5.i
+
+if.end5.i:                                        ; preds = %if.then4.i, %if.end.i
+  %8 = phi i8* [ %.pre.i35, %if.then4.i ], [ %7, %if.end.i ]
+  %add.ptr.i = getelementptr inbounds i8* %8, i64 40
+  store i8* %add.ptr.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %9 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %cmp10.i = icmp eq i8* %add.ptr.i, %9
+  br i1 %cmp10.i, label %if.then12.i, label %if.end13.i
+
+if.then12.i:                                      ; preds = %if.end5.i
+  %bf.load.i = load i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  %bf.set.i = or i8 %bf.load.i, 2
+  store i8 %bf.set.i, i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  br label %if.end13.i
+
+if.end13.i:                                       ; preds = %if.then12.i, %if.end5.i
+  %sub.ptr.lhs.cast15.i = ptrtoint i8* %add.ptr.i to i64
+  %10 = load i32* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 6), align 8, !tbaa !15
+  %conv17.i = sext i32 %10 to i64
+  %add.i = add nsw i64 %conv17.i, %sub.ptr.lhs.cast15.i
+  %neg.i = xor i32 %10, -1
+  %conv19.i = sext i32 %neg.i to i64
+  %and.i = and i64 %add.i, %conv19.i
+  %add.ptr20.i = getelementptr inbounds i8* null, i64 %and.i
+  store i8* %add.ptr20.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %11 = load %struct._obstack_chunk** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 1), align 8, !tbaa !16
+  %sub.ptr.lhs.cast23.i = ptrtoint i8* %add.ptr20.i to i64
+  %sub.ptr.rhs.cast24.i = ptrtoint %struct._obstack_chunk* %11 to i64
+  %sub.ptr.sub25.i = sub i64 %sub.ptr.lhs.cast23.i, %sub.ptr.rhs.cast24.i
+  %12 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %sub.ptr.lhs.cast28.i = ptrtoint i8* %12 to i64
+  %sub.ptr.sub30.i = sub i64 %sub.ptr.lhs.cast28.i, %sub.ptr.rhs.cast24.i
+  %cmp31.i = icmp sgt i64 %sub.ptr.sub25.i, %sub.ptr.sub30.i
+  br i1 %cmp31.i, label %if.then33.i, label %if.end36.i
+
+if.then33.i:                                      ; preds = %if.end13.i
+  store i8* %12, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end36.i
+
+if.end36.i:                                       ; preds = %if.then33.i, %if.end13.i
+  %13 = phi i8* [ %12, %if.then33.i ], [ %add.ptr20.i, %if.end13.i ]
+  store i8* %13, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %14 = bitcast i8* %9 to %struct.bitmap_element_def*
+  br label %bitmap_element_allocate.exit
+
+bitmap_element_allocate.exit:                     ; preds = %if.then.i, %if.end36.i
+  %element.0.i = phi %struct.bitmap_element_def* [ %4, %if.then.i ], [ %14, %if.end36.i ]
+  %bits.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 3
+  %15 = bitcast [2 x i64]* %bits.i to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %15, i8 0, i64 16, i32 8, i1 false) #6
+  %indx = getelementptr inbounds %struct.bitmap_element_def* %from_ptr.039, i64 0, i32 2
+  %16 = load i32* %indx, align 4, !tbaa !17
+  %indx1 = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 2
+  store i32 %16, i32* %indx1, align 4, !tbaa !17
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %from_ptr.039, i64 0, i32 3, i64 0
+  %17 = load i64* %arrayidx, align 8, !tbaa !18
+  %arrayidx3 = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 3, i64 0
+  store i64 %17, i64* %arrayidx3, align 8, !tbaa !18
+  %arrayidx5 = getelementptr inbounds %struct.bitmap_element_def* %from_ptr.039, i64 0, i32 3, i64 1
+  %18 = load i64* %arrayidx5, align 8, !tbaa !18
+  %arrayidx7 = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 3, i64 1
+  store i64 %18, i64* %arrayidx7, align 8, !tbaa !18
+  %cmp = icmp eq %struct.bitmap_element_def* %to_ptr.038, null
+  br i1 %cmp, label %if.then, label %if.else
+
+if.then:                                          ; preds = %bitmap_element_allocate.exit
+  store %struct.bitmap_element_def* %element.0.i, %struct.bitmap_element_def** %current, align 8, !tbaa !20
+  store %struct.bitmap_element_def* %element.0.i, %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  %19 = load i32* %indx, align 4, !tbaa !17
+  store i32 %19, i32* %indx10, align 4, !tbaa !21
+  %20 = bitcast %struct.bitmap_element_def* %element.0.i to i8*
+  call void @llvm.memset.p0i8.i64(i8* %20, i8 0, i64 16, i32 8, i1 false)
+  br label %if.end
+
+if.else:                                          ; preds = %bitmap_element_allocate.exit
+  %prev11 = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 1
+  store %struct.bitmap_element_def* %to_ptr.038, %struct.bitmap_element_def** %prev11, align 8, !tbaa !22
+  %next12 = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 0
+  store %struct.bitmap_element_def* null, %struct.bitmap_element_def** %next12, align 8, !tbaa !8
+  %next13 = getelementptr inbounds %struct.bitmap_element_def* %to_ptr.038, i64 0, i32 0
+  store %struct.bitmap_element_def* %element.0.i, %struct.bitmap_element_def** %next13, align 8, !tbaa !8
+  br label %if.end
+
+if.end:                                           ; preds = %if.else, %if.then
+  %next14 = getelementptr inbounds %struct.bitmap_element_def* %from_ptr.039, i64 0, i32 0
+  %from_ptr.0 = load %struct.bitmap_element_def** %next14, align 8
+  %tobool = icmp eq %struct.bitmap_element_def* %from_ptr.0, null
+  br i1 %tobool, label %for.end, label %for.body
+
+for.end:                                          ; preds = %if.end, %bitmap_clear.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_clear_bit(%struct.bitmap_head_def* nocapture %head, i32 %bit) #0 {
+entry:
+  %div.i = lshr i32 %bit, 7
+  %current.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 1
+  %0 = load %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %cmp.i = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp.i, label %if.end4, label %lor.lhs.false.i
+
+lor.lhs.false.i:                                  ; preds = %entry
+  %indx2.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  %1 = load i32* %indx2.i, align 4, !tbaa !21
+  %cmp4.i = icmp eq i32 %1, %div.i
+  br i1 %cmp4.i, label %if.then, label %if.end.i
+
+if.end.i:                                         ; preds = %lor.lhs.false.i
+  %cmp9.i = icmp ugt i32 %1, %div.i
+  br i1 %cmp9.i, label %for.cond.i, label %for.cond21.i
+
+for.cond.i:                                       ; preds = %if.end.i, %land.rhs.i
+  %element.0.i = phi %struct.bitmap_element_def* [ %2, %land.rhs.i ], [ %0, %if.end.i ]
+  %prev.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 1
+  %2 = load %struct.bitmap_element_def** %prev.i, align 8, !tbaa !22
+  %cmp13.i = icmp eq %struct.bitmap_element_def* %2, null
+  br i1 %cmp13.i, label %if.end34.i, label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.cond.i
+  %indx15.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 2
+  %3 = load i32* %indx15.i, align 4, !tbaa !17
+  %cmp17.i = icmp ugt i32 %3, %div.i
+  br i1 %cmp17.i, label %for.cond.i, label %if.end34.i
+
+for.cond21.i:                                     ; preds = %if.end.i, %land.rhs24.i
+  %element.1.i = phi %struct.bitmap_element_def* [ %4, %land.rhs24.i ], [ %0, %if.end.i ]
+  %next.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 0
+  %4 = load %struct.bitmap_element_def** %next.i, align 8, !tbaa !8
+  %cmp22.i = icmp eq %struct.bitmap_element_def* %4, null
+  br i1 %cmp22.i, label %if.end34.i, label %land.rhs24.i
+
+land.rhs24.i:                                     ; preds = %for.cond21.i
+  %indx25.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 2
+  %5 = load i32* %indx25.i, align 4, !tbaa !17
+  %cmp27.i = icmp ult i32 %5, %div.i
+  br i1 %cmp27.i, label %for.cond21.i, label %if.end34.i
+
+if.end34.i:                                       ; preds = %land.rhs24.i, %for.cond21.i, %land.rhs.i, %for.cond.i
+  %element.2.i = phi %struct.bitmap_element_def* [ %element.0.i, %for.cond.i ], [ %element.0.i, %land.rhs.i ], [ %element.1.i, %for.cond21.i ], [ %element.1.i, %land.rhs24.i ]
+  store %struct.bitmap_element_def* %element.2.i, %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %indx36.i = getelementptr inbounds %struct.bitmap_element_def* %element.2.i, i64 0, i32 2
+  %6 = load i32* %indx36.i, align 4, !tbaa !17
+  store i32 %6, i32* %indx2.i, align 4, !tbaa !21
+  %cmp38.i = icmp ne %struct.bitmap_element_def* %element.2.i, null
+  %cmp42.i = icmp eq i32 %6, %div.i
+  %or.cond = and i1 %cmp38.i, %cmp42.i
+  br i1 %or.cond, label %if.then, label %if.end4
+
+if.then:                                          ; preds = %if.end34.i, %lor.lhs.false.i
+  %7 = phi %struct.bitmap_element_def* [ %0, %lor.lhs.false.i ], [ %element.2.i, %if.end34.i ]
+  %rem = and i32 %bit, 63
+  %div = lshr i32 %bit, 6
+  %rem1 = and i32 %div, 1
+  %sh_prom = zext i32 %rem to i64
+  %shl = shl i64 1, %sh_prom
+  %neg = xor i64 %shl, -1
+  %idxprom = zext i32 %rem1 to i64
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %7, i64 0, i32 3, i64 %idxprom
+  %8 = load i64* %arrayidx, align 8, !tbaa !18
+  %and = and i64 %8, %neg
+  store i64 %and, i64* %arrayidx, align 8, !tbaa !18
+  %call.idx = getelementptr %struct.bitmap_element_def* %7, i64 0, i32 3, i64 0
+  %call.idx.val = load i64* %call.idx, align 8, !tbaa !18
+  %call.idx11 = getelementptr %struct.bitmap_element_def* %7, i64 0, i32 3, i64 1
+  %call.idx11.val = load i64* %call.idx11, align 8, !tbaa !18
+  %or.i = or i64 %call.idx11.val, %call.idx.val
+  %cmp.i16 = icmp eq i64 %or.i, 0
+  br i1 %cmp.i16, label %if.then3, label %if.end4
+
+if.then3:                                         ; preds = %if.then
+  %next1.i = getelementptr inbounds %struct.bitmap_element_def* %7, i64 0, i32 0
+  %9 = load %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  %prev2.i = getelementptr inbounds %struct.bitmap_element_def* %7, i64 0, i32 1
+  %10 = load %struct.bitmap_element_def** %prev2.i, align 8, !tbaa !22
+  %tobool.i = icmp eq %struct.bitmap_element_def* %10, null
+  br i1 %tobool.i, label %if.end.i13, label %if.then.i
+
+if.then.i:                                        ; preds = %if.then3
+  %next3.i = getelementptr inbounds %struct.bitmap_element_def* %10, i64 0, i32 0
+  store %struct.bitmap_element_def* %9, %struct.bitmap_element_def** %next3.i, align 8, !tbaa !8
+  br label %if.end.i13
+
+if.end.i13:                                       ; preds = %if.then.i, %if.then3
+  %tobool4.i = icmp ne %struct.bitmap_element_def* %9, null
+  br i1 %tobool4.i, label %if.then5.i, label %if.end7.i
+
+if.then5.i:                                       ; preds = %if.end.i13
+  %prev6.i = getelementptr inbounds %struct.bitmap_element_def* %9, i64 0, i32 1
+  store %struct.bitmap_element_def* %10, %struct.bitmap_element_def** %prev6.i, align 8, !tbaa !22
+  br label %if.end7.i
+
+if.end7.i:                                        ; preds = %if.then5.i, %if.end.i13
+  %first.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 0
+  %11 = load %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  %cmp.i14 = icmp eq %struct.bitmap_element_def* %11, %7
+  br i1 %cmp.i14, label %if.then8.i, label %if.then12.i
+
+if.then8.i:                                       ; preds = %if.end7.i
+  store %struct.bitmap_element_def* %9, %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  br label %if.then12.i
+
+if.then12.i:                                      ; preds = %if.end7.i, %if.then8.i
+  %cond.i = select i1 %tobool4.i, %struct.bitmap_element_def* %9, %struct.bitmap_element_def* %10
+  store %struct.bitmap_element_def* %cond.i, %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %tobool16.i = icmp eq %struct.bitmap_element_def* %cond.i, null
+  br i1 %tobool16.i, label %bitmap_element_free.exit, label %if.then17.i
+
+if.then17.i:                                      ; preds = %if.then12.i
+  %indx.i = getelementptr inbounds %struct.bitmap_element_def* %cond.i, i64 0, i32 2
+  %12 = load i32* %indx.i, align 4, !tbaa !17
+  store i32 %12, i32* %indx2.i, align 4, !tbaa !21
+  br label %bitmap_element_free.exit
+
+bitmap_element_free.exit:                         ; preds = %if.then12.i, %if.then17.i
+  %13 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  store %struct.bitmap_element_def* %13, %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %7, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %if.end4
+
+if.end4:                                          ; preds = %if.then, %if.end34.i, %entry, %bitmap_element_free.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_set_bit(%struct.bitmap_head_def* nocapture %head, i32 %bit) #0 {
+entry:
+  %div.i = lshr i32 %bit, 7
+  %current.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 1
+  %0 = load %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %cmp.i = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp.i, label %if.then, label %lor.lhs.false.i
+
+lor.lhs.false.i:                                  ; preds = %entry
+  %indx2.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  %1 = load i32* %indx2.i, align 4, !tbaa !21
+  %cmp4.i = icmp eq i32 %1, %div.i
+  br i1 %cmp4.i, label %if.else, label %if.end.i
+
+if.end.i:                                         ; preds = %lor.lhs.false.i
+  %cmp9.i = icmp ugt i32 %1, %div.i
+  br i1 %cmp9.i, label %for.cond.i, label %for.cond21.i
+
+for.cond.i:                                       ; preds = %if.end.i, %land.rhs.i
+  %element.0.i = phi %struct.bitmap_element_def* [ %2, %land.rhs.i ], [ %0, %if.end.i ]
+  %prev.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 1
+  %2 = load %struct.bitmap_element_def** %prev.i, align 8, !tbaa !22
+  %cmp13.i = icmp eq %struct.bitmap_element_def* %2, null
+  br i1 %cmp13.i, label %if.end34.i, label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.cond.i
+  %indx15.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 2
+  %3 = load i32* %indx15.i, align 4, !tbaa !17
+  %cmp17.i = icmp ugt i32 %3, %div.i
+  br i1 %cmp17.i, label %for.cond.i, label %if.end34.i
+
+for.cond21.i:                                     ; preds = %if.end.i, %land.rhs24.i
+  %element.1.i = phi %struct.bitmap_element_def* [ %4, %land.rhs24.i ], [ %0, %if.end.i ]
+  %next.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 0
+  %4 = load %struct.bitmap_element_def** %next.i, align 8, !tbaa !8
+  %cmp22.i = icmp eq %struct.bitmap_element_def* %4, null
+  br i1 %cmp22.i, label %if.end34.i, label %land.rhs24.i
+
+land.rhs24.i:                                     ; preds = %for.cond21.i
+  %indx25.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 2
+  %5 = load i32* %indx25.i, align 4, !tbaa !17
+  %cmp27.i = icmp ult i32 %5, %div.i
+  br i1 %cmp27.i, label %for.cond21.i, label %if.end34.i
+
+if.end34.i:                                       ; preds = %land.rhs24.i, %for.cond21.i, %land.rhs.i, %for.cond.i
+  %element.2.i = phi %struct.bitmap_element_def* [ %element.0.i, %for.cond.i ], [ %element.0.i, %land.rhs.i ], [ %element.1.i, %for.cond21.i ], [ %element.1.i, %land.rhs24.i ]
+  store %struct.bitmap_element_def* %element.2.i, %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %indx36.i = getelementptr inbounds %struct.bitmap_element_def* %element.2.i, i64 0, i32 2
+  %6 = load i32* %indx36.i, align 4, !tbaa !17
+  store i32 %6, i32* %indx2.i, align 4, !tbaa !21
+  %cmp38.i = icmp ne %struct.bitmap_element_def* %element.2.i, null
+  %cmp42.i = icmp eq i32 %6, %div.i
+  %or.cond = and i1 %cmp38.i, %cmp42.i
+  br i1 %or.cond, label %if.else, label %if.then
+
+if.then:                                          ; preds = %if.end34.i, %entry
+  %div31 = lshr i32 %bit, 6
+  %rem32 = and i32 %div31, 1
+  %rem133 = and i32 %bit, 63
+  %sh_prom34 = zext i32 %rem133 to i64
+  %shl35 = shl i64 1, %sh_prom34
+  %7 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i24 = icmp eq %struct.bitmap_element_def* %7, null
+  br i1 %cmp.i24, label %if.else.i27, label %if.then.i26
+
+if.then.i26:                                      ; preds = %if.then
+  %next.i25 = getelementptr inbounds %struct.bitmap_element_def* %7, i64 0, i32 0
+  %8 = load %struct.bitmap_element_def** %next.i25, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %8, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %bitmap_element_allocate.exit
+
+if.else.i27:                                      ; preds = %if.then
+  %.b.i = load i1* @bitmap_obstack_init, align 1
+  br i1 %.b.i, label %if.end.i28, label %if.then1.i
+
+if.then1.i:                                       ; preds = %if.else.i27
+  store i1 true, i1* @bitmap_obstack_init, align 1
+  %call.i = tail call i32 @_obstack_begin(%struct.obstack* @bitmap_obstack, i32 0, i32 8, i8* (i64)* @xmalloc, void (i8*)* @free) #6
+  br label %if.end.i28
+
+if.end.i28:                                       ; preds = %if.then1.i, %if.else.i27
+  %9 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %10 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %sub.ptr.lhs.cast.i = ptrtoint i8* %9 to i64
+  %sub.ptr.rhs.cast.i = ptrtoint i8* %10 to i64
+  %sub.ptr.sub.i = sub i64 %sub.ptr.lhs.cast.i, %sub.ptr.rhs.cast.i
+  %cmp2.i = icmp slt i64 %sub.ptr.sub.i, 40
+  br i1 %cmp2.i, label %if.then4.i, label %if.end5.i
+
+if.then4.i:                                       ; preds = %if.end.i28
+  tail call void @_obstack_newchunk(%struct.obstack* @bitmap_obstack, i32 40) #6
+  %.pre.i = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end5.i
+
+if.end5.i:                                        ; preds = %if.then4.i, %if.end.i28
+  %11 = phi i8* [ %.pre.i, %if.then4.i ], [ %10, %if.end.i28 ]
+  %add.ptr.i = getelementptr inbounds i8* %11, i64 40
+  store i8* %add.ptr.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %12 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %cmp10.i29 = icmp eq i8* %add.ptr.i, %12
+  br i1 %cmp10.i29, label %if.then12.i, label %if.end13.i
+
+if.then12.i:                                      ; preds = %if.end5.i
+  %bf.load.i = load i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  %bf.set.i = or i8 %bf.load.i, 2
+  store i8 %bf.set.i, i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  br label %if.end13.i
+
+if.end13.i:                                       ; preds = %if.then12.i, %if.end5.i
+  %sub.ptr.lhs.cast15.i = ptrtoint i8* %add.ptr.i to i64
+  %13 = load i32* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 6), align 8, !tbaa !15
+  %conv17.i = sext i32 %13 to i64
+  %add.i = add nsw i64 %conv17.i, %sub.ptr.lhs.cast15.i
+  %neg.i = xor i32 %13, -1
+  %conv19.i = sext i32 %neg.i to i64
+  %and.i = and i64 %add.i, %conv19.i
+  %add.ptr20.i = getelementptr inbounds i8* null, i64 %and.i
+  store i8* %add.ptr20.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %14 = load %struct._obstack_chunk** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 1), align 8, !tbaa !16
+  %sub.ptr.lhs.cast23.i = ptrtoint i8* %add.ptr20.i to i64
+  %sub.ptr.rhs.cast24.i = ptrtoint %struct._obstack_chunk* %14 to i64
+  %sub.ptr.sub25.i = sub i64 %sub.ptr.lhs.cast23.i, %sub.ptr.rhs.cast24.i
+  %15 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %sub.ptr.lhs.cast28.i = ptrtoint i8* %15 to i64
+  %sub.ptr.sub30.i = sub i64 %sub.ptr.lhs.cast28.i, %sub.ptr.rhs.cast24.i
+  %cmp31.i = icmp sgt i64 %sub.ptr.sub25.i, %sub.ptr.sub30.i
+  br i1 %cmp31.i, label %if.then33.i, label %if.end36.i
+
+if.then33.i:                                      ; preds = %if.end13.i
+  store i8* %15, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end36.i
+
+if.end36.i:                                       ; preds = %if.then33.i, %if.end13.i
+  %16 = phi i8* [ %15, %if.then33.i ], [ %add.ptr20.i, %if.end13.i ]
+  store i8* %16, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %17 = bitcast i8* %12 to %struct.bitmap_element_def*
+  br label %bitmap_element_allocate.exit
+
+bitmap_element_allocate.exit:                     ; preds = %if.then.i26, %if.end36.i
+  %element.0.i30 = phi %struct.bitmap_element_def* [ %7, %if.then.i26 ], [ %17, %if.end36.i ]
+  %bits.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 3
+  %18 = bitcast [2 x i64]* %bits.i to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %18, i8 0, i64 16, i32 8, i1 false) #6
+  %indx = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 2
+  store i32 %div.i, i32* %indx, align 4, !tbaa !17
+  %idxprom = zext i32 %rem32 to i64
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 3, i64 %idxprom
+  store i64 %shl35, i64* %arrayidx, align 8, !tbaa !18
+  %19 = load i32* %indx, align 4, !tbaa !17
+  %first.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 0
+  %20 = load %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  %cmp.i18 = icmp eq %struct.bitmap_element_def* %20, null
+  br i1 %cmp.i18, label %if.then.i, label %if.else.i
+
+if.then.i:                                        ; preds = %bitmap_element_allocate.exit
+  %21 = bitcast %struct.bitmap_element_def* %element.0.i30 to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %21, i8 0, i64 16, i32 8, i1 false) #6
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  %indx49.pre.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  br label %bitmap_element_link.exit
+
+if.else.i:                                        ; preds = %bitmap_element_allocate.exit
+  %indx3.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  %22 = load i32* %indx3.i, align 4, !tbaa !21
+  %cmp4.i19 = icmp ult i32 %19, %22
+  %23 = load %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  br i1 %cmp4.i19, label %for.cond.i21, label %for.cond24.i
+
+for.cond.i21:                                     ; preds = %if.else.i, %land.rhs.i22
+  %ptr.0.i = phi %struct.bitmap_element_def* [ %24, %land.rhs.i22 ], [ %23, %if.else.i ]
+  %prev6.i = getelementptr inbounds %struct.bitmap_element_def* %ptr.0.i, i64 0, i32 1
+  %24 = load %struct.bitmap_element_def** %prev6.i, align 8, !tbaa !22
+  %cmp7.i = icmp eq %struct.bitmap_element_def* %24, null
+  br i1 %cmp7.i, label %if.else16.i, label %land.rhs.i22
+
+land.rhs.i22:                                     ; preds = %for.cond.i21
+  %indx9.i = getelementptr inbounds %struct.bitmap_element_def* %24, i64 0, i32 2
+  %25 = load i32* %indx9.i, align 4, !tbaa !17
+  %cmp10.i = icmp ugt i32 %25, %19
+  br i1 %cmp10.i, label %for.cond.i21, label %if.then13.i
+
+if.then13.i:                                      ; preds = %land.rhs.i22
+  %next15.i = getelementptr inbounds %struct.bitmap_element_def* %24, i64 0, i32 0
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %next15.i, align 8, !tbaa !8
+  br label %if.end.i23
+
+if.else16.i:                                      ; preds = %for.cond.i21
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %first.i, align 8, !tbaa !5
+  br label %if.end.i23
+
+if.end.i23:                                       ; preds = %if.else16.i, %if.then13.i
+  %26 = phi %struct.bitmap_element_def* [ null, %if.else16.i ], [ %24, %if.then13.i ]
+  %prev19.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 1
+  store %struct.bitmap_element_def* %26, %struct.bitmap_element_def** %prev19.i, align 8, !tbaa !22
+  %next20.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 0
+  store %struct.bitmap_element_def* %ptr.0.i, %struct.bitmap_element_def** %next20.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %prev6.i, align 8, !tbaa !22
+  br label %bitmap_element_link.exit
+
+for.cond24.i:                                     ; preds = %if.else.i, %land.rhs27.i
+  %ptr.1.i = phi %struct.bitmap_element_def* [ %27, %land.rhs27.i ], [ %23, %if.else.i ]
+  %next25.i = getelementptr inbounds %struct.bitmap_element_def* %ptr.1.i, i64 0, i32 0
+  %27 = load %struct.bitmap_element_def** %next25.i, align 8, !tbaa !8
+  %cmp26.i = icmp eq %struct.bitmap_element_def* %27, null
+  br i1 %cmp26.i, label %if.end41.i, label %land.rhs27.i
+
+land.rhs27.i:                                     ; preds = %for.cond24.i
+  %indx29.i = getelementptr inbounds %struct.bitmap_element_def* %27, i64 0, i32 2
+  %28 = load i32* %indx29.i, align 4, !tbaa !17
+  %cmp30.i = icmp ult i32 %28, %19
+  br i1 %cmp30.i, label %for.cond24.i, label %if.then38.i
+
+if.then38.i:                                      ; preds = %land.rhs27.i
+  %prev40.i = getelementptr inbounds %struct.bitmap_element_def* %27, i64 0, i32 1
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %prev40.i, align 8, !tbaa !22
+  br label %if.end41.i
+
+if.end41.i:                                       ; preds = %for.cond24.i, %if.then38.i
+  %29 = phi %struct.bitmap_element_def* [ %27, %if.then38.i ], [ null, %for.cond24.i ]
+  %next43.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 0
+  store %struct.bitmap_element_def* %29, %struct.bitmap_element_def** %next43.i, align 8, !tbaa !8
+  %prev44.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i30, i64 0, i32 1
+  store %struct.bitmap_element_def* %ptr.1.i, %struct.bitmap_element_def** %prev44.i, align 8, !tbaa !22
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %next25.i, align 8, !tbaa !8
+  br label %bitmap_element_link.exit
+
+bitmap_element_link.exit:                         ; preds = %if.then.i, %if.end.i23, %if.end41.i
+  %indx49.pre-phi.i = phi i32* [ %indx3.i, %if.end.i23 ], [ %indx3.i, %if.end41.i ], [ %indx49.pre.i, %if.then.i ]
+  store %struct.bitmap_element_def* %element.0.i30, %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  store i32 %19, i32* %indx49.pre-phi.i, align 4, !tbaa !21
+  br label %if.end
+
+if.else:                                          ; preds = %if.end34.i, %lor.lhs.false.i
+  %call17.ph = phi %struct.bitmap_element_def* [ %0, %lor.lhs.false.i ], [ %element.2.i, %if.end34.i ]
+  %div41 = lshr i32 %bit, 6
+  %rem42 = and i32 %div41, 1
+  %rem143 = and i32 %bit, 63
+  %sh_prom44 = zext i32 %rem143 to i64
+  %shl45 = shl i64 1, %sh_prom44
+  %idxprom4 = zext i32 %rem42 to i64
+  %arrayidx6 = getelementptr inbounds %struct.bitmap_element_def* %call17.ph, i64 0, i32 3, i64 %idxprom4
+  %30 = load i64* %arrayidx6, align 8, !tbaa !18
+  %or = or i64 %30, %shl45
+  store i64 %or, i64* %arrayidx6, align 8, !tbaa !18
+  br label %if.end
+
+if.end:                                           ; preds = %if.else, %bitmap_element_link.exit
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define i32 @bitmap_bit_p(%struct.bitmap_head_def* nocapture %head, i32 %bit) #0 {
+entry:
+  %div.i = lshr i32 %bit, 7
+  %current.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 1
+  %0 = load %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %cmp.i = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp.i, label %return, label %lor.lhs.false.i
+
+lor.lhs.false.i:                                  ; preds = %entry
+  %indx2.i = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  %1 = load i32* %indx2.i, align 4, !tbaa !21
+  %cmp4.i = icmp eq i32 %1, %div.i
+  br i1 %cmp4.i, label %if.end, label %if.end.i
+
+if.end.i:                                         ; preds = %lor.lhs.false.i
+  %cmp9.i = icmp ugt i32 %1, %div.i
+  br i1 %cmp9.i, label %for.cond.i, label %for.cond21.i
+
+for.cond.i:                                       ; preds = %if.end.i, %land.rhs.i
+  %element.0.i = phi %struct.bitmap_element_def* [ %2, %land.rhs.i ], [ %0, %if.end.i ]
+  %prev.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 1
+  %2 = load %struct.bitmap_element_def** %prev.i, align 8, !tbaa !22
+  %cmp13.i = icmp eq %struct.bitmap_element_def* %2, null
+  br i1 %cmp13.i, label %if.end34.i, label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.cond.i
+  %indx15.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 2
+  %3 = load i32* %indx15.i, align 4, !tbaa !17
+  %cmp17.i = icmp ugt i32 %3, %div.i
+  br i1 %cmp17.i, label %for.cond.i, label %if.end34.i
+
+for.cond21.i:                                     ; preds = %if.end.i, %land.rhs24.i
+  %element.1.i = phi %struct.bitmap_element_def* [ %4, %land.rhs24.i ], [ %0, %if.end.i ]
+  %next.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 0
+  %4 = load %struct.bitmap_element_def** %next.i, align 8, !tbaa !8
+  %cmp22.i = icmp eq %struct.bitmap_element_def* %4, null
+  br i1 %cmp22.i, label %if.end34.i, label %land.rhs24.i
+
+land.rhs24.i:                                     ; preds = %for.cond21.i
+  %indx25.i = getelementptr inbounds %struct.bitmap_element_def* %element.1.i, i64 0, i32 2
+  %5 = load i32* %indx25.i, align 4, !tbaa !17
+  %cmp27.i = icmp ult i32 %5, %div.i
+  br i1 %cmp27.i, label %for.cond21.i, label %if.end34.i
+
+if.end34.i:                                       ; preds = %land.rhs24.i, %for.cond21.i, %land.rhs.i, %for.cond.i
+  %element.2.i = phi %struct.bitmap_element_def* [ %element.0.i, %for.cond.i ], [ %element.0.i, %land.rhs.i ], [ %element.1.i, %for.cond21.i ], [ %element.1.i, %land.rhs24.i ]
+  store %struct.bitmap_element_def* %element.2.i, %struct.bitmap_element_def** %current.i, align 8, !tbaa !20
+  %indx36.i = getelementptr inbounds %struct.bitmap_element_def* %element.2.i, i64 0, i32 2
+  %6 = load i32* %indx36.i, align 4, !tbaa !17
+  store i32 %6, i32* %indx2.i, align 4, !tbaa !21
+  %cmp38.i = icmp ne %struct.bitmap_element_def* %element.2.i, null
+  %cmp42.i = icmp eq i32 %6, %div.i
+  %or.cond = and i1 %cmp38.i, %cmp42.i
+  br i1 %or.cond, label %if.end, label %return
+
+if.end:                                           ; preds = %if.end34.i, %lor.lhs.false.i
+  %call5.ph = phi %struct.bitmap_element_def* [ %0, %lor.lhs.false.i ], [ %element.2.i, %if.end34.i ]
+  %rem = and i32 %bit, 63
+  %div = lshr i32 %bit, 6
+  %rem1 = and i32 %div, 1
+  %idxprom = zext i32 %rem1 to i64
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %call5.ph, i64 0, i32 3, i64 %idxprom
+  %7 = load i64* %arrayidx, align 8, !tbaa !18
+  %sh_prom = zext i32 %rem to i64
+  %shr = lshr i64 %7, %sh_prom
+  %shr.tr = trunc i64 %shr to i32
+  %conv = and i32 %shr.tr, 1
+  br label %return
+
+return:                                           ; preds = %if.end34.i, %entry, %if.end
+  %retval.0 = phi i32 [ %conv, %if.end ], [ 0, %if.end34.i ], [ 0, %entry ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @bitmap_first_set_bit(%struct.bitmap_head_def* nocapture readonly %a) #3 {
+entry:
+  %first = getelementptr inbounds %struct.bitmap_head_def* %a, i64 0, i32 0
+  %0 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %0, i64 0, i32 3, i64 0
+  %1 = load i64* %arrayidx, align 8, !tbaa !18
+  %cmp1 = icmp eq i64 %1, 0
+  br i1 %cmp1, label %if.then2, label %if.end5
+
+if.then2:                                         ; preds = %if.end
+  %arrayidx4 = getelementptr inbounds %struct.bitmap_element_def* %0, i64 0, i32 3, i64 1
+  %2 = load i64* %arrayidx4, align 8, !tbaa !18
+  br label %if.end5
+
+if.end5:                                          ; preds = %if.then2, %if.end
+  %word.0 = phi i64 [ %2, %if.then2 ], [ %1, %if.end ]
+  %word_num.0 = phi i32 [ 64, %if.then2 ], [ 0, %if.end ]
+  %sub = sub i64 0, %word.0
+  %and = and i64 %word.0, %sub
+  %and6 = and i64 %and, 4294967295
+  %cmp7 = icmp eq i64 %and6, 0
+  %shr = lshr i64 %and, 32
+  %shr.and = select i1 %cmp7, i64 %shr, i64 %and
+  %. = select i1 %cmp7, i32 32, i32 0
+  %and10 = and i64 %shr.and, 65535
+  %cmp11 = icmp eq i64 %and10, 0
+  br i1 %cmp11, label %if.then12, label %if.end15
+
+if.then12:                                        ; preds = %if.end5
+  %shr13 = lshr i64 %shr.and, 16
+  %add1459 = or i32 %., 16
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.then12, %if.end5
+  %word.2 = phi i64 [ %shr13, %if.then12 ], [ %shr.and, %if.end5 ]
+  %bit_num.1 = phi i32 [ %add1459, %if.then12 ], [ %., %if.end5 ]
+  %and16 = and i64 %word.2, 255
+  %cmp17 = icmp eq i64 %and16, 0
+  br i1 %cmp17, label %if.then18, label %if.end21
+
+if.then18:                                        ; preds = %if.end15
+  %shr19 = lshr i64 %word.2, 8
+  %add20 = add i32 %bit_num.1, 8
+  br label %if.end21
+
+if.end21:                                         ; preds = %if.then18, %if.end15
+  %word.3 = phi i64 [ %shr19, %if.then18 ], [ %word.2, %if.end15 ]
+  %bit_num.2 = phi i32 [ %add20, %if.then18 ], [ %bit_num.1, %if.end15 ]
+  %and22 = and i64 %word.3, 240
+  %tobool = icmp eq i64 %and22, 0
+  %add24 = add i32 %bit_num.2, 4
+  %bit_num.2.add24 = select i1 %tobool, i32 %bit_num.2, i32 %add24
+  %and26 = and i64 %word.3, 204
+  %tobool27 = icmp eq i64 %and26, 0
+  %add29 = add i32 %bit_num.2.add24, 2
+  %bit_num.4 = select i1 %tobool27, i32 %bit_num.2.add24, i32 %add29
+  %and31 = and i64 %word.3, 170
+  %not.tobool32 = icmp ne i64 %and31, 0
+  %add34 = zext i1 %not.tobool32 to i32
+  %indx = getelementptr inbounds %struct.bitmap_element_def* %0, i64 0, i32 2
+  %3 = load i32* %indx, align 4, !tbaa !17
+  %mul = shl i32 %3, 7
+  %add37 = or i32 %mul, %word_num.0
+  %bit_num.4.add34 = or i32 %add37, %add34
+  %add38 = add i32 %bit_num.4.add34, %bit_num.4
+  br label %return
+
+return:                                           ; preds = %entry, %if.end21
+  %retval.0 = phi i32 [ %add38, %if.end21 ], [ -1, %entry ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i32 @bitmap_last_set_bit(%struct.bitmap_head_def* nocapture readonly %a) #3 {
+entry:
+  %first = getelementptr inbounds %struct.bitmap_head_def* %a, i64 0, i32 0
+  %0 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %cmp, label %return, label %while.cond
+
+while.cond:                                       ; preds = %entry, %while.cond
+  %ptr.0 = phi %struct.bitmap_element_def* [ %1, %while.cond ], [ %0, %entry ]
+  %next = getelementptr inbounds %struct.bitmap_element_def* %ptr.0, i64 0, i32 0
+  %1 = load %struct.bitmap_element_def** %next, align 8, !tbaa !8
+  %cmp1 = icmp eq %struct.bitmap_element_def* %1, null
+  br i1 %cmp1, label %while.end, label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %ptr.0, i64 0, i32 3, i64 1
+  %2 = load i64* %arrayidx, align 8, !tbaa !18
+  %cmp3 = icmp eq i64 %2, 0
+  br i1 %cmp3, label %if.then4, label %if.end7
+
+if.then4:                                         ; preds = %while.end
+  %arrayidx6 = getelementptr inbounds %struct.bitmap_element_def* %ptr.0, i64 0, i32 3, i64 0
+  %3 = load i64* %arrayidx6, align 8, !tbaa !18
+  br label %if.end7
+
+if.end7:                                          ; preds = %if.then4, %while.end
+  %word.0 = phi i64 [ %3, %if.then4 ], [ %2, %while.end ]
+  %word_num.0 = phi i32 [ 0, %if.then4 ], [ 64, %while.end ]
+  %tobool = icmp ugt i64 %word.0, 4294967295
+  %shr = lshr i64 %word.0, 32
+  %shr.word.0 = select i1 %tobool, i64 %shr, i64 %word.0
+  %. = select i1 %tobool, i32 32, i32 0
+  %and10 = and i64 %shr.word.0, 4294901760
+  %tobool11 = icmp eq i64 %and10, 0
+  br i1 %tobool11, label %if.end15, label %if.then12
+
+if.then12:                                        ; preds = %if.end7
+  %shr13 = lshr i64 %shr.word.0, 16
+  %add1464 = or i32 %., 16
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.end7, %if.then12
+  %word.2 = phi i64 [ %shr13, %if.then12 ], [ %shr.word.0, %if.end7 ]
+  %bit_num.1 = phi i32 [ %add1464, %if.then12 ], [ %., %if.end7 ]
+  %and16 = and i64 %word.2, 65280
+  %tobool17 = icmp eq i64 %and16, 0
+  br i1 %tobool17, label %if.end21, label %if.then18
+
+if.then18:                                        ; preds = %if.end15
+  %shr19 = lshr i64 %word.2, 8
+  %add20 = add i32 %bit_num.1, 8
+  br label %if.end21
+
+if.end21:                                         ; preds = %if.end15, %if.then18
+  %word.3 = phi i64 [ %shr19, %if.then18 ], [ %word.2, %if.end15 ]
+  %bit_num.2 = phi i32 [ %add20, %if.then18 ], [ %bit_num.1, %if.end15 ]
+  %and22 = and i64 %word.3, 240
+  %tobool23 = icmp eq i64 %and22, 0
+  br i1 %tobool23, label %if.end27, label %if.then24
+
+if.then24:                                        ; preds = %if.end21
+  %shr25 = lshr i64 %word.3, 4
+  %add26 = add i32 %bit_num.2, 4
+  br label %if.end27
+
+if.end27:                                         ; preds = %if.end21, %if.then24
+  %word.4 = phi i64 [ %shr25, %if.then24 ], [ %word.3, %if.end21 ]
+  %bit_num.3 = phi i32 [ %add26, %if.then24 ], [ %bit_num.2, %if.end21 ]
+  %and28 = and i64 %word.4, 12
+  %tobool29 = icmp eq i64 %and28, 0
+  br i1 %tobool29, label %if.end33, label %if.then30
+
+if.then30:                                        ; preds = %if.end27
+  %shr31 = lshr i64 %word.4, 2
+  %add32 = add i32 %bit_num.3, 2
+  br label %if.end33
+
+if.end33:                                         ; preds = %if.end27, %if.then30
+  %word.5 = phi i64 [ %shr31, %if.then30 ], [ %word.4, %if.end27 ]
+  %bit_num.4 = phi i32 [ %add32, %if.then30 ], [ %bit_num.3, %if.end27 ]
+  %and34 = lshr i64 %word.5, 1
+  %and34.tr = trunc i64 %and34 to i32
+  %add37 = and i32 %and34.tr, 1
+  %bit_num.4.add37 = add i32 %add37, %bit_num.4
+  %indx = getelementptr inbounds %struct.bitmap_element_def* %ptr.0, i64 0, i32 2
+  %4 = load i32* %indx, align 4, !tbaa !17
+  %mul = shl i32 %4, 7
+  %add40 = or i32 %mul, %word_num.0
+  %add41 = add i32 %bit_num.4.add37, %add40
+  br label %return
+
+return:                                           ; preds = %entry, %if.end33
+  %retval.0 = phi i32 [ %add41, %if.end33 ], [ -1, %entry ]
+  ret i32 %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define i32 @bitmap_operation(%struct.bitmap_head_def* nocapture %to, %struct.bitmap_head_def* nocapture readonly %from1, %struct.bitmap_head_def* nocapture readonly %from2, i32 %operation) #0 {
+entry:
+  %first = getelementptr inbounds %struct.bitmap_head_def* %from1, i64 0, i32 0
+  %0 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %first1 = getelementptr inbounds %struct.bitmap_head_def* %from2, i64 0, i32 0
+  %1 = load %struct.bitmap_element_def** %first1, align 8, !tbaa !5
+  %tobool = icmp eq %struct.bitmap_element_def* %0, null
+  br i1 %tobool, label %cond.end, label %cond.true
+
+cond.true:                                        ; preds = %entry
+  %indx = getelementptr inbounds %struct.bitmap_element_def* %0, i64 0, i32 2
+  %2 = load i32* %indx, align 4, !tbaa !17
+  br label %cond.end
+
+cond.end:                                         ; preds = %entry, %cond.true
+  %cond = phi i32 [ %2, %cond.true ], [ -1, %entry ]
+  %tobool2 = icmp eq %struct.bitmap_element_def* %1, null
+  br i1 %tobool2, label %cond.end6, label %cond.true3
+
+cond.true3:                                       ; preds = %cond.end
+  %indx4 = getelementptr inbounds %struct.bitmap_element_def* %1, i64 0, i32 2
+  %3 = load i32* %indx4, align 4, !tbaa !17
+  br label %cond.end6
+
+cond.end6:                                        ; preds = %cond.end, %cond.true3
+  %cond7 = phi i32 [ %3, %cond.true3 ], [ -1, %cond.end ]
+  %first8 = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 0
+  %4 = load %struct.bitmap_element_def** %first8, align 8, !tbaa !5
+  %current = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 1
+  %cmp362 = icmp ne %struct.bitmap_element_def* %0, null
+  %cmp11363 = icmp ne %struct.bitmap_element_def* %1, null
+  %or.cond364 = or i1 %cmp362, %cmp11363
+  %5 = bitcast %struct.bitmap_head_def* %to to i8*
+  call void @llvm.memset.p0i8.i64(i8* %5, i8 0, i64 16, i32 8, i1 false)
+  br i1 %or.cond364, label %while.body.lr.ph, label %while.end218
+
+while.body.lr.ph:                                 ; preds = %cond.end6
+  %indx49.pre.i = getelementptr inbounds %struct.bitmap_head_def* %to, i64 0, i32 2
+  br label %while.body
+
+while.body:                                       ; preds = %while.body.lr.ph, %while.cond.backedge
+  %from1_ptr.0370 = phi %struct.bitmap_element_def* [ %0, %while.body.lr.ph ], [ %from1_ptr.1.ph, %while.cond.backedge ]
+  %from2_ptr.0369 = phi %struct.bitmap_element_def* [ %1, %while.body.lr.ph ], [ %from2_ptr.1.ph, %while.cond.backedge ]
+  %indx1.0368 = phi i32 [ %cond, %while.body.lr.ph ], [ %indx1.1.ph, %while.cond.backedge ]
+  %indx2.0367 = phi i32 [ %cond7, %while.body.lr.ph ], [ %indx2.1.ph, %while.cond.backedge ]
+  %to_ptr.0366 = phi %struct.bitmap_element_def* [ %4, %while.body.lr.ph ], [ %to_ptr.2, %while.cond.backedge ]
+  %changed.0365 = phi i32 [ 0, %while.body.lr.ph ], [ %changed.2, %while.cond.backedge ]
+  %cmp12 = icmp eq i32 %indx1.0368, %indx2.0367
+  br i1 %cmp12, label %if.then, label %if.else
+
+if.then:                                          ; preds = %while.body
+  %next = getelementptr inbounds %struct.bitmap_element_def* %from1_ptr.0370, i64 0, i32 0
+  %6 = load %struct.bitmap_element_def** %next, align 8, !tbaa !8
+  %tobool13 = icmp eq %struct.bitmap_element_def* %6, null
+  br i1 %tobool13, label %cond.end17, label %cond.true14
+
+cond.true14:                                      ; preds = %if.then
+  %indx15 = getelementptr inbounds %struct.bitmap_element_def* %6, i64 0, i32 2
+  %7 = load i32* %indx15, align 4, !tbaa !17
+  br label %cond.end17
+
+cond.end17:                                       ; preds = %if.then, %cond.true14
+  %cond18 = phi i32 [ %7, %cond.true14 ], [ -1, %if.then ]
+  %next19 = getelementptr inbounds %struct.bitmap_element_def* %from2_ptr.0369, i64 0, i32 0
+  %8 = load %struct.bitmap_element_def** %next19, align 8, !tbaa !8
+  %tobool20 = icmp eq %struct.bitmap_element_def* %8, null
+  br i1 %tobool20, label %while.cond44.preheader, label %cond.true21
+
+cond.true21:                                      ; preds = %cond.end17
+  %indx22 = getelementptr inbounds %struct.bitmap_element_def* %8, i64 0, i32 2
+  %9 = load i32* %indx22, align 4, !tbaa !17
+  br label %while.cond44.preheader
+
+if.else:                                          ; preds = %while.body
+  %cmp26 = icmp ult i32 %indx1.0368, %indx2.0367
+  br i1 %cmp26, label %if.then27, label %if.else35
+
+if.then27:                                        ; preds = %if.else
+  %next28 = getelementptr inbounds %struct.bitmap_element_def* %from1_ptr.0370, i64 0, i32 0
+  %10 = load %struct.bitmap_element_def** %next28, align 8, !tbaa !8
+  %tobool29 = icmp eq %struct.bitmap_element_def* %10, null
+  br i1 %tobool29, label %while.cond44.preheader, label %cond.true30
+
+cond.true30:                                      ; preds = %if.then27
+  %indx31 = getelementptr inbounds %struct.bitmap_element_def* %10, i64 0, i32 2
+  %11 = load i32* %indx31, align 4, !tbaa !17
+  br label %while.cond44.preheader
+
+if.else35:                                        ; preds = %if.else
+  %next36 = getelementptr inbounds %struct.bitmap_element_def* %from2_ptr.0369, i64 0, i32 0
+  %12 = load %struct.bitmap_element_def** %next36, align 8, !tbaa !8
+  %tobool37 = icmp eq %struct.bitmap_element_def* %12, null
+  br i1 %tobool37, label %while.cond44.preheader, label %cond.true38
+
+cond.true38:                                      ; preds = %if.else35
+  %indx39 = getelementptr inbounds %struct.bitmap_element_def* %12, i64 0, i32 2
+  %13 = load i32* %indx39, align 4, !tbaa !17
+  br label %while.cond44.preheader
+
+while.cond44.preheader:                           ; preds = %cond.end17, %cond.true21, %if.then27, %cond.true30, %if.else35, %cond.true38
+  %indx9.0.ph = phi i32 [ %indx2.0367, %cond.true38 ], [ %indx2.0367, %if.else35 ], [ %indx1.0368, %cond.true30 ], [ %indx1.0368, %if.then27 ], [ %indx1.0368, %cond.true21 ], [ %indx1.0368, %cond.end17 ]
+  %from2_tmp.0.ph = phi %struct.bitmap_element_def* [ %from2_ptr.0369, %cond.true38 ], [ %from2_ptr.0369, %if.else35 ], [ @bitmap_zero_bits, %cond.true30 ], [ @bitmap_zero_bits, %if.then27 ], [ %from2_ptr.0369, %cond.true21 ], [ %from2_ptr.0369, %cond.end17 ]
+  %from1_tmp.0.ph = phi %struct.bitmap_element_def* [ @bitmap_zero_bits, %cond.true38 ], [ @bitmap_zero_bits, %if.else35 ], [ %from1_ptr.0370, %cond.true30 ], [ %from1_ptr.0370, %if.then27 ], [ %from1_ptr.0370, %cond.true21 ], [ %from1_ptr.0370, %cond.end17 ]
+  %indx2.1.ph = phi i32 [ %13, %cond.true38 ], [ -1, %if.else35 ], [ %indx2.0367, %cond.true30 ], [ %indx2.0367, %if.then27 ], [ %9, %cond.true21 ], [ -1, %cond.end17 ]
+  %indx1.1.ph = phi i32 [ %indx1.0368, %cond.true38 ], [ %indx1.0368, %if.else35 ], [ %11, %cond.true30 ], [ -1, %if.then27 ], [ %cond18, %cond.true21 ], [ %cond18, %cond.end17 ]
+  %from2_ptr.1.ph = phi %struct.bitmap_element_def* [ %12, %cond.true38 ], [ null, %if.else35 ], [ %from2_ptr.0369, %cond.true30 ], [ %from2_ptr.0369, %if.then27 ], [ %8, %cond.true21 ], [ null, %cond.end17 ]
+  %from1_ptr.1.ph = phi %struct.bitmap_element_def* [ %from1_ptr.0370, %cond.true38 ], [ %from1_ptr.0370, %if.else35 ], [ %10, %cond.true30 ], [ null, %if.then27 ], [ %6, %cond.true21 ], [ %6, %cond.end17 ]
+  %tobool45358 = icmp eq %struct.bitmap_element_def* %to_ptr.0366, null
+  br i1 %tobool45358, label %if.else56, label %land.rhs
+
+land.rhs:                                         ; preds = %while.cond44.preheader, %while.body48
+  %to_ptr.1360 = phi %struct.bitmap_element_def* [ %15, %while.body48 ], [ %to_ptr.0366, %while.cond44.preheader ]
+  %changed.1359 = phi i32 [ 1, %while.body48 ], [ %changed.0365, %while.cond44.preheader ]
+  %indx46 = getelementptr inbounds %struct.bitmap_element_def* %to_ptr.1360, i64 0, i32 2
+  %14 = load i32* %indx46, align 4, !tbaa !17
+  %cmp47 = icmp ult i32 %14, %indx9.0.ph
+  br i1 %cmp47, label %while.body48, label %land.lhs.true
+
+while.body48:                                     ; preds = %land.rhs
+  %next49 = getelementptr inbounds %struct.bitmap_element_def* %to_ptr.1360, i64 0, i32 0
+  %15 = load %struct.bitmap_element_def** %next49, align 8, !tbaa !8
+  %16 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  store %struct.bitmap_element_def* %16, %struct.bitmap_element_def** %next49, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %to_ptr.1360, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %tobool45 = icmp eq %struct.bitmap_element_def* %15, null
+  br i1 %tobool45, label %if.then.i, label %land.rhs
+
+land.lhs.true:                                    ; preds = %land.rhs
+  %cmp53 = icmp eq i32 %14, %indx9.0.ph
+  br i1 %cmp53, label %if.then54, label %if.else56
+
+if.then54:                                        ; preds = %land.lhs.true
+  %next55 = getelementptr inbounds %struct.bitmap_element_def* %to_ptr.1360, i64 0, i32 0
+  %17 = load %struct.bitmap_element_def** %next55, align 8, !tbaa !8
+  br label %if.end57
+
+if.else56:                                        ; preds = %while.cond44.preheader, %land.lhs.true
+  %to_ptr.1343.ph = phi %struct.bitmap_element_def* [ null, %while.cond44.preheader ], [ %to_ptr.1360, %land.lhs.true ]
+  %changed.1341.ph = phi i32 [ %changed.0365, %while.cond44.preheader ], [ %changed.1359, %land.lhs.true ]
+  %.pr = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i = icmp eq %struct.bitmap_element_def* %.pr, null
+  br i1 %cmp.i, label %if.else.i, label %if.then.i
+
+if.then.i:                                        ; preds = %while.body48, %if.else56
+  %changed.1341396 = phi i32 [ %changed.1341.ph, %if.else56 ], [ 1, %while.body48 ]
+  %to_ptr.1343394 = phi %struct.bitmap_element_def* [ %to_ptr.1343.ph, %if.else56 ], [ null, %while.body48 ]
+  %18 = phi %struct.bitmap_element_def* [ %.pr, %if.else56 ], [ %to_ptr.1360, %while.body48 ]
+  %next.i = getelementptr inbounds %struct.bitmap_element_def* %18, i64 0, i32 0
+  %19 = load %struct.bitmap_element_def** %next.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %19, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %bitmap_element_allocate.exit
+
+if.else.i:                                        ; preds = %if.else56
+  %.b.i = load i1* @bitmap_obstack_init, align 1
+  br i1 %.b.i, label %if.end.i, label %if.then1.i
+
+if.then1.i:                                       ; preds = %if.else.i
+  store i1 true, i1* @bitmap_obstack_init, align 1
+  %call.i = tail call i32 @_obstack_begin(%struct.obstack* @bitmap_obstack, i32 0, i32 8, i8* (i64)* @xmalloc, void (i8*)* @free) #6
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.then1.i, %if.else.i
+  %20 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %21 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %sub.ptr.lhs.cast.i = ptrtoint i8* %20 to i64
+  %sub.ptr.rhs.cast.i = ptrtoint i8* %21 to i64
+  %sub.ptr.sub.i = sub i64 %sub.ptr.lhs.cast.i, %sub.ptr.rhs.cast.i
+  %cmp2.i = icmp slt i64 %sub.ptr.sub.i, 40
+  br i1 %cmp2.i, label %if.then4.i, label %if.end5.i
+
+if.then4.i:                                       ; preds = %if.end.i
+  tail call void @_obstack_newchunk(%struct.obstack* @bitmap_obstack, i32 40) #6
+  %.pre.i = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end5.i
+
+if.end5.i:                                        ; preds = %if.then4.i, %if.end.i
+  %22 = phi i8* [ %.pre.i, %if.then4.i ], [ %21, %if.end.i ]
+  %add.ptr.i = getelementptr inbounds i8* %22, i64 40
+  store i8* %add.ptr.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %23 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %cmp10.i = icmp eq i8* %add.ptr.i, %23
+  br i1 %cmp10.i, label %if.then12.i, label %if.end13.i
+
+if.then12.i:                                      ; preds = %if.end5.i
+  %bf.load.i = load i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  %bf.set.i = or i8 %bf.load.i, 2
+  store i8 %bf.set.i, i8* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 10), align 8
+  br label %if.end13.i
+
+if.end13.i:                                       ; preds = %if.then12.i, %if.end5.i
+  %sub.ptr.lhs.cast15.i = ptrtoint i8* %add.ptr.i to i64
+  %24 = load i32* getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 6), align 8, !tbaa !15
+  %conv17.i = sext i32 %24 to i64
+  %add.i = add nsw i64 %conv17.i, %sub.ptr.lhs.cast15.i
+  %neg.i = xor i32 %24, -1
+  %conv19.i = sext i32 %neg.i to i64
+  %and.i = and i64 %add.i, %conv19.i
+  %add.ptr20.i = getelementptr inbounds i8* null, i64 %and.i
+  store i8* %add.ptr20.i, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  %25 = load %struct._obstack_chunk** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 1), align 8, !tbaa !16
+  %sub.ptr.lhs.cast23.i = ptrtoint i8* %add.ptr20.i to i64
+  %sub.ptr.rhs.cast24.i = ptrtoint %struct._obstack_chunk* %25 to i64
+  %sub.ptr.sub25.i = sub i64 %sub.ptr.lhs.cast23.i, %sub.ptr.rhs.cast24.i
+  %26 = load i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 4), align 8, !tbaa !10
+  %sub.ptr.lhs.cast28.i = ptrtoint i8* %26 to i64
+  %sub.ptr.sub30.i = sub i64 %sub.ptr.lhs.cast28.i, %sub.ptr.rhs.cast24.i
+  %cmp31.i = icmp sgt i64 %sub.ptr.sub25.i, %sub.ptr.sub30.i
+  br i1 %cmp31.i, label %if.then33.i, label %if.end36.i
+
+if.then33.i:                                      ; preds = %if.end13.i
+  store i8* %26, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 3), align 8, !tbaa !13
+  br label %if.end36.i
+
+if.end36.i:                                       ; preds = %if.then33.i, %if.end13.i
+  %27 = phi i8* [ %26, %if.then33.i ], [ %add.ptr20.i, %if.end13.i ]
+  store i8* %27, i8** getelementptr inbounds (%struct.obstack* @bitmap_obstack, i64 0, i32 2), align 8, !tbaa !14
+  %28 = bitcast i8* %23 to %struct.bitmap_element_def*
+  br label %bitmap_element_allocate.exit
+
+bitmap_element_allocate.exit:                     ; preds = %if.then.i, %if.end36.i
+  %changed.1341395 = phi i32 [ %changed.1341396, %if.then.i ], [ %changed.1341.ph, %if.end36.i ]
+  %to_ptr.1343393 = phi %struct.bitmap_element_def* [ %to_ptr.1343394, %if.then.i ], [ %to_ptr.1343.ph, %if.end36.i ]
+  %element.0.i = phi %struct.bitmap_element_def* [ %18, %if.then.i ], [ %28, %if.end36.i ]
+  %bits.i = getelementptr inbounds %struct.bitmap_element_def* %element.0.i, i64 0, i32 3
+  %29 = bitcast [2 x i64]* %bits.i to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %29, i8 0, i64 16, i32 8, i1 false) #6
+  br label %if.end57
+
+if.end57:                                         ; preds = %bitmap_element_allocate.exit, %if.then54
+  %changed.1340 = phi i32 [ %changed.1359, %if.then54 ], [ %changed.1341395, %bitmap_element_allocate.exit ]
+  %to_tmp.0 = phi %struct.bitmap_element_def* [ %to_ptr.1360, %if.then54 ], [ %element.0.i, %bitmap_element_allocate.exit ]
+  %to_ptr.2 = phi %struct.bitmap_element_def* [ %17, %if.then54 ], [ %to_ptr.1343393, %bitmap_element_allocate.exit ]
+  switch i32 %operation, label %sw.default [
+    i32 0, label %do.body
+    i32 1, label %do.body78
+    i32 2, label %do.body112
+    i32 4, label %do.body145
+    i32 3, label %do.body180
+  ]
+
+sw.default:                                       ; preds = %if.end57
+  tail call void @fancy_abort(i8* getelementptr inbounds ([9 x i8]* @.str, i64 0, i64 0), i32 616, i8* getelementptr inbounds ([17 x i8]* @__FUNCTION__.bitmap_operation, i64 0, i64 0)) #7
+  unreachable
+
+do.body:                                          ; preds = %if.end57
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 0
+  %30 = load i64* %arrayidx, align 8, !tbaa !18
+  %arrayidx59 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 0
+  %31 = load i64* %arrayidx59, align 8, !tbaa !18
+  %and = and i64 %31, %30
+  %arrayidx61 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 0
+  %32 = load i64* %arrayidx61, align 8, !tbaa !18
+  %cmp62 = icmp ne i64 %and, %32
+  %conv = zext i1 %cmp62 to i32
+  %or = or i32 %conv, %changed.1340
+  %arrayidx64 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 1
+  %33 = load i64* %arrayidx64, align 8, !tbaa !18
+  %arrayidx66 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 1
+  %34 = load i64* %arrayidx66, align 8, !tbaa !18
+  %and67 = and i64 %34, %33
+  %arrayidx69 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 1
+  %35 = load i64* %arrayidx69, align 8, !tbaa !18
+  %cmp70 = icmp ne i64 %and67, %35
+  %conv71 = zext i1 %cmp70 to i32
+  %or72 = or i32 %or, %conv71
+  store i64 %and, i64* %arrayidx61, align 8, !tbaa !18
+  store i64 %and67, i64* %arrayidx69, align 8, !tbaa !18
+  br label %sw.epilog
+
+do.body78:                                        ; preds = %if.end57
+  %arrayidx86 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 0
+  %36 = load i64* %arrayidx86, align 8, !tbaa !18
+  %arrayidx88 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 0
+  %37 = load i64* %arrayidx88, align 8, !tbaa !18
+  %neg = xor i64 %37, -1
+  %and89 = and i64 %36, %neg
+  %arrayidx91 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 0
+  %38 = load i64* %arrayidx91, align 8, !tbaa !18
+  %cmp92 = icmp ne i64 %and89, %38
+  %conv93 = zext i1 %cmp92 to i32
+  %or94 = or i32 %conv93, %changed.1340
+  %arrayidx96 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 1
+  %39 = load i64* %arrayidx96, align 8, !tbaa !18
+  %arrayidx98 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 1
+  %40 = load i64* %arrayidx98, align 8, !tbaa !18
+  %neg99 = xor i64 %40, -1
+  %and100 = and i64 %39, %neg99
+  %arrayidx102 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 1
+  %41 = load i64* %arrayidx102, align 8, !tbaa !18
+  %cmp103 = icmp ne i64 %and100, %41
+  %conv104 = zext i1 %cmp103 to i32
+  %or105 = or i32 %or94, %conv104
+  store i64 %and89, i64* %arrayidx91, align 8, !tbaa !18
+  store i64 %and100, i64* %arrayidx102, align 8, !tbaa !18
+  br label %sw.epilog
+
+do.body112:                                       ; preds = %if.end57
+  %arrayidx120 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 0
+  %42 = load i64* %arrayidx120, align 8, !tbaa !18
+  %arrayidx122 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 0
+  %43 = load i64* %arrayidx122, align 8, !tbaa !18
+  %or123 = or i64 %43, %42
+  %arrayidx125 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 0
+  %44 = load i64* %arrayidx125, align 8, !tbaa !18
+  %cmp126 = icmp ne i64 %or123, %44
+  %conv127 = zext i1 %cmp126 to i32
+  %or128 = or i32 %conv127, %changed.1340
+  %arrayidx130 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 1
+  %45 = load i64* %arrayidx130, align 8, !tbaa !18
+  %arrayidx132 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 1
+  %46 = load i64* %arrayidx132, align 8, !tbaa !18
+  %or133 = or i64 %46, %45
+  %arrayidx135 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 1
+  %47 = load i64* %arrayidx135, align 8, !tbaa !18
+  %cmp136 = icmp ne i64 %or133, %47
+  %conv137 = zext i1 %cmp136 to i32
+  %or138 = or i32 %or128, %conv137
+  store i64 %or123, i64* %arrayidx125, align 8, !tbaa !18
+  store i64 %or133, i64* %arrayidx135, align 8, !tbaa !18
+  br label %sw.epilog
+
+do.body145:                                       ; preds = %if.end57
+  %arrayidx153 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 0
+  %48 = load i64* %arrayidx153, align 8, !tbaa !18
+  %arrayidx155 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 0
+  %49 = load i64* %arrayidx155, align 8, !tbaa !18
+  %neg156 = xor i64 %49, -1
+  %or157 = or i64 %48, %neg156
+  %arrayidx159 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 0
+  %50 = load i64* %arrayidx159, align 8, !tbaa !18
+  %cmp160 = icmp ne i64 %or157, %50
+  %conv161 = zext i1 %cmp160 to i32
+  %or162 = or i32 %conv161, %changed.1340
+  %arrayidx164 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 1
+  %51 = load i64* %arrayidx164, align 8, !tbaa !18
+  %arrayidx166 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 1
+  %52 = load i64* %arrayidx166, align 8, !tbaa !18
+  %neg167 = xor i64 %52, -1
+  %or168 = or i64 %51, %neg167
+  %arrayidx170 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 1
+  %53 = load i64* %arrayidx170, align 8, !tbaa !18
+  %cmp171 = icmp ne i64 %or168, %53
+  %conv172 = zext i1 %cmp171 to i32
+  %or173 = or i32 %or162, %conv172
+  store i64 %or157, i64* %arrayidx159, align 8, !tbaa !18
+  store i64 %or168, i64* %arrayidx170, align 8, !tbaa !18
+  br label %sw.epilog
+
+do.body180:                                       ; preds = %if.end57
+  %arrayidx188 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 0
+  %54 = load i64* %arrayidx188, align 8, !tbaa !18
+  %arrayidx190 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 0
+  %55 = load i64* %arrayidx190, align 8, !tbaa !18
+  %xor = xor i64 %55, %54
+  %arrayidx192 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 0
+  %56 = load i64* %arrayidx192, align 8, !tbaa !18
+  %cmp193 = icmp ne i64 %xor, %56
+  %conv194 = zext i1 %cmp193 to i32
+  %or195 = or i32 %conv194, %changed.1340
+  %arrayidx197 = getelementptr inbounds %struct.bitmap_element_def* %from1_tmp.0.ph, i64 0, i32 3, i64 1
+  %57 = load i64* %arrayidx197, align 8, !tbaa !18
+  %arrayidx199 = getelementptr inbounds %struct.bitmap_element_def* %from2_tmp.0.ph, i64 0, i32 3, i64 1
+  %58 = load i64* %arrayidx199, align 8, !tbaa !18
+  %xor200 = xor i64 %58, %57
+  %arrayidx202 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 3, i64 1
+  %59 = load i64* %arrayidx202, align 8, !tbaa !18
+  %cmp203 = icmp ne i64 %xor200, %59
+  %conv204 = zext i1 %cmp203 to i32
+  %or205 = or i32 %or195, %conv204
+  store i64 %xor, i64* %arrayidx192, align 8, !tbaa !18
+  store i64 %xor200, i64* %arrayidx202, align 8, !tbaa !18
+  br label %sw.epilog
+
+sw.epilog:                                        ; preds = %do.body180, %do.body145, %do.body112, %do.body78, %do.body
+  %to_tmp.0.idx332.val = phi i64 [ %xor200, %do.body180 ], [ %or168, %do.body145 ], [ %or133, %do.body112 ], [ %and100, %do.body78 ], [ %and67, %do.body ]
+  %to_tmp.0.idx.val = phi i64 [ %xor, %do.body180 ], [ %or157, %do.body145 ], [ %or123, %do.body112 ], [ %and89, %do.body78 ], [ %and, %do.body ]
+  %changed.2 = phi i32 [ %or205, %do.body180 ], [ %or173, %do.body145 ], [ %or138, %do.body112 ], [ %or105, %do.body78 ], [ %or72, %do.body ]
+  %or.i = or i64 %to_tmp.0.idx332.val, %to_tmp.0.idx.val
+  %cmp.i333 = icmp eq i64 %or.i, 0
+  br i1 %cmp.i333, label %if.else215, label %if.then213
+
+if.then213:                                       ; preds = %sw.epilog
+  %indx214 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 2
+  store i32 %indx9.0.ph, i32* %indx214, align 4, !tbaa !17
+  %60 = load %struct.bitmap_element_def** %first8, align 8, !tbaa !5
+  %cmp.i334 = icmp eq %struct.bitmap_element_def* %60, null
+  br i1 %cmp.i334, label %if.then.i335, label %if.else.i336
+
+if.then.i335:                                     ; preds = %if.then213
+  %61 = bitcast %struct.bitmap_element_def* %to_tmp.0 to i8*
+  tail call void @llvm.memset.p0i8.i64(i8* %61, i8 0, i64 16, i32 8, i1 false) #6
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %first8, align 8, !tbaa !5
+  br label %bitmap_element_link.exit
+
+if.else.i336:                                     ; preds = %if.then213
+  %62 = load i32* %indx49.pre.i, align 4, !tbaa !21
+  %cmp4.i = icmp ult i32 %indx9.0.ph, %62
+  %63 = load %struct.bitmap_element_def** %current, align 8, !tbaa !20
+  br i1 %cmp4.i, label %for.cond.i, label %for.cond24.i
+
+for.cond.i:                                       ; preds = %if.else.i336, %land.rhs.i
+  %ptr.0.i = phi %struct.bitmap_element_def* [ %64, %land.rhs.i ], [ %63, %if.else.i336 ]
+  %prev6.i = getelementptr inbounds %struct.bitmap_element_def* %ptr.0.i, i64 0, i32 1
+  %64 = load %struct.bitmap_element_def** %prev6.i, align 8, !tbaa !22
+  %cmp7.i = icmp eq %struct.bitmap_element_def* %64, null
+  br i1 %cmp7.i, label %if.else16.i, label %land.rhs.i
+
+land.rhs.i:                                       ; preds = %for.cond.i
+  %indx9.i = getelementptr inbounds %struct.bitmap_element_def* %64, i64 0, i32 2
+  %65 = load i32* %indx9.i, align 4, !tbaa !17
+  %cmp10.i337 = icmp ugt i32 %65, %indx9.0.ph
+  br i1 %cmp10.i337, label %for.cond.i, label %if.then13.i
+
+if.then13.i:                                      ; preds = %land.rhs.i
+  %next15.i = getelementptr inbounds %struct.bitmap_element_def* %64, i64 0, i32 0
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %next15.i, align 8, !tbaa !8
+  br label %if.end.i338
+
+if.else16.i:                                      ; preds = %for.cond.i
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %first8, align 8, !tbaa !5
+  br label %if.end.i338
+
+if.end.i338:                                      ; preds = %if.else16.i, %if.then13.i
+  %66 = phi %struct.bitmap_element_def* [ null, %if.else16.i ], [ %64, %if.then13.i ]
+  %prev19.i = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 1
+  store %struct.bitmap_element_def* %66, %struct.bitmap_element_def** %prev19.i, align 8, !tbaa !22
+  %next20.i = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 0
+  store %struct.bitmap_element_def* %ptr.0.i, %struct.bitmap_element_def** %next20.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %prev6.i, align 8, !tbaa !22
+  br label %bitmap_element_link.exit
+
+for.cond24.i:                                     ; preds = %if.else.i336, %land.rhs27.i
+  %ptr.1.i = phi %struct.bitmap_element_def* [ %67, %land.rhs27.i ], [ %63, %if.else.i336 ]
+  %next25.i = getelementptr inbounds %struct.bitmap_element_def* %ptr.1.i, i64 0, i32 0
+  %67 = load %struct.bitmap_element_def** %next25.i, align 8, !tbaa !8
+  %cmp26.i = icmp eq %struct.bitmap_element_def* %67, null
+  br i1 %cmp26.i, label %if.end41.i, label %land.rhs27.i
+
+land.rhs27.i:                                     ; preds = %for.cond24.i
+  %indx29.i = getelementptr inbounds %struct.bitmap_element_def* %67, i64 0, i32 2
+  %68 = load i32* %indx29.i, align 4, !tbaa !17
+  %cmp30.i = icmp ult i32 %68, %indx9.0.ph
+  br i1 %cmp30.i, label %for.cond24.i, label %if.then38.i
+
+if.then38.i:                                      ; preds = %land.rhs27.i
+  %prev40.i = getelementptr inbounds %struct.bitmap_element_def* %67, i64 0, i32 1
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %prev40.i, align 8, !tbaa !22
+  br label %if.end41.i
+
+if.end41.i:                                       ; preds = %for.cond24.i, %if.then38.i
+  %69 = phi %struct.bitmap_element_def* [ %67, %if.then38.i ], [ null, %for.cond24.i ]
+  %next43.i = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 0
+  store %struct.bitmap_element_def* %69, %struct.bitmap_element_def** %next43.i, align 8, !tbaa !8
+  %prev44.i = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 1
+  store %struct.bitmap_element_def* %ptr.1.i, %struct.bitmap_element_def** %prev44.i, align 8, !tbaa !22
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %next25.i, align 8, !tbaa !8
+  br label %bitmap_element_link.exit
+
+bitmap_element_link.exit:                         ; preds = %if.then.i335, %if.end.i338, %if.end41.i
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** %current, align 8, !tbaa !20
+  store i32 %indx9.0.ph, i32* %indx49.pre.i, align 4, !tbaa !21
+  br label %while.cond.backedge
+
+if.else215:                                       ; preds = %sw.epilog
+  %70 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %next216 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.0, i64 0, i32 0
+  store %struct.bitmap_element_def* %70, %struct.bitmap_element_def** %next216, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %to_tmp.0, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %while.cond.backedge
+
+while.cond.backedge:                              ; preds = %if.else215, %bitmap_element_link.exit
+  %cmp = icmp ne %struct.bitmap_element_def* %from1_ptr.1.ph, null
+  %cmp11 = icmp ne %struct.bitmap_element_def* %from2_ptr.1.ph, null
+  %or.cond = or i1 %cmp, %cmp11
+  br i1 %or.cond, label %while.body, label %while.end218
+
+while.end218:                                     ; preds = %while.cond.backedge, %cond.end6
+  %to_ptr.0.lcssa = phi %struct.bitmap_element_def* [ %4, %cond.end6 ], [ %to_ptr.2, %while.cond.backedge ]
+  %changed.0.lcssa = phi i32 [ 0, %cond.end6 ], [ %changed.2, %while.cond.backedge ]
+  %tobool219 = icmp eq %struct.bitmap_element_def* %to_ptr.0.lcssa, null
+  br i1 %tobool219, label %if.end225, label %for.cond
+
+for.cond:                                         ; preds = %while.end218, %for.cond
+  %to_tmp.1 = phi %struct.bitmap_element_def* [ %71, %for.cond ], [ %to_ptr.0.lcssa, %while.end218 ]
+  %next221 = getelementptr inbounds %struct.bitmap_element_def* %to_tmp.1, i64 0, i32 0
+  %71 = load %struct.bitmap_element_def** %next221, align 8, !tbaa !8
+  %tobool222 = icmp eq %struct.bitmap_element_def* %71, null
+  br i1 %tobool222, label %for.end, label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  %72 = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  store %struct.bitmap_element_def* %72, %struct.bitmap_element_def** %next221, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %to_ptr.0.lcssa, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %if.end225
+
+if.end225:                                        ; preds = %while.end218, %for.end
+  %changed.3 = phi i32 [ 1, %for.end ], [ %changed.0.lcssa, %while.end218 ]
+  ret i32 %changed.3
+}
+
+; Function Attrs: noreturn
+declare void @fancy_abort(i8*, i32, i8*) #4
+
+; Function Attrs: nounwind uwtable
+define i32 @bitmap_equal_p(%struct.bitmap_head_def* nocapture readonly %a, %struct.bitmap_head_def* nocapture readonly %b) #0 {
+entry:
+  %c = alloca %struct.bitmap_head_def, align 8
+  %first = getelementptr inbounds %struct.bitmap_head_def* %c, i64 0, i32 0
+  %0 = bitcast %struct.bitmap_head_def* %c to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 16, i32 8, i1 false)
+  %call = call i32 @bitmap_operation(%struct.bitmap_head_def* %c, %struct.bitmap_head_def* %a, %struct.bitmap_head_def* %b, i32 3)
+  %lnot = icmp eq i32 %call, 0
+  %lnot.ext = zext i1 %lnot to i32
+  %1 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp9.i = icmp eq %struct.bitmap_element_def* %1, null
+  br i1 %cmp9.i, label %bitmap_clear.exit, label %for.body.lr.ph.i
+
+for.body.lr.ph.i:                                 ; preds = %entry
+  %.pre.i = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.body.i, %for.body.lr.ph.i
+  %2 = phi %struct.bitmap_element_def* [ %.pre.i, %for.body.lr.ph.i ], [ %element.010.i, %for.body.i ]
+  %element.010.i = phi %struct.bitmap_element_def* [ %1, %for.body.lr.ph.i ], [ %3, %for.body.i ]
+  %next1.i = getelementptr inbounds %struct.bitmap_element_def* %element.010.i, i64 0, i32 0
+  %3 = load %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %2, %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.010.i, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i = icmp eq %struct.bitmap_element_def* %3, null
+  br i1 %cmp.i, label %bitmap_clear.exit, label %for.body.i
+
+bitmap_clear.exit:                                ; preds = %for.body.i, %entry
+  ret i32 %lnot.ext
+}
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_ior_and_compl(%struct.bitmap_head_def* nocapture %to, %struct.bitmap_head_def* nocapture readonly %from1, %struct.bitmap_head_def* nocapture readonly %from2) #0 {
+entry:
+  %tmp = alloca %struct.bitmap_head_def, align 8
+  %first = getelementptr inbounds %struct.bitmap_head_def* %tmp, i64 0, i32 0
+  %0 = bitcast %struct.bitmap_head_def* %tmp to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 16, i32 8, i1 false)
+  %call = call i32 @bitmap_operation(%struct.bitmap_head_def* %tmp, %struct.bitmap_head_def* %from1, %struct.bitmap_head_def* %from2, i32 1)
+  %call1 = call i32 @bitmap_operation(%struct.bitmap_head_def* %to, %struct.bitmap_head_def* %to, %struct.bitmap_head_def* %tmp, i32 2)
+  %1 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp9.i = icmp eq %struct.bitmap_element_def* %1, null
+  br i1 %cmp9.i, label %bitmap_clear.exit, label %for.body.lr.ph.i
+
+for.body.lr.ph.i:                                 ; preds = %entry
+  %.pre.i = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.body.i, %for.body.lr.ph.i
+  %2 = phi %struct.bitmap_element_def* [ %.pre.i, %for.body.lr.ph.i ], [ %element.010.i, %for.body.i ]
+  %element.010.i = phi %struct.bitmap_element_def* [ %1, %for.body.lr.ph.i ], [ %3, %for.body.i ]
+  %next1.i = getelementptr inbounds %struct.bitmap_element_def* %element.010.i, i64 0, i32 0
+  %3 = load %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %2, %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.010.i, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i = icmp eq %struct.bitmap_element_def* %3, null
+  br i1 %cmp.i, label %bitmap_clear.exit, label %for.body.i
+
+bitmap_clear.exit:                                ; preds = %for.body.i, %entry
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define i32 @bitmap_union_of_diff(%struct.bitmap_head_def* nocapture %dst, %struct.bitmap_head_def* nocapture readonly %a, %struct.bitmap_head_def* nocapture readonly %b, %struct.bitmap_head_def* nocapture readonly %c) #0 {
+entry:
+  %tmp = alloca %struct.bitmap_head_def, align 8
+  %first = getelementptr inbounds %struct.bitmap_head_def* %tmp, i64 0, i32 0
+  %0 = bitcast %struct.bitmap_head_def* %tmp to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 16, i32 8, i1 false)
+  %call = call i32 @bitmap_operation(%struct.bitmap_head_def* %tmp, %struct.bitmap_head_def* %b, %struct.bitmap_head_def* %c, i32 1)
+  %call2 = call i32 @bitmap_operation(%struct.bitmap_head_def* %dst, %struct.bitmap_head_def* %tmp, %struct.bitmap_head_def* %a, i32 2)
+  %1 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %cmp9.i = icmp eq %struct.bitmap_element_def* %1, null
+  br i1 %cmp9.i, label %bitmap_clear.exit, label %for.body.lr.ph.i
+
+for.body.lr.ph.i:                                 ; preds = %entry
+  %.pre.i = load %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.body.i, %for.body.lr.ph.i
+  %2 = phi %struct.bitmap_element_def* [ %.pre.i, %for.body.lr.ph.i ], [ %element.010.i, %for.body.i ]
+  %element.010.i = phi %struct.bitmap_element_def* [ %1, %for.body.lr.ph.i ], [ %3, %for.body.i ]
+  %next1.i = getelementptr inbounds %struct.bitmap_element_def* %element.010.i, i64 0, i32 0
+  %3 = load %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %2, %struct.bitmap_element_def** %next1.i, align 8, !tbaa !8
+  store %struct.bitmap_element_def* %element.010.i, %struct.bitmap_element_def** @bitmap_free, align 8, !tbaa !1
+  %cmp.i = icmp eq %struct.bitmap_element_def* %3, null
+  br i1 %cmp.i, label %bitmap_clear.exit, label %for.body.i
+
+bitmap_clear.exit:                                ; preds = %for.body.i, %entry
+  ret i32 %call2
+}
+
+; Function Attrs: nounwind uwtable
+define %struct.bitmap_head_def* @bitmap_initialize(%struct.bitmap_head_def* %head) #0 {
+entry:
+  %0 = bitcast %struct.bitmap_head_def* %head to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 16, i32 8, i1 false)
+  ret %struct.bitmap_head_def* %head
+}
+
+; Function Attrs: nounwind uwtable
+define void @debug_bitmap_file(%struct._IO_FILE* nocapture %file, %struct.bitmap_head_def* nocapture readonly %head) #0 {
+entry:
+  %0 = tail call i64 @fwrite(i8* getelementptr inbounds ([10 x i8]* @.str1, i64 0, i64 0), i64 9, i64 1, %struct._IO_FILE* %file)
+  %first = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 0
+  %1 = load %struct.bitmap_element_def** %first, align 8, !tbaa !5
+  %call1 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0), %struct.bitmap_element_def* %1) #6
+  %2 = tail call i64 @fwrite(i8* getelementptr inbounds ([12 x i8]* @.str3, i64 0, i64 0), i64 11, i64 1, %struct._IO_FILE* %file)
+  %current = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 1
+  %3 = load %struct.bitmap_element_def** %current, align 8, !tbaa !20
+  %call3 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0), %struct.bitmap_element_def* %3) #6
+  %indx = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 2
+  %4 = load i32* %indx, align 4, !tbaa !21
+  %call4 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([12 x i8]* @.str4, i64 0, i64 0), i32 %4) #6
+  %ptr.072 = load %struct.bitmap_element_def** %first, align 8
+  %tobool73 = icmp eq %struct.bitmap_element_def* %ptr.072, null
+  br i1 %tobool73, label %for.end35, label %for.body
+
+for.body:                                         ; preds = %entry, %for.inc29.1
+  %ptr.074 = phi %struct.bitmap_element_def* [ %ptr.0, %for.inc29.1 ], [ %ptr.072, %entry ]
+  %fputc = tail call i32 @fputc(i32 9, %struct._IO_FILE* %file)
+  %call7 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0), %struct.bitmap_element_def* %ptr.074) #6
+  %5 = tail call i64 @fwrite(i8* getelementptr inbounds ([9 x i8]* @.str6, i64 0, i64 0), i64 8, i64 1, %struct._IO_FILE* %file)
+  %next = getelementptr inbounds %struct.bitmap_element_def* %ptr.074, i64 0, i32 0
+  %6 = load %struct.bitmap_element_def** %next, align 8, !tbaa !8
+  %call9 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0), %struct.bitmap_element_def* %6) #6
+  %7 = tail call i64 @fwrite(i8* getelementptr inbounds ([9 x i8]* @.str7, i64 0, i64 0), i64 8, i64 1, %struct._IO_FILE* %file)
+  %prev = getelementptr inbounds %struct.bitmap_element_def* %ptr.074, i64 0, i32 1
+  %8 = load %struct.bitmap_element_def** %prev, align 8, !tbaa !22
+  %call11 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([3 x i8]* @.str2, i64 0, i64 0), %struct.bitmap_element_def* %8) #6
+  %indx12 = getelementptr inbounds %struct.bitmap_element_def* %ptr.074, i64 0, i32 2
+  %9 = load i32* %indx12, align 4, !tbaa !17
+  %call13 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([22 x i8]* @.str8, i64 0, i64 0), i32 %9) #6
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %ptr.074, i64 0, i32 3, i64 0
+  br label %for.body18
+
+for.body18:                                       ; preds = %for.inc, %for.body
+  %indvars.iv = phi i64 [ 0, %for.body ], [ %indvars.iv.next, %for.inc ]
+  %col.169 = phi i32 [ 26, %for.body ], [ %col.3, %for.inc ]
+  %10 = load i64* %arrayidx, align 8, !tbaa !18
+  %11 = shl i64 1, %indvars.iv
+  %and66 = and i64 %10, %11
+  %tobool19 = icmp eq i64 %and66, 0
+  br i1 %tobool19, label %for.inc, label %if.then
+
+if.then:                                          ; preds = %for.body18
+  %cmp20 = icmp sgt i32 %col.169, 70
+  br i1 %cmp20, label %if.then21, label %if.end
+
+if.then21:                                        ; preds = %if.then
+  %12 = tail call i64 @fwrite(i8* getelementptr inbounds ([5 x i8]* @.str9, i64 0, i64 0), i64 4, i64 1, %struct._IO_FILE* %file)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then21, %if.then
+  %col.2 = phi i32 [ 24, %if.then21 ], [ %col.169, %if.then ]
+  %13 = load i32* %indx12, align 4, !tbaa !17
+  %mul = shl i32 %13, 7
+  %14 = trunc i64 %indvars.iv to i32
+  %add25 = add i32 %14, %mul
+  %call26 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([4 x i8]* @.str10, i64 0, i64 0), i32 %add25) #6
+  %add27 = add nsw i32 %col.2, 4
+  br label %for.inc
+
+for.inc:                                          ; preds = %for.body18, %if.end
+  %col.3 = phi i32 [ %add27, %if.end ], [ %col.169, %for.body18 ]
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %exitcond = icmp eq i64 %indvars.iv.next, 64
+  br i1 %exitcond, label %for.inc29, label %for.body18
+
+for.inc29:                                        ; preds = %for.inc
+  %arrayidx.1 = getelementptr inbounds %struct.bitmap_element_def* %ptr.074, i64 0, i32 3, i64 1
+  br label %for.body18.1
+
+for.end35:                                        ; preds = %for.inc29.1, %entry
+  ret void
+
+for.body18.1:                                     ; preds = %for.inc.1, %for.inc29
+  %indvars.iv.1 = phi i64 [ 0, %for.inc29 ], [ %indvars.iv.next.1, %for.inc.1 ]
+  %col.169.1 = phi i32 [ %col.3, %for.inc29 ], [ %col.3.1, %for.inc.1 ]
+  %15 = load i64* %arrayidx.1, align 8, !tbaa !18
+  %16 = shl i64 1, %indvars.iv.1
+  %and66.1 = and i64 %15, %16
+  %tobool19.1 = icmp eq i64 %and66.1, 0
+  br i1 %tobool19.1, label %for.inc.1, label %if.then.1
+
+if.then.1:                                        ; preds = %for.body18.1
+  %cmp20.1 = icmp sgt i32 %col.169.1, 70
+  br i1 %cmp20.1, label %if.then21.1, label %if.end.1
+
+if.then21.1:                                      ; preds = %if.then.1
+  %17 = tail call i64 @fwrite(i8* getelementptr inbounds ([5 x i8]* @.str9, i64 0, i64 0), i64 4, i64 1, %struct._IO_FILE* %file)
+  br label %if.end.1
+
+if.end.1:                                         ; preds = %if.then21.1, %if.then.1
+  %col.2.1 = phi i32 [ 24, %if.then21.1 ], [ %col.169.1, %if.then.1 ]
+  %18 = load i32* %indx12, align 4, !tbaa !17
+  %mul.1 = shl i32 %18, 7
+  %19 = add i64 %indvars.iv.1, 64
+  %20 = trunc i64 %19 to i32
+  %add25.1 = add i32 %20, %mul.1
+  %call26.1 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([4 x i8]* @.str10, i64 0, i64 0), i32 %add25.1) #6
+  %add27.1 = add nsw i32 %col.2.1, 4
+  br label %for.inc.1
+
+for.inc.1:                                        ; preds = %if.end.1, %for.body18.1
+  %col.3.1 = phi i32 [ %add27.1, %if.end.1 ], [ %col.169.1, %for.body18.1 ]
+  %indvars.iv.next.1 = add nuw nsw i64 %indvars.iv.1, 1
+  %exitcond.1 = icmp eq i64 %indvars.iv.next.1, 64
+  br i1 %exitcond.1, label %for.inc29.1, label %for.body18.1
+
+for.inc29.1:                                      ; preds = %for.inc.1
+  %21 = tail call i64 @fwrite(i8* getelementptr inbounds ([4 x i8]* @.str11, i64 0, i64 0), i64 3, i64 1, %struct._IO_FILE* %file)
+  %ptr.0 = load %struct.bitmap_element_def** %next, align 8
+  %tobool = icmp eq %struct.bitmap_element_def* %ptr.0, null
+  br i1 %tobool, label %for.end35, label %for.body
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #5
+
+; Function Attrs: nounwind uwtable
+define void @debug_bitmap(%struct.bitmap_head_def* nocapture readonly %head) #0 {
+entry:
+  %0 = load %struct._IO_FILE** @stdout, align 8, !tbaa !1
+  tail call void @debug_bitmap_file(%struct._IO_FILE* %0, %struct.bitmap_head_def* %head)
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @bitmap_print(%struct._IO_FILE* nocapture %file, %struct.bitmap_head_def* nocapture readonly %head, i8* nocapture readonly %prefix, i8* nocapture readonly %suffix) #0 {
+entry:
+  %call = tail call i32 @fputs(i8* %prefix, %struct._IO_FILE* %file) #6
+  %first = getelementptr inbounds %struct.bitmap_head_def* %head, i64 0, i32 0
+  %ptr_.156 = load %struct.bitmap_element_def** %first, align 8
+  %cmp557 = icmp eq %struct.bitmap_element_def* %ptr_.156, null
+  br i1 %cmp557, label %do.end, label %for.cond6.preheader
+
+for.cond6.preheader:                              ; preds = %entry, %if.end25.1
+  %ptr_.159 = phi %struct.bitmap_element_def* [ %ptr_.1, %if.end25.1 ], [ %ptr_.156, %entry ]
+  %comma.058 = phi i8* [ %comma.4.1, %if.end25.1 ], [ getelementptr inbounds ([1 x i8]* @.str12, i64 0, i64 0), %entry ]
+  %indx17 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.159, i64 0, i32 2
+  %arrayidx = getelementptr inbounds %struct.bitmap_element_def* %ptr_.159, i64 0, i32 3, i64 0
+  %0 = load i64* %arrayidx, align 8, !tbaa !18
+  %cmp9 = icmp eq i64 %0, 0
+  br i1 %cmp9, label %if.end25, label %for.body13
+
+for.body13:                                       ; preds = %for.cond6.preheader, %for.inc
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc ], [ 0, %for.cond6.preheader ]
+  %word_.0 = phi i64 [ %word_.1, %for.inc ], [ %0, %for.cond6.preheader ]
+  %comma.2 = phi i8* [ %comma.3, %for.inc ], [ %comma.058, %for.cond6.preheader ]
+  %shl = shl i64 1, %indvars.iv
+  %and = and i64 %shl, %word_.0
+  %cmp14 = icmp eq i64 %and, 0
+  br i1 %cmp14, label %for.inc, label %if.then15
+
+if.then15:                                        ; preds = %for.body13
+  %neg = xor i64 %shl, -1
+  %and16 = and i64 %word_.0, %neg
+  %1 = load i32* %indx17, align 4, !tbaa !17
+  %mul = shl i32 %1, 7
+  %2 = trunc i64 %indvars.iv to i32
+  %add19 = add i32 %2, %mul
+  %call20 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([5 x i8]* @.str13, i64 0, i64 0), i8* %comma.2, i32 %add19) #6
+  %cmp21 = icmp eq i64 %and16, 0
+  br i1 %cmp21, label %if.end25, label %for.inc
+
+for.inc:                                          ; preds = %for.body13, %if.then15
+  %word_.1 = phi i64 [ %and16, %if.then15 ], [ %word_.0, %for.body13 ]
+  %comma.3 = phi i8* [ getelementptr inbounds ([3 x i8]* @.str14, i64 0, i64 0), %if.then15 ], [ %comma.2, %for.body13 ]
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %3 = trunc i64 %indvars.iv.next to i32
+  %cmp12.old = icmp ult i32 %3, 64
+  br i1 %cmp12.old, label %for.body13, label %if.end25
+
+if.end25:                                         ; preds = %for.inc, %if.then15, %for.cond6.preheader
+  %comma.4 = phi i8* [ %comma.058, %for.cond6.preheader ], [ %comma.3, %for.inc ], [ getelementptr inbounds ([3 x i8]* @.str14, i64 0, i64 0), %if.then15 ]
+  %arrayidx.1 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.159, i64 0, i32 3, i64 1
+  %4 = load i64* %arrayidx.1, align 8, !tbaa !18
+  %cmp9.1 = icmp eq i64 %4, 0
+  br i1 %cmp9.1, label %if.end25.1, label %for.body13.1
+
+do.end:                                           ; preds = %if.end25.1, %entry
+  %call32 = tail call i32 @fputs(i8* %suffix, %struct._IO_FILE* %file) #6
+  ret void
+
+for.body13.1:                                     ; preds = %if.end25, %for.inc.1
+  %indvars.iv.1 = phi i64 [ %indvars.iv.next.1, %for.inc.1 ], [ 0, %if.end25 ]
+  %word_.0.1 = phi i64 [ %word_.1.1, %for.inc.1 ], [ %4, %if.end25 ]
+  %comma.2.1 = phi i8* [ %comma.3.1, %for.inc.1 ], [ %comma.4, %if.end25 ]
+  %shl.1 = shl i64 1, %indvars.iv.1
+  %and.1 = and i64 %shl.1, %word_.0.1
+  %cmp14.1 = icmp eq i64 %and.1, 0
+  br i1 %cmp14.1, label %for.inc.1, label %if.then15.1
+
+if.then15.1:                                      ; preds = %for.body13.1
+  %neg.1 = xor i64 %shl.1, -1
+  %and16.1 = and i64 %word_.0.1, %neg.1
+  %5 = load i32* %indx17, align 4, !tbaa !17
+  %mul.1 = shl i32 %5, 7
+  %6 = add i64 %indvars.iv.1, 64
+  %7 = trunc i64 %6 to i32
+  %add19.1 = add i32 %7, %mul.1
+  %call20.1 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %file, i8* getelementptr inbounds ([5 x i8]* @.str13, i64 0, i64 0), i8* %comma.2.1, i32 %add19.1) #6
+  %cmp21.1 = icmp eq i64 %and16.1, 0
+  br i1 %cmp21.1, label %if.end25.1, label %for.inc.1
+
+for.inc.1:                                        ; preds = %if.then15.1, %for.body13.1
+  %word_.1.1 = phi i64 [ %and16.1, %if.then15.1 ], [ %word_.0.1, %for.body13.1 ]
+  %comma.3.1 = phi i8* [ getelementptr inbounds ([3 x i8]* @.str14, i64 0, i64 0), %if.then15.1 ], [ %comma.2.1, %for.body13.1 ]
+  %indvars.iv.next.1 = add nuw nsw i64 %indvars.iv.1, 1
+  %8 = trunc i64 %indvars.iv.next.1 to i32
+  %cmp12.old.1 = icmp ult i32 %8, 64
+  br i1 %cmp12.old.1, label %for.body13.1, label %if.end25.1
+
+if.end25.1:                                       ; preds = %if.then15.1, %for.inc.1, %if.end25
+  %comma.4.1 = phi i8* [ %comma.4, %if.end25 ], [ getelementptr inbounds ([3 x i8]* @.str14, i64 0, i64 0), %if.then15.1 ], [ %comma.3.1, %for.inc.1 ]
+  %next30 = getelementptr inbounds %struct.bitmap_element_def* %ptr_.159, i64 0, i32 0
+  %ptr_.1 = load %struct.bitmap_element_def** %next30, align 8
+  %cmp5 = icmp eq %struct.bitmap_element_def* %ptr_.1, null
+  br i1 %cmp5, label %do.end, label %for.cond6.preheader
+}
+
+; Function Attrs: nounwind
+declare i32 @fputs(i8* nocapture readonly, %struct._IO_FILE* nocapture) #5
+
+declare i32 @_obstack_begin(%struct.obstack*, i32, i32, i8* (i64)*, void (i8*)*) #1
+
+declare noalias i8* @xmalloc(i64) #1
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #5
+
+declare void @_obstack_newchunk(%struct.obstack*, i32) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #6
+
+; Function Attrs: nounwind
+declare i64 @fwrite(i8* nocapture, i64, i64, %struct._IO_FILE* nocapture) #6
+
+; Function Attrs: nounwind
+declare i32 @fputc(i32, %struct._IO_FILE* nocapture) #6
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { inlinehint nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #6 = { nounwind }
+attributes #7 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !2, i64 0}
+!6 = metadata !{metadata !"bitmap_head_def", metadata !2, i64 0, metadata !2, i64 8, metadata !7, i64 16}
+!7 = metadata !{metadata !"int", metadata !3, i64 0}
+!8 = metadata !{metadata !9, metadata !2, i64 0}
+!9 = metadata !{metadata !"bitmap_element_def", metadata !2, i64 0, metadata !2, i64 8, metadata !7, i64 16, metadata !3, i64 24}
+!10 = metadata !{metadata !11, metadata !2, i64 32}
+!11 = metadata !{metadata !"obstack", metadata !12, i64 0, metadata !2, i64 8, metadata !2, i64 16, metadata !2, i64 24, metadata !2, i64 32, metadata !12, i64 40, metadata !7, i64 48, metadata !2, i64 56, metadata !2, i64 64, metadata !2, i64 72, metadata !7, i64 80, metadata !7, i64 80, metadata !7, i64 80}
+!12 = metadata !{metadata !"long", metadata !3, i64 0}
+!13 = metadata !{metadata !11, metadata !2, i64 24}
+!14 = metadata !{metadata !11, metadata !2, i64 16}
+!15 = metadata !{metadata !11, metadata !7, i64 48}
+!16 = metadata !{metadata !11, metadata !2, i64 8}
+!17 = metadata !{metadata !9, metadata !7, i64 16}
+!18 = metadata !{metadata !19, metadata !19, i64 0}
+!19 = metadata !{metadata !"long long", metadata !3, i64 0}
+!20 = metadata !{metadata !6, metadata !2, i64 8}
+!21 = metadata !{metadata !6, metadata !7, i64 16}
+!22 = metadata !{metadata !9, metadata !2, i64 8}

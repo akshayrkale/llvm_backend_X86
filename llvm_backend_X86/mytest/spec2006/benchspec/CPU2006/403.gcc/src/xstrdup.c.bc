@@ -1,0 +1,30 @@
+; ModuleID = 'xstrdup.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+; Function Attrs: nounwind uwtable
+define noalias i8* @xstrdup(i8* nocapture readonly %s) #0 {
+entry:
+  %call = tail call i64 @strlen(i8* %s) #3
+  %add = add i64 %call, 1
+  %call1 = tail call noalias i8* @xmalloc(i64 %add) #3
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %call1, i8* %s, i64 %add, i32 1, i1 false)
+  ret i8* %call1
+}
+
+; Function Attrs: nounwind readonly
+declare i64 @strlen(i8* nocapture) #1
+
+declare noalias i8* @xmalloc(i64) #2
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #3
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}

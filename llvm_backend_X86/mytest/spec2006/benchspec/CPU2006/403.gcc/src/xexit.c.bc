@@ -1,0 +1,37 @@
+; ModuleID = 'xexit.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@_xexit_cleanup = common global void ()* null, align 8
+
+; Function Attrs: noreturn nounwind uwtable
+define void @xexit(i32 %code) #0 {
+entry:
+  %0 = load void ()** @_xexit_cleanup, align 8, !tbaa !1
+  %cmp = icmp eq void ()* %0, null
+  br i1 %cmp, label %if.end, label %if.then
+
+if.then:                                          ; preds = %entry
+  tail call void %0() #2
+  br label %if.end
+
+if.end:                                           ; preds = %entry, %if.then
+  tail call void @exit(i32 %code) #3
+  unreachable
+}
+
+; Function Attrs: noreturn
+declare void @exit(i32) #1
+
+attributes #0 = { noreturn nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+attributes #3 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

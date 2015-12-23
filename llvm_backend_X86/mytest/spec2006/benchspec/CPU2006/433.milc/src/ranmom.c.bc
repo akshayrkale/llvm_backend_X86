@@ -1,0 +1,62 @@
+; ModuleID = 'ranmom.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.site = type { i16, i16, i16, i16, i8, i32, %struct.double_prn, i32, [4 x %struct.su3_matrix], [4 x %struct.su3_matrix], [4 x %struct.su3_matrix], [4 x %struct.anti_hermitmat], [4 x double], %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, %struct.su3_vector, [4 x %struct.su3_vector], [4 x %struct.su3_vector], %struct.su3_vector, %struct.su3_matrix, %struct.su3_matrix }
+%struct.double_prn = type { i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, double }
+%struct.anti_hermitmat = type { %struct.complex, %struct.complex, %struct.complex, double, double, double, double }
+%struct.complex = type { double, double }
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+
+@lattice = external global %struct.site*
+@sites_on_node = external global i32
+
+; Function Attrs: nounwind uwtable
+define void @ranmom() #0 {
+entry:
+  %0 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp13 = icmp sgt i32 %0, 0
+  br i1 %cmp13, label %for.cond1.preheader.lr.ph, label %for.end6
+
+for.cond1.preheader.lr.ph:                        ; preds = %entry
+  %1 = load %struct.site** @lattice, align 8, !tbaa !5
+  br label %for.cond1.preheader
+
+for.cond1.preheader:                              ; preds = %for.cond1.preheader.lr.ph, %for.cond1.preheader
+  %s.015 = phi %struct.site* [ %1, %for.cond1.preheader.lr.ph ], [ %incdec.ptr, %for.cond1.preheader ]
+  %i.014 = phi i32 [ 0, %for.cond1.preheader.lr.ph ], [ %inc5, %for.cond1.preheader ]
+  %site_prn = getelementptr inbounds %struct.site* %s.015, i64 0, i32 6
+  %arrayidx = getelementptr inbounds %struct.site* %s.015, i64 0, i32 11, i64 0
+  tail call void @random_anti_hermitian(%struct.anti_hermitmat* %arrayidx, %struct.double_prn* %site_prn) #2
+  %arrayidx.1 = getelementptr inbounds %struct.site* %s.015, i64 0, i32 11, i64 1
+  tail call void @random_anti_hermitian(%struct.anti_hermitmat* %arrayidx.1, %struct.double_prn* %site_prn) #2
+  %arrayidx.2 = getelementptr inbounds %struct.site* %s.015, i64 0, i32 11, i64 2
+  tail call void @random_anti_hermitian(%struct.anti_hermitmat* %arrayidx.2, %struct.double_prn* %site_prn) #2
+  %arrayidx.3 = getelementptr inbounds %struct.site* %s.015, i64 0, i32 11, i64 3
+  tail call void @random_anti_hermitian(%struct.anti_hermitmat* %arrayidx.3, %struct.double_prn* %site_prn) #2
+  %inc5 = add nsw i32 %i.014, 1
+  %incdec.ptr = getelementptr inbounds %struct.site* %s.015, i64 1
+  %2 = load i32* @sites_on_node, align 4, !tbaa !1
+  %cmp = icmp slt i32 %inc5, %2
+  br i1 %cmp, label %for.cond1.preheader, label %for.end6
+
+for.end6:                                         ; preds = %for.cond1.preheader, %entry
+  ret void
+}
+
+declare void @random_anti_hermitian(%struct.anti_hermitmat*, %struct.double_prn*) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !6, i64 0}
+!6 = metadata !{metadata !"any pointer", metadata !3, i64 0}

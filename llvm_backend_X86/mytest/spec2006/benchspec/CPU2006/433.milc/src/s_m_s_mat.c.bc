@@ -1,0 +1,70 @@
+; ModuleID = 's_m_s_mat.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @scalar_mult_sub_su3_matrix(%struct.su3_matrix* nocapture readonly %a, %struct.su3_matrix* nocapture readonly %b, double %s, %struct.su3_matrix* nocapture %c) #0 {
+entry:
+  %0 = insertelement <2 x double> undef, double %s, i32 0
+  %1 = insertelement <2 x double> %0, double %s, i32 1
+  %2 = insertelement <2 x double> undef, double %s, i32 0
+  %3 = insertelement <2 x double> %2, double %s, i32 1
+  %4 = insertelement <2 x double> undef, double %s, i32 0
+  %5 = insertelement <2 x double> %4, double %s, i32 1
+  br label %for.cond1.preheader
+
+for.cond1.preheader:                              ; preds = %for.cond1.preheader, %entry
+  %indvars.iv = phi i64 [ 0, %entry ], [ %indvars.iv.next, %for.cond1.preheader ]
+  %real = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 %indvars.iv, i64 0, i32 0
+  %real11 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 %indvars.iv, i64 0, i32 0
+  %real17 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 %indvars.iv, i64 0, i32 0
+  %6 = bitcast double* %real to <2 x double>*
+  %7 = load <2 x double>* %6, align 8, !tbaa !1
+  %8 = bitcast double* %real11 to <2 x double>*
+  %9 = load <2 x double>* %8, align 8, !tbaa !1
+  %10 = fmul <2 x double> %1, %9
+  %11 = fsub <2 x double> %7, %10
+  %12 = bitcast double* %real17 to <2 x double>*
+  store <2 x double> %11, <2 x double>* %12, align 8, !tbaa !1
+  %real.1 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 %indvars.iv, i64 1, i32 0
+  %real11.1 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 %indvars.iv, i64 1, i32 0
+  %real17.1 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 %indvars.iv, i64 1, i32 0
+  %13 = bitcast double* %real.1 to <2 x double>*
+  %14 = load <2 x double>* %13, align 8, !tbaa !1
+  %15 = bitcast double* %real11.1 to <2 x double>*
+  %16 = load <2 x double>* %15, align 8, !tbaa !1
+  %17 = fmul <2 x double> %3, %16
+  %18 = fsub <2 x double> %14, %17
+  %19 = bitcast double* %real17.1 to <2 x double>*
+  store <2 x double> %18, <2 x double>* %19, align 8, !tbaa !1
+  %real.2 = getelementptr inbounds %struct.su3_matrix* %a, i64 0, i32 0, i64 %indvars.iv, i64 2, i32 0
+  %real11.2 = getelementptr inbounds %struct.su3_matrix* %b, i64 0, i32 0, i64 %indvars.iv, i64 2, i32 0
+  %real17.2 = getelementptr inbounds %struct.su3_matrix* %c, i64 0, i32 0, i64 %indvars.iv, i64 2, i32 0
+  %20 = bitcast double* %real.2 to <2 x double>*
+  %21 = load <2 x double>* %20, align 8, !tbaa !1
+  %22 = bitcast double* %real11.2 to <2 x double>*
+  %23 = load <2 x double>* %22, align 8, !tbaa !1
+  %24 = fmul <2 x double> %5, %23
+  %25 = fsub <2 x double> %21, %24
+  %26 = bitcast double* %real17.2 to <2 x double>*
+  store <2 x double> %25, <2 x double>* %26, align 8, !tbaa !1
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  %exitcond = icmp eq i64 %indvars.iv.next, 3
+  br i1 %exitcond, label %for.end39, label %for.cond1.preheader
+
+for.end39:                                        ; preds = %for.cond1.preheader
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"double", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

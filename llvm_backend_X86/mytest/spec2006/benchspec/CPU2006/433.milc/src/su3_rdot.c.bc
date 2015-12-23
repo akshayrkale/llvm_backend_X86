@@ -1,0 +1,59 @@
+; ModuleID = 'su3_rdot.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind readonly uwtable
+define double @su3_rdot(%struct.su3_vector* nocapture readonly %a, %struct.su3_vector* nocapture readonly %b) #0 {
+entry:
+  %real = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 0
+  %0 = load double* %real, align 8, !tbaa !1
+  %real3 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 0, i32 0
+  %1 = load double* %real3, align 8, !tbaa !1
+  %mul = fmul double %0, %1
+  %imag = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 1
+  %2 = load double* %imag, align 8, !tbaa !6
+  %imag8 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 0, i32 1
+  %3 = load double* %imag8, align 8, !tbaa !6
+  %mul9 = fmul double %2, %3
+  %add = fadd double %mul, %mul9
+  %real12 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 0
+  %4 = load double* %real12, align 8, !tbaa !1
+  %real15 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 1, i32 0
+  %5 = load double* %real15, align 8, !tbaa !1
+  %mul16 = fmul double %4, %5
+  %add17 = fadd double %add, %mul16
+  %imag20 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 1
+  %6 = load double* %imag20, align 8, !tbaa !6
+  %imag23 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 1, i32 1
+  %7 = load double* %imag23, align 8, !tbaa !6
+  %mul24 = fmul double %6, %7
+  %add25 = fadd double %add17, %mul24
+  %real28 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 0
+  %8 = load double* %real28, align 8, !tbaa !1
+  %real31 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 2, i32 0
+  %9 = load double* %real31, align 8, !tbaa !1
+  %mul32 = fmul double %8, %9
+  %add33 = fadd double %add25, %mul32
+  %imag36 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 1
+  %10 = load double* %imag36, align 8, !tbaa !6
+  %imag39 = getelementptr inbounds %struct.su3_vector* %b, i64 0, i32 0, i64 2, i32 1
+  %11 = load double* %imag39, align 8, !tbaa !6
+  %mul40 = fmul double %10, %11
+  %add41 = fadd double %add33, %mul40
+  ret double %add41
+}
+
+attributes #0 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 0}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 8}
+!3 = metadata !{metadata !"double", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !2, metadata !3, i64 8}

@@ -1,0 +1,133 @@
+; ModuleID = 'sub4vecs.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @sub_four_su3_vecs(%struct.su3_vector* nocapture %a, %struct.su3_vector* nocapture readonly %b1, %struct.su3_vector* nocapture readonly %b2, %struct.su3_vector* nocapture readonly %b3, %struct.su3_vector* nocapture readonly %b4) #0 {
+entry:
+  %real = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 0
+  %0 = load double* %real, align 8, !tbaa !1
+  %real4 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 0, i32 0
+  %1 = load double* %real4, align 8, !tbaa !1
+  %sub = fsub double %0, %1
+  store double %sub, double* %real, align 8, !tbaa !1
+  %imag = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 0, i32 1
+  %2 = load double* %imag, align 8, !tbaa !6
+  %imag15 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 0, i32 1
+  %3 = load double* %imag15, align 8, !tbaa !6
+  %sub16 = fsub double %2, %3
+  store double %sub16, double* %imag, align 8, !tbaa !6
+  %real28 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 0, i32 0
+  %4 = load double* %real28, align 8, !tbaa !1
+  %sub29 = fsub double %sub, %4
+  store double %sub29, double* %real, align 8, !tbaa !1
+  %imag41 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 0, i32 1
+  %5 = load double* %imag41, align 8, !tbaa !6
+  %sub42 = fsub double %sub16, %5
+  store double %sub42, double* %imag, align 8, !tbaa !6
+  %real54 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 0, i32 0
+  %6 = load double* %real54, align 8, !tbaa !1
+  %sub55 = fsub double %sub29, %6
+  store double %sub55, double* %real, align 8, !tbaa !1
+  %imag67 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 0, i32 1
+  %7 = load double* %imag67, align 8, !tbaa !6
+  %sub68 = fsub double %sub42, %7
+  store double %sub68, double* %imag, align 8, !tbaa !6
+  %real80 = getelementptr inbounds %struct.su3_vector* %b4, i64 0, i32 0, i64 0, i32 0
+  %8 = load double* %real80, align 8, !tbaa !1
+  %sub81 = fsub double %sub55, %8
+  store double %sub81, double* %real, align 8, !tbaa !1
+  %imag93 = getelementptr inbounds %struct.su3_vector* %b4, i64 0, i32 0, i64 0, i32 1
+  %9 = load double* %imag93, align 8, !tbaa !6
+  %sub94 = fsub double %sub68, %9
+  store double %sub94, double* %imag, align 8, !tbaa !6
+  %real.1 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 0
+  %10 = load double* %real.1, align 8, !tbaa !1
+  %real4.1 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 1, i32 0
+  %11 = load double* %real4.1, align 8, !tbaa !1
+  %sub.1 = fsub double %10, %11
+  store double %sub.1, double* %real.1, align 8, !tbaa !1
+  %imag.1 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 1
+  %12 = load double* %imag.1, align 8, !tbaa !6
+  %imag15.1 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 1, i32 1
+  %13 = load double* %imag15.1, align 8, !tbaa !6
+  %sub16.1 = fsub double %12, %13
+  store double %sub16.1, double* %imag.1, align 8, !tbaa !6
+  %real28.1 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 1, i32 0
+  %14 = load double* %real28.1, align 8, !tbaa !1
+  %sub29.1 = fsub double %sub.1, %14
+  store double %sub29.1, double* %real.1, align 8, !tbaa !1
+  %imag41.1 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 1, i32 1
+  %15 = load double* %imag41.1, align 8, !tbaa !6
+  %sub42.1 = fsub double %sub16.1, %15
+  store double %sub42.1, double* %imag.1, align 8, !tbaa !6
+  %real54.1 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 1, i32 0
+  %16 = load double* %real54.1, align 8, !tbaa !1
+  %sub55.1 = fsub double %sub29.1, %16
+  store double %sub55.1, double* %real.1, align 8, !tbaa !1
+  %imag67.1 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 1, i32 1
+  %17 = load double* %imag67.1, align 8, !tbaa !6
+  %sub68.1 = fsub double %sub42.1, %17
+  store double %sub68.1, double* %imag.1, align 8, !tbaa !6
+  %real80.1 = getelementptr inbounds %struct.su3_vector* %b4, i64 0, i32 0, i64 1, i32 0
+  %18 = bitcast double* %real80.1 to <2 x double>*
+  %19 = load <2 x double>* %18, align 8, !tbaa !7
+  %20 = insertelement <2 x double> undef, double %sub55.1, i32 0
+  %21 = insertelement <2 x double> %20, double %sub68.1, i32 1
+  %22 = fsub <2 x double> %21, %19
+  %23 = bitcast double* %real.1 to <2 x double>*
+  store <2 x double> %22, <2 x double>* %23, align 8, !tbaa !7
+  %real.2 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 0
+  %24 = load double* %real.2, align 8, !tbaa !1
+  %real4.2 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 2, i32 0
+  %25 = load double* %real4.2, align 8, !tbaa !1
+  %sub.2 = fsub double %24, %25
+  store double %sub.2, double* %real.2, align 8, !tbaa !1
+  %imag.2 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 1
+  %26 = load double* %imag.2, align 8, !tbaa !6
+  %imag15.2 = getelementptr inbounds %struct.su3_vector* %b1, i64 0, i32 0, i64 2, i32 1
+  %27 = load double* %imag15.2, align 8, !tbaa !6
+  %sub16.2 = fsub double %26, %27
+  store double %sub16.2, double* %imag.2, align 8, !tbaa !6
+  %real28.2 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 2, i32 0
+  %28 = load double* %real28.2, align 8, !tbaa !1
+  %sub29.2 = fsub double %sub.2, %28
+  store double %sub29.2, double* %real.2, align 8, !tbaa !1
+  %imag41.2 = getelementptr inbounds %struct.su3_vector* %b2, i64 0, i32 0, i64 2, i32 1
+  %29 = load double* %imag41.2, align 8, !tbaa !6
+  %sub42.2 = fsub double %sub16.2, %29
+  store double %sub42.2, double* %imag.2, align 8, !tbaa !6
+  %real54.2 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 2, i32 0
+  %30 = load double* %real54.2, align 8, !tbaa !1
+  %sub55.2 = fsub double %sub29.2, %30
+  store double %sub55.2, double* %real.2, align 8, !tbaa !1
+  %imag67.2 = getelementptr inbounds %struct.su3_vector* %b3, i64 0, i32 0, i64 2, i32 1
+  %31 = load double* %imag67.2, align 8, !tbaa !6
+  %sub68.2 = fsub double %sub42.2, %31
+  store double %sub68.2, double* %imag.2, align 8, !tbaa !6
+  %real80.2 = getelementptr inbounds %struct.su3_vector* %b4, i64 0, i32 0, i64 2, i32 0
+  %32 = bitcast double* %real80.2 to <2 x double>*
+  %33 = load <2 x double>* %32, align 8, !tbaa !7
+  %34 = insertelement <2 x double> undef, double %sub55.2, i32 0
+  %35 = insertelement <2 x double> %34, double %sub68.2, i32 1
+  %36 = fsub <2 x double> %35, %33
+  %37 = bitcast double* %real.2 to <2 x double>*
+  store <2 x double> %36, <2 x double>* %37, align 8, !tbaa !7
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 0}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 8}
+!3 = metadata !{metadata !"double", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !2, metadata !3, i64 8}
+!7 = metadata !{metadata !3, metadata !3, i64 0}

@@ -1,0 +1,67 @@
+; ModuleID = 'rand_ahmat.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.anti_hermitmat = type { %struct.complex, %struct.complex, %struct.complex, double, double, double, double }
+%struct.complex = type { double, double }
+%struct.double_prn = type { i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, double }
+
+; Function Attrs: nounwind uwtable
+define void @random_anti_hermitian(%struct.anti_hermitmat* nocapture %mat_antihermit, %struct.double_prn* %prn_pt) #0 {
+entry:
+  %call1 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %call2 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %mul = fmul double %call2, 0x3FE279A74590331C
+  %add = fadd double %call1, %mul
+  %m00im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 3
+  store double %add, double* %m00im, align 8, !tbaa !1
+  %add4 = fsub double %mul, %call1
+  %m11im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 4
+  store double %add4, double* %m11im, align 8, !tbaa !7
+  %mul6 = fmul double %call2, 0xBFF279A74590331C
+  %m22im = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 5
+  store double %mul6, double* %m22im, align 8, !tbaa !8
+  %call7 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %real = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 0, i32 0
+  store double %call7, double* %real, align 8, !tbaa !9
+  %call8 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %real9 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 1, i32 0
+  store double %call8, double* %real9, align 8, !tbaa !10
+  %call10 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %real11 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 2, i32 0
+  store double %call10, double* %real11, align 8, !tbaa !11
+  %call12 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %imag = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 0, i32 1
+  store double %call12, double* %imag, align 8, !tbaa !12
+  %call14 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %imag16 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 1, i32 1
+  store double %call14, double* %imag16, align 8, !tbaa !13
+  %call17 = tail call double @gaussian_rand_no(%struct.double_prn* %prn_pt) #2
+  %imag19 = getelementptr inbounds %struct.anti_hermitmat* %mat_antihermit, i64 0, i32 2, i32 1
+  store double %call17, double* %imag19, align 8, !tbaa !14
+  ret void
+}
+
+declare double @gaussian_rand_no(%struct.double_prn*) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !4, i64 48}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 16, metadata !3, i64 32, metadata !4, i64 48, metadata !4, i64 56, metadata !4, i64 64, metadata !4, i64 72}
+!3 = metadata !{metadata !"", metadata !4, i64 0, metadata !4, i64 8}
+!4 = metadata !{metadata !"double", metadata !5, i64 0}
+!5 = metadata !{metadata !"omnipotent char", metadata !6, i64 0}
+!6 = metadata !{metadata !"Simple C/C++ TBAA"}
+!7 = metadata !{metadata !2, metadata !4, i64 56}
+!8 = metadata !{metadata !2, metadata !4, i64 64}
+!9 = metadata !{metadata !2, metadata !4, i64 0}
+!10 = metadata !{metadata !2, metadata !4, i64 16}
+!11 = metadata !{metadata !2, metadata !4, i64 32}
+!12 = metadata !{metadata !2, metadata !4, i64 8}
+!13 = metadata !{metadata !2, metadata !4, i64 24}
+!14 = metadata !{metadata !2, metadata !4, i64 40}

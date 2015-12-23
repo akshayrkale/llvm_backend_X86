@@ -1,0 +1,259 @@
+; ModuleID = 'ASCIIRangeFactory.cpp'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%"class.xercesc_2_5::ASCIIRangeFactory" = type { %"class.xercesc_2_5::RangeFactory", i8, i8 }
+%"class.xercesc_2_5::RangeFactory" = type { i32 (...)** }
+%"class.xercesc_2_5::RangeTokenMap" = type { i8, %"class.xercesc_2_5::RefHashTableOf"*, %"class.xercesc_2_5::RefHashTableOf.0"*, %"class.xercesc_2_5::XMLStringPool"*, %"class.xercesc_2_5::TokenFactory"*, %"class.xercesc_2_5::XMLMutex" }
+%"class.xercesc_2_5::RefHashTableOf" = type opaque
+%"class.xercesc_2_5::RefHashTableOf.0" = type opaque
+%"class.xercesc_2_5::XMLStringPool" = type opaque
+%"class.xercesc_2_5::TokenFactory" = type { %"class.xercesc_2_5::RefVectorOf"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::Token"*, %"class.xercesc_2_5::MemoryManager"* }
+%"class.xercesc_2_5::RefVectorOf" = type opaque
+%"class.xercesc_2_5::Token" = type { i32 (...)**, i16, %"class.xercesc_2_5::MemoryManager"* }
+%"class.xercesc_2_5::MemoryManager" = type { i32 (...)** }
+%"class.xercesc_2_5::XMLMutex" = type { i8* }
+%"class.xercesc_2_5::RangeToken" = type { %"class.xercesc_2_5::Token", i8, i8, i32, i32, i32, i32*, i32*, %"class.xercesc_2_5::RangeToken"*, %"class.xercesc_2_5::MemoryManager"* }
+
+@_ZTVN11xercesc_2_517ASCIIRangeFactoryE = unnamed_addr constant [6 x i8*] [i8* null, i8* bitcast ({ i8*, i8*, i8* }* @_ZTIN11xercesc_2_517ASCIIRangeFactoryE to i8*), i8* bitcast (void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactoryD2Ev to i8*), i8* bitcast (void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactoryD0Ev to i8*), i8* bitcast (void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactory20initializeKeywordMapEv to i8*), i8* bitcast (void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactory11buildRangesEv to i8*)]
+@_ZN11xercesc_2_5L12fgASCIISpaceE = internal constant [14 x i16] [i16 97, i16 115, i16 99, i16 105, i16 105, i16 58, i16 105, i16 115, i16 83, i16 112, i16 97, i16 99, i16 101, i16 0], align 16
+@_ZN11xercesc_2_5L12fgASCIIDigitE = internal constant [14 x i16] [i16 97, i16 115, i16 99, i16 105, i16 105, i16 58, i16 105, i16 115, i16 68, i16 105, i16 103, i16 105, i16 116, i16 0], align 16
+@_ZN11xercesc_2_5L11fgASCIIWordE = internal constant [13 x i16] [i16 97, i16 115, i16 99, i16 105, i16 105, i16 58, i16 105, i16 115, i16 87, i16 111, i16 114, i16 100, i16 0], align 16
+@_ZN11xercesc_2_5L13fgASCIIXDigitE = internal constant [15 x i16] [i16 97, i16 115, i16 99, i16 105, i16 105, i16 58, i16 105, i16 115, i16 88, i16 68, i16 105, i16 103, i16 105, i16 116, i16 0], align 16
+@_ZN11xercesc_2_5L7fgASCIIE = internal constant [14 x i16] [i16 97, i16 115, i16 99, i16 105, i16 105, i16 58, i16 105, i16 115, i16 65, i16 115, i16 99, i16 105, i16 105, i16 0], align 16
+@_ZN11xercesc_2_5L15fgASCIICategoryE = internal constant [6 x i16] [i16 65, i16 83, i16 67, i16 73, i16 73, i16 0], align 2
+@_ZTVN10__cxxabiv120__si_class_type_infoE = external global i8*
+@_ZTSN11xercesc_2_517ASCIIRangeFactoryE = constant [35 x i8] c"N11xercesc_2_517ASCIIRangeFactoryE\00"
+@_ZTIN11xercesc_2_512RangeFactoryE = external constant i8*
+@_ZTIN11xercesc_2_517ASCIIRangeFactoryE = constant { i8*, i8*, i8* } { i8* bitcast (i8** getelementptr inbounds (i8** @_ZTVN10__cxxabiv120__si_class_type_infoE, i64 2) to i8*), i8* getelementptr inbounds ([35 x i8]* @_ZTSN11xercesc_2_517ASCIIRangeFactoryE, i32 0, i32 0), i8* bitcast (i8** @_ZTIN11xercesc_2_512RangeFactoryE to i8*) }
+
+@_ZN11xercesc_2_517ASCIIRangeFactoryC1Ev = alias void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactoryC2Ev
+@_ZN11xercesc_2_517ASCIIRangeFactoryD1Ev = alias void (%"class.xercesc_2_5::ASCIIRangeFactory"*)* @_ZN11xercesc_2_517ASCIIRangeFactoryD2Ev
+
+declare i32 @__gxx_personality_v0(...)
+
+; Function Attrs: uwtable
+define void @_ZN11xercesc_2_517ASCIIRangeFactoryC2Ev(%"class.xercesc_2_5::ASCIIRangeFactory"* %this) unnamed_addr #0 align 2 {
+entry:
+  %0 = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 0
+  tail call void @_ZN11xercesc_2_512RangeFactoryC2Ev(%"class.xercesc_2_5::RangeFactory"* %0)
+  %1 = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 0, i32 0
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([6 x i8*]* @_ZTVN11xercesc_2_517ASCIIRangeFactoryE, i64 0, i64 2) to i32 (...)**), i32 (...)*** %1, align 8, !tbaa !1
+  %fRangesCreated = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 1
+  store i8 0, i8* %fRangesCreated, align 1, !tbaa !4
+  %fKeywordsInitialized = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 2
+  store i8 0, i8* %fKeywordsInitialized, align 1, !tbaa !8
+  ret void
+}
+
+declare void @_ZN11xercesc_2_512RangeFactoryC2Ev(%"class.xercesc_2_5::RangeFactory"*) #1
+
+; Function Attrs: uwtable
+define void @_ZN11xercesc_2_517ASCIIRangeFactoryD2Ev(%"class.xercesc_2_5::ASCIIRangeFactory"* %this) unnamed_addr #0 align 2 {
+entry:
+  %0 = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 0
+  tail call void @_ZN11xercesc_2_512RangeFactoryD2Ev(%"class.xercesc_2_5::RangeFactory"* %0)
+  ret void
+}
+
+declare void @_ZN11xercesc_2_512RangeFactoryD2Ev(%"class.xercesc_2_5::RangeFactory"*) #1
+
+; Function Attrs: uwtable
+define void @_ZN11xercesc_2_517ASCIIRangeFactoryD0Ev(%"class.xercesc_2_5::ASCIIRangeFactory"* %this) unnamed_addr #0 align 2 {
+entry:
+  %0 = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 0
+  invoke void @_ZN11xercesc_2_512RangeFactoryD2Ev(%"class.xercesc_2_5::RangeFactory"* %0)
+          to label %invoke.cont unwind label %lpad
+
+invoke.cont:                                      ; preds = %entry
+  %1 = bitcast %"class.xercesc_2_5::ASCIIRangeFactory"* %this to i8*
+  tail call void @_ZN11xercesc_2_57XMemorydlEPv(i8* %1)
+  ret void
+
+lpad:                                             ; preds = %entry
+  %2 = landingpad { i8*, i32 } personality i8* bitcast (i32 (...)* @__gxx_personality_v0 to i8*)
+          cleanup
+  %3 = bitcast %"class.xercesc_2_5::ASCIIRangeFactory"* %this to i8*
+  invoke void @_ZN11xercesc_2_57XMemorydlEPv(i8* %3)
+          to label %eh.resume unwind label %terminate.lpad
+
+eh.resume:                                        ; preds = %lpad
+  resume { i8*, i32 } %2
+
+terminate.lpad:                                   ; preds = %lpad
+  %4 = landingpad { i8*, i32 } personality i8* bitcast (i32 (...)* @__gxx_personality_v0 to i8*)
+          catch i8* null
+  %5 = extractvalue { i8*, i32 } %4, 0
+  tail call void @__clang_call_terminate(i8* %5) #3
+  unreachable
+}
+
+declare void @_ZN11xercesc_2_57XMemorydlEPv(i8*) #1
+
+; Function Attrs: noinline noreturn nounwind
+define linkonce_odr hidden void @__clang_call_terminate(i8*) #2 {
+  %2 = tail call i8* @__cxa_begin_catch(i8* %0) #4
+  tail call void @_ZSt9terminatev() #3
+  unreachable
+}
+
+declare i8* @__cxa_begin_catch(i8*)
+
+declare void @_ZSt9terminatev()
+
+; Function Attrs: uwtable
+define void @_ZN11xercesc_2_517ASCIIRangeFactory11buildRangesEv(%"class.xercesc_2_5::ASCIIRangeFactory"* %this) unnamed_addr #0 align 2 {
+entry:
+  %fRangesCreated = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 1
+  %0 = load i8* %fRangesCreated, align 1, !tbaa !4, !range !9
+  %tobool = icmp eq i8 %0, 0
+  br i1 %tobool, label %if.end, label %return
+
+if.end:                                           ; preds = %entry
+  %fKeywordsInitialized = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 2
+  %1 = load i8* %fKeywordsInitialized, align 1, !tbaa !8, !range !9
+  %tobool2 = icmp eq i8 %1, 0
+  br i1 %tobool2, label %if.then3, label %if.end4
+
+if.then3:                                         ; preds = %if.end
+  %2 = bitcast %"class.xercesc_2_5::ASCIIRangeFactory"* %this to void (%"class.xercesc_2_5::ASCIIRangeFactory"*)***
+  %vtable = load void (%"class.xercesc_2_5::ASCIIRangeFactory"*)*** %2, align 8, !tbaa !1
+  %vfn = getelementptr inbounds void (%"class.xercesc_2_5::ASCIIRangeFactory"*)** %vtable, i64 2
+  %3 = load void (%"class.xercesc_2_5::ASCIIRangeFactory"*)** %vfn, align 8
+  tail call void %3(%"class.xercesc_2_5::ASCIIRangeFactory"* %this)
+  br label %if.end4
+
+if.end4:                                          ; preds = %if.end, %if.then3
+  %call = tail call %"class.xercesc_2_5::RangeTokenMap"* @_ZN11xercesc_2_513RangeTokenMap8instanceEv()
+  %fTokenFactory.i = getelementptr inbounds %"class.xercesc_2_5::RangeTokenMap"* %call, i64 0, i32 4
+  %4 = load %"class.xercesc_2_5::TokenFactory"** %fTokenFactory.i, align 8, !tbaa !10
+  %call6 = tail call %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"* %4, i1 zeroext false)
+  %5 = bitcast %"class.xercesc_2_5::RangeToken"* %call6 to void (%"class.xercesc_2_5::RangeToken"*, i32, i32)***
+  %vtable7 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %5, align 8, !tbaa !1
+  %vfn8 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable7, i64 12
+  %6 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn8, align 8
+  tail call void %6(%"class.xercesc_2_5::RangeToken"* %call6, i32 9, i32 9)
+  %vtable9 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %5, align 8, !tbaa !1
+  %vfn10 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable9, i64 12
+  %7 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn10, align 8
+  tail call void %7(%"class.xercesc_2_5::RangeToken"* %call6, i32 10, i32 10)
+  %vtable11 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %5, align 8, !tbaa !1
+  %vfn12 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable11, i64 12
+  %8 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn12, align 8
+  tail call void %8(%"class.xercesc_2_5::RangeToken"* %call6, i32 12, i32 12)
+  %vtable13 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %5, align 8, !tbaa !1
+  %vfn14 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable13, i64 12
+  %9 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn14, align 8
+  tail call void %9(%"class.xercesc_2_5::RangeToken"* %call6, i32 13, i32 13)
+  %vtable15 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %5, align 8, !tbaa !1
+  %vfn16 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable15, i64 12
+  %10 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn16, align 8
+  tail call void %10(%"class.xercesc_2_5::RangeToken"* %call6, i32 32, i32 32)
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L12fgASCIISpaceE, i64 0, i64 0), %"class.xercesc_2_5::RangeToken"* %call6, i1 zeroext false)
+  %call17 = tail call %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"* %4, i1 zeroext false)
+  %11 = bitcast %"class.xercesc_2_5::RangeToken"* %call17 to void (%"class.xercesc_2_5::RangeToken"*, i32, i32)***
+  %vtable18 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %11, align 8, !tbaa !1
+  %vfn19 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable18, i64 12
+  %12 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn19, align 8
+  tail call void %12(%"class.xercesc_2_5::RangeToken"* %call17, i32 48, i32 57)
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L12fgASCIIDigitE, i64 0, i64 0), %"class.xercesc_2_5::RangeToken"* %call17, i1 zeroext false)
+  %call20 = tail call %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"* %4, i1 zeroext false)
+  %13 = bitcast %"class.xercesc_2_5::RangeToken"* %call20 to void (%"class.xercesc_2_5::RangeToken"*, i32, i32)***
+  %vtable21 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %13, align 8, !tbaa !1
+  %vfn22 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable21, i64 12
+  %14 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn22, align 8
+  tail call void %14(%"class.xercesc_2_5::RangeToken"* %call20, i32 48, i32 57)
+  %vtable23 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %13, align 8, !tbaa !1
+  %vfn24 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable23, i64 12
+  %15 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn24, align 8
+  tail call void %15(%"class.xercesc_2_5::RangeToken"* %call20, i32 65, i32 90)
+  %vtable25 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %13, align 8, !tbaa !1
+  %vfn26 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable25, i64 12
+  %16 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn26, align 8
+  tail call void %16(%"class.xercesc_2_5::RangeToken"* %call20, i32 95, i32 95)
+  %vtable27 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %13, align 8, !tbaa !1
+  %vfn28 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable27, i64 12
+  %17 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn28, align 8
+  tail call void %17(%"class.xercesc_2_5::RangeToken"* %call20, i32 97, i32 122)
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([13 x i16]* @_ZN11xercesc_2_5L11fgASCIIWordE, i64 0, i64 0), %"class.xercesc_2_5::RangeToken"* %call20, i1 zeroext false)
+  %call29 = tail call %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"* %4, i1 zeroext false)
+  %18 = bitcast %"class.xercesc_2_5::RangeToken"* %call29 to void (%"class.xercesc_2_5::RangeToken"*, i32, i32)***
+  %vtable30 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %18, align 8, !tbaa !1
+  %vfn31 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable30, i64 12
+  %19 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn31, align 8
+  tail call void %19(%"class.xercesc_2_5::RangeToken"* %call29, i32 48, i32 57)
+  %vtable32 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %18, align 8, !tbaa !1
+  %vfn33 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable32, i64 12
+  %20 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn33, align 8
+  tail call void %20(%"class.xercesc_2_5::RangeToken"* %call29, i32 65, i32 70)
+  %vtable34 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %18, align 8, !tbaa !1
+  %vfn35 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable34, i64 12
+  %21 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn35, align 8
+  tail call void %21(%"class.xercesc_2_5::RangeToken"* %call29, i32 97, i32 97)
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([15 x i16]* @_ZN11xercesc_2_5L13fgASCIIXDigitE, i64 0, i64 0), %"class.xercesc_2_5::RangeToken"* %call29, i1 zeroext false)
+  %call36 = tail call %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"* %4, i1 zeroext false)
+  %22 = bitcast %"class.xercesc_2_5::RangeToken"* %call36 to void (%"class.xercesc_2_5::RangeToken"*, i32, i32)***
+  %vtable37 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)*** %22, align 8, !tbaa !1
+  %vfn38 = getelementptr inbounds void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vtable37, i64 12
+  %23 = load void (%"class.xercesc_2_5::RangeToken"*, i32, i32)** %vfn38, align 8
+  tail call void %23(%"class.xercesc_2_5::RangeToken"* %call36, i32 0, i32 127)
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L7fgASCIIE, i64 0, i64 0), %"class.xercesc_2_5::RangeToken"* %call36, i1 zeroext false)
+  store i8 1, i8* %fRangesCreated, align 1, !tbaa !4
+  br label %return
+
+return:                                           ; preds = %entry, %if.end4
+  ret void
+}
+
+declare %"class.xercesc_2_5::RangeTokenMap"* @_ZN11xercesc_2_513RangeTokenMap8instanceEv() #1
+
+declare %"class.xercesc_2_5::RangeToken"* @_ZN11xercesc_2_512TokenFactory11createRangeEb(%"class.xercesc_2_5::TokenFactory"*, i1 zeroext) #1
+
+declare void @_ZN11xercesc_2_513RangeTokenMap13setRangeTokenEPKtPNS_10RangeTokenEb(%"class.xercesc_2_5::RangeTokenMap"*, i16*, %"class.xercesc_2_5::RangeToken"*, i1 zeroext) #1
+
+; Function Attrs: uwtable
+define void @_ZN11xercesc_2_517ASCIIRangeFactory20initializeKeywordMapEv(%"class.xercesc_2_5::ASCIIRangeFactory"* nocapture %this) unnamed_addr #0 align 2 {
+entry:
+  %fKeywordsInitialized = getelementptr inbounds %"class.xercesc_2_5::ASCIIRangeFactory"* %this, i64 0, i32 2
+  %0 = load i8* %fKeywordsInitialized, align 1, !tbaa !8, !range !9
+  %tobool = icmp eq i8 %0, 0
+  br i1 %tobool, label %if.end, label %return
+
+if.end:                                           ; preds = %entry
+  %call = tail call %"class.xercesc_2_5::RangeTokenMap"* @_ZN11xercesc_2_513RangeTokenMap8instanceEv()
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L12fgASCIISpaceE, i64 0, i64 0), i16* getelementptr inbounds ([6 x i16]* @_ZN11xercesc_2_5L15fgASCIICategoryE, i64 0, i64 0))
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L12fgASCIIDigitE, i64 0, i64 0), i16* getelementptr inbounds ([6 x i16]* @_ZN11xercesc_2_5L15fgASCIICategoryE, i64 0, i64 0))
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([13 x i16]* @_ZN11xercesc_2_5L11fgASCIIWordE, i64 0, i64 0), i16* getelementptr inbounds ([6 x i16]* @_ZN11xercesc_2_5L15fgASCIICategoryE, i64 0, i64 0))
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([15 x i16]* @_ZN11xercesc_2_5L13fgASCIIXDigitE, i64 0, i64 0), i16* getelementptr inbounds ([6 x i16]* @_ZN11xercesc_2_5L15fgASCIICategoryE, i64 0, i64 0))
+  tail call void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"* %call, i16* getelementptr inbounds ([14 x i16]* @_ZN11xercesc_2_5L7fgASCIIE, i64 0, i64 0), i16* getelementptr inbounds ([6 x i16]* @_ZN11xercesc_2_5L15fgASCIICategoryE, i64 0, i64 0))
+  store i8 1, i8* %fKeywordsInitialized, align 1, !tbaa !8
+  br label %return
+
+return:                                           ; preds = %entry, %if.end
+  ret void
+}
+
+declare void @_ZN11xercesc_2_513RangeTokenMap13addKeywordMapEPKtS2_(%"class.xercesc_2_5::RangeTokenMap"*, i16*, i16*) #1
+
+attributes #0 = { uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { noinline noreturn nounwind }
+attributes #3 = { noreturn nounwind }
+attributes #4 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"vtable pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"Simple C/C++ TBAA"}
+!4 = metadata !{metadata !5, metadata !6, i64 8}
+!5 = metadata !{metadata !"_ZTSN11xercesc_2_517ASCIIRangeFactoryE", metadata !6, i64 8, metadata !6, i64 9}
+!6 = metadata !{metadata !"bool", metadata !7, i64 0}
+!7 = metadata !{metadata !"omnipotent char", metadata !3, i64 0}
+!8 = metadata !{metadata !5, metadata !6, i64 9}
+!9 = metadata !{i8 0, i8 2}
+!10 = metadata !{metadata !11, metadata !12, i64 32}
+!11 = metadata !{metadata !"_ZTSN11xercesc_2_513RangeTokenMapE", metadata !6, i64 0, metadata !12, i64 8, metadata !12, i64 16, metadata !12, i64 24, metadata !12, i64 32, metadata !13, i64 40}
+!12 = metadata !{metadata !"any pointer", metadata !7, i64 0}
+!13 = metadata !{metadata !"_ZTSN11xercesc_2_58XMLMutexE", metadata !12, i64 0}

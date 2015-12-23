@@ -1,0 +1,41 @@
+; ModuleID = 'lbasename.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+; Function Attrs: nounwind readonly uwtable
+define i8* @lbasename(i8* readonly %name) #0 {
+entry:
+  br label %for.cond.outer
+
+for.cond.outer:                                   ; preds = %if.then, %entry
+  %name.addr.0.ph = phi i8* [ %name, %entry ], [ %add.ptr, %if.then ]
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.cond.outer, %for.cond.for.inc_crit_edge
+  %name.addr.0 = phi i8* [ %incdec.ptr.pre, %for.cond.for.inc_crit_edge ], [ %name.addr.0.ph, %for.cond.outer ]
+  %0 = load i8* %name.addr.0, align 1, !tbaa !1
+  switch i8 %0, label %for.cond.for.inc_crit_edge [
+    i8 0, label %for.end
+    i8 47, label %if.then
+  ]
+
+for.cond.for.inc_crit_edge:                       ; preds = %for.cond
+  %incdec.ptr.pre = getelementptr inbounds i8* %name.addr.0, i64 1
+  br label %for.cond
+
+if.then:                                          ; preds = %for.cond
+  %add.ptr = getelementptr inbounds i8* %name.addr.0, i64 1
+  br label %for.cond.outer
+
+for.end:                                          ; preds = %for.cond
+  ret i8* %name.addr.0.ph
+}
+
+attributes #0 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"omnipotent char", metadata !3, i64 0}
+!3 = metadata !{metadata !"Simple C/C++ TBAA"}

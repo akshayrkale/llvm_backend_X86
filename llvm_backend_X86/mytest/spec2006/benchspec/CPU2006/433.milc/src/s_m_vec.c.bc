@@ -1,0 +1,43 @@
+; ModuleID = 's_m_vec.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_vector = type { [3 x %struct.complex] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @scalar_mult_su3_vector(%struct.su3_vector* nocapture readonly %a, double %s, %struct.su3_vector* nocapture %c) #0 {
+entry:
+  %0 = bitcast %struct.su3_vector* %a to <2 x double>*
+  %1 = load <2 x double>* %0, align 8, !tbaa !1
+  %2 = insertelement <2 x double> undef, double %s, i32 0
+  %3 = insertelement <2 x double> %2, double %s, i32 1
+  %4 = fmul <2 x double> %3, %1
+  %5 = bitcast %struct.su3_vector* %c to <2 x double>*
+  store <2 x double> %4, <2 x double>* %5, align 8, !tbaa !1
+  %real.1 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 1, i32 0
+  %real5.1 = getelementptr inbounds %struct.su3_vector* %c, i64 0, i32 0, i64 1, i32 0
+  %6 = bitcast double* %real.1 to <2 x double>*
+  %7 = load <2 x double>* %6, align 8, !tbaa !1
+  %8 = fmul <2 x double> %3, %7
+  %9 = bitcast double* %real5.1 to <2 x double>*
+  store <2 x double> %8, <2 x double>* %9, align 8, !tbaa !1
+  %real.2 = getelementptr inbounds %struct.su3_vector* %a, i64 0, i32 0, i64 2, i32 0
+  %real5.2 = getelementptr inbounds %struct.su3_vector* %c, i64 0, i32 0, i64 2, i32 0
+  %10 = bitcast double* %real.2 to <2 x double>*
+  %11 = load <2 x double>* %10, align 8, !tbaa !1
+  %12 = fmul <2 x double> %3, %11
+  %13 = bitcast double* %real5.2 to <2 x double>*
+  store <2 x double> %12, <2 x double>* %13, align 8, !tbaa !1
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"double", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}

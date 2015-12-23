@@ -1,0 +1,398 @@
+; ModuleID = 'bb-reorder.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.gcc_target = type { %struct.asm_out, %struct.sched, %union.tree_node* (%union.tree_node*, %union.tree_node*)*, %union.tree_node* (%union.tree_node*, %union.tree_node*)*, %struct.attribute_spec*, i32 (%union.tree_node*, %union.tree_node*)*, void (%union.tree_node*)*, void (%union.tree_node*, %union.tree_node**)*, i1 (%union.tree_node*)*, i1 (%union.tree_node*)*, void ()*, %struct.rtx_def* (%union.tree_node*, %struct.rtx_def*, %struct.rtx_def*, i32, i32)*, i32 (%union.tree_node*, i8*, i32)*, i8, i8, i1 ()* }
+%struct.asm_out = type { i8*, i8*, i8*, %struct.asm_int_op, %struct.asm_int_op, i1 (%struct.rtx_def*, i32, i32)*, void (%struct._IO_FILE*, i64)*, void (%struct._IO_FILE*)*, void (%struct._IO_FILE*)*, void (%struct._IO_FILE*, i64)*, void (i8*, i32)*, void ()*, void ()*, void (%struct.rtx_def*, i32)*, void (%struct.rtx_def*, i32)* }
+%struct.asm_int_op = type { i8*, i8*, i8*, i8* }
+%struct.rtx_def = type { i32, [1 x %union.rtunion_def] }
+%union.rtunion_def = type { i64 }
+%struct._IO_FILE = type opaque
+%struct.sched = type { i32 (%struct.rtx_def*, %struct.rtx_def*, %struct.rtx_def*, i32)*, i32 (%struct.rtx_def*, i32)*, i32 ()*, i32 (%struct._IO_FILE*, i32, %struct.rtx_def*, i32)*, void (%struct._IO_FILE*, i32, i32)*, void (%struct._IO_FILE*, i32)*, i32 (%struct._IO_FILE*, i32, %struct.rtx_def**, i32*, i32)*, i32 (%struct._IO_FILE*, i32, %struct.rtx_def**, i32*, i32)*, %struct.rtx_def* (i32, %struct.rtx_def*)* }
+%union.tree_node = type { %struct.tree_decl }
+%struct.tree_decl = type { %struct.tree_common, i8*, i32, i32, %union.tree_node*, i48, %union.anon, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %struct.rtx_def*, %struct.rtx_def*, %union.anon.1, %union.tree_node*, %union.tree_node*, %union.tree_node*, i64, %struct.lang_decl* }
+%struct.tree_common = type { %union.tree_node*, %union.tree_node*, i32 }
+%union.anon = type { i64 }
+%union.anon.1 = type { %struct.function* }
+%struct.function = type opaque
+%struct.lang_decl = type opaque
+%struct.attribute_spec = type { i8*, i32, i32, i8, i8, i8, %union.tree_node* (%union.tree_node**, %union.tree_node*, %union.tree_node*, i32, i8*)* }
+%struct.varray_head_tag = type { i64, i64, i64, i8*, %union.varray_data_tag }
+%union.varray_data_tag = type { [1 x %struct.const_equiv_data] }
+%struct.const_equiv_data = type { %struct.rtx_def*, i32 }
+%struct.basic_block_def = type { %struct.rtx_def*, %struct.rtx_def*, %union.tree_node*, %union.tree_node*, %struct.edge_def*, %struct.edge_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, %struct.bitmap_head_def*, i8*, i32, i32, i64, i32, i32 }
+%struct.edge_def = type { %struct.edge_def*, %struct.edge_def*, %struct.basic_block_def*, %struct.basic_block_def*, %struct.rtx_def*, i8*, i32, i32, i64 }
+%struct.bitmap_head_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32 }
+%struct.bitmap_element_def = type { %struct.bitmap_element_def*, %struct.bitmap_element_def*, i32, [2 x i64] }
+
+@n_basic_blocks = external global i32
+@targetm = external global %struct.gcc_target
+@rtl_dump_file = external global %struct._IO_FILE*
+@basic_block_info = external global %struct.varray_head_tag*
+@.str = private unnamed_addr constant [30 x i8] c"Reordering block %d after %d\0A\00", align 1
+@.str1 = private unnamed_addr constant [13 x i8] c"bb-reorder.c\00", align 1
+@__FUNCTION__.make_reorder_chain_1 = private unnamed_addr constant [21 x i8] c"make_reorder_chain_1\00", align 1
+@entry_exit_blocks = external global [2 x %struct.basic_block_def]
+
+; Function Attrs: nounwind uwtable
+define void @reorder_basic_blocks() #0 {
+entry:
+  %0 = load i32* @n_basic_blocks, align 4, !tbaa !1
+  %cmp = icmp slt i32 %0, 2
+  br i1 %cmp, label %return, label %if.end
+
+if.end:                                           ; preds = %entry
+  %1 = load i1 ()** getelementptr inbounds (%struct.gcc_target* @targetm, i64 0, i32 15), align 8, !tbaa !5
+  %call = tail call zeroext i1 %1() #4
+  br i1 %call, label %return, label %if.end2
+
+if.end2:                                          ; preds = %if.end
+  tail call void @cfg_layout_initialize() #4
+  %2 = load i32* @n_basic_blocks, align 4, !tbaa !1
+  %sub.i = add nsw i32 %2, -1
+  br label %for.body.lr.ph.us.i
+
+for.end.us.i:                                     ; preds = %for.body.us.i
+  br i1 %lnot.us.i, label %make_reorder_chain.exit, label %do.cond.thread.us.i
+
+do.cond.thread.us.i:                              ; preds = %for.end.us.i
+  %call.us.i = tail call fastcc %struct.basic_block_def* @make_reorder_chain_1(%struct.basic_block_def* %.next.0.us.i, %struct.basic_block_def* %prev.0.us.i) #4
+  br label %for.body.lr.ph.us.i
+
+for.body.us.i:                                    ; preds = %for.body.lr.ph.us.i, %for.body.us.i
+  %indvars.iv.i = phi i64 [ 0, %for.body.lr.ph.us.i ], [ %indvars.iv.next.i, %for.body.us.i ]
+  %arrayidx.us.i = getelementptr inbounds [1 x %struct.basic_block_def*]* %bb1.us.i, i64 0, i64 %indvars.iv.i
+  %3 = load %struct.basic_block_def** %arrayidx.us.i, align 8, !tbaa !12
+  %aux.us.i = getelementptr inbounds %struct.basic_block_def* %3, i64 0, i32 10
+  %4 = load i8** %aux.us.i, align 8, !tbaa !13
+  %visited.us.i = getelementptr inbounds i8* %4, i64 24
+  %5 = bitcast i8* %visited.us.i to i32*
+  %6 = load i32* %5, align 4, !tbaa !16
+  %tobool2.us.i = icmp eq i32 %6, 0
+  %.next.0.us.i = select i1 %tobool2.us.i, %struct.basic_block_def* %3, %struct.basic_block_def* null
+  %indvars.iv.next.i = add nuw nsw i64 %indvars.iv.i, 1
+  %7 = trunc i64 %indvars.iv.i to i32
+  %cmp.us.i = icmp slt i32 %7, %sub.i
+  %lnot.us.i = icmp eq %struct.basic_block_def* %.next.0.us.i, null
+  %or.cond.us.i = and i1 %cmp.us.i, %lnot.us.i
+  br i1 %or.cond.us.i, label %for.body.us.i, label %for.end.us.i
+
+for.body.lr.ph.us.i:                              ; preds = %do.cond.thread.us.i, %if.end2
+  %prev.0.us.i = phi %struct.basic_block_def* [ %call.us.i, %do.cond.thread.us.i ], [ null, %if.end2 ]
+  %8 = load %struct.varray_head_tag** @basic_block_info, align 8, !tbaa !12
+  %data.us.i = getelementptr inbounds %struct.varray_head_tag* %8, i64 0, i32 4
+  %bb1.us.i = bitcast %union.varray_data_tag* %data.us.i to [1 x %struct.basic_block_def*]*
+  br label %for.body.us.i
+
+make_reorder_chain.exit:                          ; preds = %for.end.us.i
+  %aux7.i = getelementptr inbounds %struct.basic_block_def* %prev.0.us.i, i64 0, i32 10
+  %9 = load i8** %aux7.i, align 8, !tbaa !13
+  %next8.i = getelementptr inbounds i8* %9, i64 16
+  %10 = bitcast i8* %next8.i to %struct.basic_block_def**
+  store %struct.basic_block_def* null, %struct.basic_block_def** %10, align 8, !tbaa !18
+  %11 = load %struct._IO_FILE** @rtl_dump_file, align 8, !tbaa !12
+  %tobool = icmp eq %struct._IO_FILE* %11, null
+  br i1 %tobool, label %if.end4, label %if.then3
+
+if.then3:                                         ; preds = %make_reorder_chain.exit
+  tail call void @dump_flow_info(%struct._IO_FILE* %11) #4
+  br label %if.end4
+
+if.end4:                                          ; preds = %make_reorder_chain.exit, %if.then3
+  tail call void @cfg_layout_finalize() #4
+  br label %return
+
+return:                                           ; preds = %if.end, %entry, %if.end4
+  ret void
+}
+
+declare void @cfg_layout_initialize() #1
+
+declare void @dump_flow_info(%struct._IO_FILE*) #1
+
+declare void @cfg_layout_finalize() #1
+
+; Function Attrs: nounwind uwtable
+define internal fastcc %struct.basic_block_def* @make_reorder_chain_1(%struct.basic_block_def* %bb, %struct.basic_block_def* readonly %prev) #0 {
+entry:
+  %tobool = icmp eq %struct.basic_block_def* %prev, null
+  br i1 %tobool, label %if.else, label %restart
+
+restart:                                          ; preds = %for.end119, %entry
+  %prev.addr.0 = phi %struct.basic_block_def* [ %prev, %entry ], [ %prev.addr.1.lcssa, %for.end119 ]
+  %bb.addr.0 = phi %struct.basic_block_def* [ %bb, %entry ], [ %next.5.lcssa, %for.end119 ]
+  %aux = getelementptr inbounds %struct.basic_block_def* %prev.addr.0, i64 0, i32 10
+  %0 = load i8** %aux, align 8, !tbaa !13
+  %next1 = getelementptr inbounds i8* %0, i64 16
+  %1 = bitcast i8* %next1 to %struct.basic_block_def**
+  store %struct.basic_block_def* %bb.addr.0, %struct.basic_block_def** %1, align 8, !tbaa !18
+  %2 = load %struct._IO_FILE** @rtl_dump_file, align 8, !tbaa !12
+  %tobool2 = icmp eq %struct._IO_FILE* %2, null
+  br i1 %tobool2, label %if.end11, label %land.lhs.true
+
+land.lhs.true:                                    ; preds = %restart
+  %index = getelementptr inbounds %struct.basic_block_def* %prev.addr.0, i64 0, i32 11
+  %3 = load i32* %index, align 4, !tbaa !19
+  %add = add nsw i32 %3, 1
+  %index3 = getelementptr inbounds %struct.basic_block_def* %bb.addr.0, i64 0, i32 11
+  %4 = load i32* %index3, align 4, !tbaa !19
+  %cmp = icmp eq i32 %add, %4
+  br i1 %cmp, label %if.end11, label %if.then4
+
+if.then4:                                         ; preds = %land.lhs.true
+  %call = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %2, i8* getelementptr inbounds ([30 x i8]* @.str, i64 0, i64 0), i32 %4, i32 %3) #4
+  br label %if.end11
+
+if.else:                                          ; preds = %entry
+  %index7 = getelementptr inbounds %struct.basic_block_def* %bb, i64 0, i32 11
+  %5 = load i32* %index7, align 4, !tbaa !19
+  %cmp8 = icmp eq i32 %5, 0
+  br i1 %cmp8, label %if.end11, label %if.then9
+
+if.then9:                                         ; preds = %if.else
+  tail call void @fancy_abort(i8* getelementptr inbounds ([13 x i8]* @.str1, i64 0, i64 0), i32 168, i8* getelementptr inbounds ([21 x i8]* @__FUNCTION__.make_reorder_chain_1, i64 0, i64 0)) #5
+  unreachable
+
+if.end11:                                         ; preds = %land.lhs.true, %restart, %if.else, %if.then4
+  %bb.addr.1 = phi %struct.basic_block_def* [ %bb.addr.0, %if.then4 ], [ %bb.addr.0, %land.lhs.true ], [ %bb.addr.0, %restart ], [ %bb, %if.else ]
+  %aux12 = getelementptr inbounds %struct.basic_block_def* %bb.addr.1, i64 0, i32 10
+  %6 = load i8** %aux12, align 8, !tbaa !13
+  %visited = getelementptr inbounds i8* %6, i64 24
+  %7 = bitcast i8* %visited to i32*
+  store i32 1, i32* %7, align 4, !tbaa !16
+  %succ = getelementptr inbounds %struct.basic_block_def* %bb.addr.1, i64 0, i32 5
+  %8 = load %struct.edge_def** %succ, align 8, !tbaa !20
+  %cmp13 = icmp eq %struct.edge_def* %8, null
+  br i1 %cmp13, label %return, label %if.end15
+
+if.end15:                                         ; preds = %if.end11
+  %end = getelementptr inbounds %struct.basic_block_def* %bb.addr.1, i64 0, i32 1
+  %9 = load %struct.rtx_def** %end, align 8, !tbaa !21
+  %call16 = tail call i32 @any_condjump_p(%struct.rtx_def* %9) #4
+  %tobool17 = icmp eq i32 %call16, 0
+  br i1 %tobool17, label %for.cond43.preheader, label %land.lhs.true18
+
+land.lhs.true18:                                  ; preds = %if.end15
+  %10 = load %struct.rtx_def** %end, align 8, !tbaa !21
+  %call20 = tail call %struct.rtx_def* @find_reg_note(%struct.rtx_def* %10, i32 16, %struct.rtx_def* null) #4
+  %cmp21 = icmp eq %struct.rtx_def* %call20, null
+  br i1 %cmp21, label %for.cond43.preheader, label %if.then22
+
+if.then22:                                        ; preds = %land.lhs.true18
+  %arrayidx = getelementptr inbounds %struct.rtx_def* %call20, i64 0, i32 1, i64 0
+  %rtx = bitcast %union.rtunion_def* %arrayidx to %struct.rtx_def**
+  %11 = load %struct.rtx_def** %rtx, align 8, !tbaa !12
+  %rtwint = getelementptr inbounds %struct.rtx_def* %11, i64 0, i32 1, i64 0, i32 0
+  %12 = load i64* %rtwint, align 8, !tbaa !22
+  %conv = trunc i64 %12 to i32
+  %cmp25 = icmp sgt i32 %conv, 5000
+  %e.0181 = load %struct.edge_def** %succ, align 8
+  %tobool28182 = icmp eq %struct.edge_def* %e.0181, null
+  br i1 %tobool28182, label %if.end39, label %for.body
+
+for.body:                                         ; preds = %if.then22, %for.inc
+  %e.0185 = phi %struct.edge_def* [ %e.0, %for.inc ], [ %e.0181, %if.then22 ]
+  %e_fall.0184 = phi %struct.edge_def* [ %e_fall.1, %for.inc ], [ null, %if.then22 ]
+  %e_taken.0183 = phi %struct.edge_def* [ %e_taken.1, %for.inc ], [ null, %if.then22 ]
+  %flags = getelementptr inbounds %struct.edge_def* %e.0185, i64 0, i32 6
+  %13 = load i32* %flags, align 4, !tbaa !23
+  %and = and i32 %13, 1
+  %tobool29 = icmp eq i32 %and, 0
+  br i1 %tobool29, label %if.else31, label %for.inc
+
+if.else31:                                        ; preds = %for.body
+  %and33 = and i32 %13, 8
+  %tobool34 = icmp eq i32 %and33, 0
+  %e.0.e_taken.0 = select i1 %tobool34, %struct.edge_def* %e.0185, %struct.edge_def* %e_taken.0183
+  br label %for.inc
+
+for.inc:                                          ; preds = %if.else31, %for.body
+  %e_taken.1 = phi %struct.edge_def* [ %e_taken.0183, %for.body ], [ %e.0.e_taken.0, %if.else31 ]
+  %e_fall.1 = phi %struct.edge_def* [ %e.0185, %for.body ], [ %e_fall.0184, %if.else31 ]
+  %succ_next = getelementptr inbounds %struct.edge_def* %e.0185, i64 0, i32 1
+  %e.0 = load %struct.edge_def** %succ_next, align 8
+  %tobool28 = icmp eq %struct.edge_def* %e.0, null
+  br i1 %tobool28, label %if.end39, label %for.body
+
+if.end39:                                         ; preds = %for.inc, %if.then22
+  %e_fall.0.lcssa = phi %struct.edge_def* [ null, %if.then22 ], [ %e_fall.1, %for.inc ]
+  %e_taken.0.lcssa = phi %struct.edge_def* [ null, %if.then22 ], [ %e_taken.1, %for.inc ]
+  %cond = select i1 %cmp25, %struct.edge_def* %e_taken.0.lcssa, %struct.edge_def* %e_fall.0.lcssa
+  %dest = getelementptr inbounds %struct.edge_def* %cond, i64 0, i32 3
+  %14 = load %struct.basic_block_def** %dest, align 8, !tbaa !25
+  %tobool40 = icmp eq %struct.basic_block_def* %14, null
+  br i1 %tobool40, label %for.cond43.preheader, label %if.end70
+
+for.cond43.preheader:                             ; preds = %if.end39, %land.lhs.true18, %if.end15
+  %e.1175 = load %struct.edge_def** %succ, align 8
+  %tobool44176 = icmp eq %struct.edge_def* %e.1175, null
+  br i1 %tobool44176, label %if.then78, label %for.body45.lr.ph
+
+for.body45.lr.ph:                                 ; preds = %for.cond43.preheader
+  %index54 = getelementptr inbounds %struct.basic_block_def* %bb.addr.1, i64 0, i32 11
+  br label %for.body45
+
+for.body45:                                       ; preds = %for.body45.lr.ph, %if.else51
+  %e.1178 = phi %struct.edge_def* [ %e.1175, %for.body45.lr.ph ], [ %e.1, %if.else51 ]
+  %next.1177 = phi %struct.basic_block_def* [ null, %for.body45.lr.ph ], [ %next.2, %if.else51 ]
+  %flags46 = getelementptr inbounds %struct.edge_def* %e.1178, i64 0, i32 6
+  %15 = load i32* %flags46, align 4, !tbaa !23
+  %and47 = and i32 %15, 1
+  %tobool48 = icmp eq i32 %and47, 0
+  %dest50 = getelementptr inbounds %struct.edge_def* %e.1178, i64 0, i32 3
+  %16 = load %struct.basic_block_def** %dest50, align 8, !tbaa !25
+  br i1 %tobool48, label %if.else51, label %if.end70
+
+if.else51:                                        ; preds = %for.body45
+  %index53 = getelementptr inbounds %struct.basic_block_def* %16, i64 0, i32 11
+  %17 = load i32* %index53, align 4, !tbaa !19
+  %18 = load i32* %index54, align 4, !tbaa !19
+  %add55 = add nsw i32 %18, 1
+  %cmp56 = icmp eq i32 %17, %add55
+  %and60 = and i32 %15, 12
+  %tobool61 = icmp eq i32 %and60, 0
+  %or.cond167 = and i1 %cmp56, %tobool61
+  %next.2 = select i1 %or.cond167, %struct.basic_block_def* %16, %struct.basic_block_def* %next.1177
+  %succ_next68 = getelementptr inbounds %struct.edge_def* %e.1178, i64 0, i32 1
+  %e.1 = load %struct.edge_def** %succ_next68, align 8
+  %tobool44 = icmp eq %struct.edge_def* %e.1, null
+  br i1 %tobool44, label %if.end70, label %for.body45
+
+if.end70:                                         ; preds = %if.else51, %for.body45, %if.end39
+  %e.2169 = phi %struct.edge_def* [ %e.0181, %if.end39 ], [ %e.1175, %for.body45 ], [ %e.1175, %if.else51 ]
+  %next.3 = phi %struct.basic_block_def* [ %14, %if.end39 ], [ %next.2, %if.else51 ], [ %16, %for.body45 ]
+  %tobool71 = icmp eq %struct.basic_block_def* %next.3, null
+  %cmp72 = icmp eq %struct.basic_block_def* %next.3, getelementptr inbounds ([2 x %struct.basic_block_def]* @entry_exit_blocks, i64 0, i64 1)
+  %or.cond = or i1 %tobool71, %cmp72
+  br i1 %or.cond, label %if.then78, label %lor.lhs.false74
+
+lor.lhs.false74:                                  ; preds = %if.end70
+  %aux75 = getelementptr inbounds %struct.basic_block_def* %next.3, i64 0, i32 10
+  %19 = load i8** %aux75, align 8, !tbaa !13
+  %visited76 = getelementptr inbounds i8* %19, i64 24
+  %20 = bitcast i8* %visited76 to i32*
+  %21 = load i32* %20, align 4, !tbaa !16
+  %tobool77 = icmp eq i32 %21, 0
+  br i1 %tobool77, label %for.cond81.preheader, label %if.then78
+
+if.then78:                                        ; preds = %for.cond43.preheader, %lor.lhs.false74, %if.end70
+  %e.2169194 = phi %struct.edge_def* [ %e.2169, %lor.lhs.false74 ], [ %e.2169, %if.end70 ], [ null, %for.cond43.preheader ]
+  br label %for.cond81.preheader
+
+for.cond81.preheader:                             ; preds = %lor.lhs.false74, %if.then78
+  %e.2169193 = phi %struct.edge_def* [ %e.2169194, %if.then78 ], [ %e.2169, %lor.lhs.false74 ]
+  %next.5.ph = phi %struct.basic_block_def* [ null, %if.then78 ], [ %next.3, %lor.lhs.false74 ]
+  %tobool82170 = icmp eq %struct.edge_def* %e.2169193, null
+  br i1 %tobool82170, label %for.end119, label %for.body83
+
+for.body83:                                       ; preds = %for.cond81.preheader, %for.inc117
+  %e.2173 = phi %struct.edge_def* [ %e.2, %for.inc117 ], [ %e.2169193, %for.cond81.preheader ]
+  %prev.addr.1172 = phi %struct.basic_block_def* [ %prev.addr.2, %for.inc117 ], [ %bb.addr.1, %for.cond81.preheader ]
+  %next.5171 = phi %struct.basic_block_def* [ %next.6, %for.inc117 ], [ %next.5.ph, %for.cond81.preheader ]
+  %dest84 = getelementptr inbounds %struct.edge_def* %e.2173, i64 0, i32 3
+  %22 = load %struct.basic_block_def** %dest84, align 8, !tbaa !25
+  %cmp85 = icmp eq %struct.basic_block_def* %22, getelementptr inbounds ([2 x %struct.basic_block_def]* @entry_exit_blocks, i64 0, i64 1)
+  br i1 %cmp85, label %for.inc117, label %land.lhs.true87
+
+land.lhs.true87:                                  ; preds = %for.body83
+  %aux89 = getelementptr inbounds %struct.basic_block_def* %22, i64 0, i32 10
+  %23 = load i8** %aux89, align 8, !tbaa !13
+  %visited90 = getelementptr inbounds i8* %23, i64 24
+  %24 = bitcast i8* %visited90 to i32*
+  %25 = load i32* %24, align 4, !tbaa !16
+  %tobool91 = icmp eq i32 %25, 0
+  br i1 %tobool91, label %land.lhs.true92, label %for.inc117
+
+land.lhs.true92:                                  ; preds = %land.lhs.true87
+  %succ94 = getelementptr inbounds %struct.basic_block_def* %22, i64 0, i32 5
+  %26 = load %struct.edge_def** %succ94, align 8, !tbaa !20
+  %tobool95 = icmp eq %struct.edge_def* %26, null
+  br i1 %tobool95, label %for.inc117, label %land.lhs.true96
+
+land.lhs.true96:                                  ; preds = %land.lhs.true92
+  %flags97 = getelementptr inbounds %struct.edge_def* %e.2173, i64 0, i32 6
+  %27 = load i32* %flags97, align 4, !tbaa !23
+  %and98 = and i32 %27, 12
+  %tobool99 = icmp eq i32 %and98, 0
+  br i1 %tobool99, label %if.then100, label %for.inc117
+
+if.then100:                                       ; preds = %land.lhs.true96
+  %tobool101 = icmp eq %struct.basic_block_def* %next.5171, null
+  br i1 %tobool101, label %for.inc117, label %if.then102
+
+if.then102:                                       ; preds = %if.then100
+  %call103 = tail call fastcc %struct.basic_block_def* @make_reorder_chain_1(%struct.basic_block_def* %next.5171, %struct.basic_block_def* %prev.addr.1172)
+  %28 = load %struct.basic_block_def** %dest84, align 8, !tbaa !25
+  %aux105 = getelementptr inbounds %struct.basic_block_def* %28, i64 0, i32 10
+  %29 = load i8** %aux105, align 8, !tbaa !13
+  %visited106 = getelementptr inbounds i8* %29, i64 24
+  %30 = bitcast i8* %visited106 to i32*
+  %31 = load i32* %30, align 4, !tbaa !16
+  %tobool107 = icmp eq i32 %31, 0
+  %. = select i1 %tobool107, %struct.basic_block_def* %28, %struct.basic_block_def* null
+  br label %for.inc117
+
+for.inc117:                                       ; preds = %if.then100, %land.lhs.true96, %land.lhs.true92, %land.lhs.true87, %for.body83, %if.then102
+  %next.6 = phi %struct.basic_block_def* [ %next.5171, %land.lhs.true87 ], [ %next.5171, %land.lhs.true96 ], [ %., %if.then102 ], [ %next.5171, %land.lhs.true92 ], [ %next.5171, %for.body83 ], [ %22, %if.then100 ]
+  %prev.addr.2 = phi %struct.basic_block_def* [ %prev.addr.1172, %land.lhs.true87 ], [ %prev.addr.1172, %land.lhs.true96 ], [ %call103, %if.then102 ], [ %prev.addr.1172, %land.lhs.true92 ], [ %prev.addr.1172, %for.body83 ], [ %prev.addr.1172, %if.then100 ]
+  %succ_next118 = getelementptr inbounds %struct.edge_def* %e.2173, i64 0, i32 1
+  %e.2 = load %struct.edge_def** %succ_next118, align 8
+  %tobool82 = icmp eq %struct.edge_def* %e.2, null
+  br i1 %tobool82, label %for.end119, label %for.body83
+
+for.end119:                                       ; preds = %for.inc117, %for.cond81.preheader
+  %prev.addr.1.lcssa = phi %struct.basic_block_def* [ %bb.addr.1, %for.cond81.preheader ], [ %prev.addr.2, %for.inc117 ]
+  %next.5.lcssa = phi %struct.basic_block_def* [ %next.5.ph, %for.cond81.preheader ], [ %next.6, %for.inc117 ]
+  %tobool120 = icmp eq %struct.basic_block_def* %next.5.lcssa, null
+  br i1 %tobool120, label %return, label %restart
+
+return:                                           ; preds = %for.end119, %if.end11
+  %retval.0 = phi %struct.basic_block_def* [ %bb.addr.1, %if.end11 ], [ %prev.addr.1.lcssa, %for.end119 ]
+  ret %struct.basic_block_def* %retval.0
+}
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #2
+
+; Function Attrs: noreturn
+declare void @fancy_abort(i8*, i32, i8*) #3
+
+declare i32 @any_condjump_p(%struct.rtx_def*) #1
+
+declare %struct.rtx_def* @find_reg_note(%struct.rtx_def*, i32, %struct.rtx_def*) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind }
+attributes #5 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"int", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !8, i64 336}
+!6 = metadata !{metadata !"gcc_target", metadata !7, i64 0, metadata !10, i64 168, metadata !8, i64 240, metadata !8, i64 248, metadata !8, i64 256, metadata !8, i64 264, metadata !8, i64 272, metadata !8, i64 280, metadata !8, i64 288, metadata !8, i64 296, metadata !8, i64 304, metadata !8, i64 312, metadata !8, i64 320, metadata !11, i64 328, metadata !11, i64 329, metadata !8, i64 336}
+!7 = metadata !{metadata !"asm_out", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !9, i64 24, metadata !9, i64 56, metadata !8, i64 88, metadata !8, i64 96, metadata !8, i64 104, metadata !8, i64 112, metadata !8, i64 120, metadata !8, i64 128, metadata !8, i64 136, metadata !8, i64 144, metadata !8, i64 152, metadata !8, i64 160}
+!8 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!9 = metadata !{metadata !"asm_int_op", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !8, i64 24}
+!10 = metadata !{metadata !"sched", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !8, i64 24, metadata !8, i64 32, metadata !8, i64 40, metadata !8, i64 48, metadata !8, i64 56, metadata !8, i64 64}
+!11 = metadata !{metadata !"_Bool", metadata !3, i64 0}
+!12 = metadata !{metadata !8, metadata !8, i64 0}
+!13 = metadata !{metadata !14, metadata !8, i64 80}
+!14 = metadata !{metadata !"basic_block_def", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !8, i64 24, metadata !8, i64 32, metadata !8, i64 40, metadata !8, i64 48, metadata !8, i64 56, metadata !8, i64 64, metadata !8, i64 72, metadata !8, i64 80, metadata !2, i64 88, metadata !2, i64 92, metadata !15, i64 96, metadata !2, i64 104, metadata !2, i64 108}
+!15 = metadata !{metadata !"long long", metadata !3, i64 0}
+!16 = metadata !{metadata !17, metadata !2, i64 24}
+!17 = metadata !{metadata !"reorder_block_def", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !2, i64 24}
+!18 = metadata !{metadata !17, metadata !8, i64 16}
+!19 = metadata !{metadata !14, metadata !2, i64 88}
+!20 = metadata !{metadata !14, metadata !8, i64 40}
+!21 = metadata !{metadata !14, metadata !8, i64 8}
+!22 = metadata !{metadata !15, metadata !15, i64 0}
+!23 = metadata !{metadata !24, metadata !2, i64 48}
+!24 = metadata !{metadata !"edge_def", metadata !8, i64 0, metadata !8, i64 8, metadata !8, i64 16, metadata !8, i64 24, metadata !8, i64 32, metadata !8, i64 40, metadata !2, i64 48, metadata !2, i64 52, metadata !15, i64 56}
+!25 = metadata !{metadata !24, metadata !8, i64 24}

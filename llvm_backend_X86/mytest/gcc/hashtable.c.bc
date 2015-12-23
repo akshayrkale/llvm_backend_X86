@@ -1,0 +1,635 @@
+; ModuleID = 'hashtable.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct._IO_FILE = type opaque
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+%struct.ht = type { %struct.obstack, %struct.ht_identifier**, %struct.ht_identifier* (%struct.ht*)*, i32, i32, %struct.cpp_reader*, i32, i32 }
+%struct.ht_identifier = type { i32, i8* }
+%struct.cpp_reader = type opaque
+
+@stderr = external constant %struct._IO_FILE*
+@.str = private unnamed_addr constant [27 x i8] c"\0AString pool\0Aentries\09\09%lu\0A\00", align 1
+@.str1 = private unnamed_addr constant [26 x i8] c"identifiers\09%lu (%.2f%%)\0A\00", align 1
+@.str2 = private unnamed_addr constant [12 x i8] c"slots\09\09%lu\0A\00", align 1
+@.str3 = private unnamed_addr constant [31 x i8] c"bytes\09\09%lu%c (%lu%c overhead)\0A\00", align 1
+@.str4 = private unnamed_addr constant [18 x i8] c"table size\09%lu%c\0A\00", align 1
+@.str5 = private unnamed_addr constant [18 x i8] c"coll/search\09%.4f\0A\00", align 1
+@.str6 = private unnamed_addr constant [17 x i8] c"ins/search\09%.4f\0A\00", align 1
+@.str7 = private unnamed_addr constant [34 x i8] c"avg. entry\09%.2f bytes (+/- %.2f)\0A\00", align 1
+@.str8 = private unnamed_addr constant [19 x i8] c"longest entry\09%lu\0A\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @gcc_obstack_init(%struct.obstack* %obstack) #0 {
+entry:
+  %call = tail call i32 @_obstack_begin(%struct.obstack* %obstack, i32 0, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #3
+  ret void
+}
+
+declare i32 @_obstack_begin(%struct.obstack*, i32, i32, i8* (i64)*, void (i8*)*) #1
+
+declare noalias i8* @xmalloc(i64) #1
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #2
+
+; Function Attrs: nounwind uwtable
+define %struct.ht* @ht_create(i32 %order) #0 {
+entry:
+  %shl = shl i32 1, %order
+  %call = tail call noalias i8* @xmalloc(i64 128) #3
+  %0 = bitcast i8* %call to %struct.ht*
+  tail call void @llvm.memset.p0i8.i64(i8* %call, i8 0, i64 128, i32 8, i1 false)
+  %stack = bitcast i8* %call to %struct.obstack*
+  %call.i = tail call i32 @_obstack_begin(%struct.obstack* %stack, i32 0, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #3
+  %alignment_mask = getelementptr inbounds i8* %call, i64 48
+  %1 = bitcast i8* %alignment_mask to i32*
+  store i32 0, i32* %1, align 4, !tbaa !1
+  %conv = zext i32 %shl to i64
+  %call2 = tail call noalias i8* @xcalloc(i64 %conv, i64 8) #3
+  %2 = bitcast i8* %call2 to %struct.ht_identifier**
+  %entries = getelementptr inbounds i8* %call, i64 88
+  %3 = bitcast i8* %entries to %struct.ht_identifier***
+  store %struct.ht_identifier** %2, %struct.ht_identifier*** %3, align 8, !tbaa !8
+  %nslots3 = getelementptr inbounds i8* %call, i64 104
+  %4 = bitcast i8* %nslots3 to i32*
+  store i32 %shl, i32* %4, align 4, !tbaa !10
+  ret %struct.ht* %0
+}
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #3
+
+declare noalias i8* @xcalloc(i64, i64) #1
+
+; Function Attrs: nounwind uwtable
+define void @ht_destroy(%struct.ht* %table) #0 {
+entry:
+  %stack = getelementptr inbounds %struct.ht* %table, i64 0, i32 0
+  tail call void @obstack_free(%struct.obstack* %stack, i8* null) #3
+  %entries = getelementptr inbounds %struct.ht* %table, i64 0, i32 1
+  %0 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %1 = bitcast %struct.ht_identifier** %0 to i8*
+  tail call void @free(i8* %1)
+  %2 = bitcast %struct.ht* %table to i8*
+  tail call void @free(i8* %2)
+  ret void
+}
+
+declare void @obstack_free(%struct.obstack*, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define %struct.ht_identifier* @ht_lookup(%struct.ht* %table, i8* %str, i32 %len, i32 %insert) #0 {
+entry:
+  %tobool3.i = icmp eq i32 %len, 0
+  br i1 %tobool3.i, label %calc_hash.exit, label %while.body.i
+
+while.body.i:                                     ; preds = %entry, %while.body.i
+  %r.06.i = phi i32 [ %add.i, %while.body.i ], [ 0, %entry ]
+  %n.05.i = phi i32 [ %dec.i, %while.body.i ], [ %len, %entry ]
+  %str.addr.04.i = phi i8* [ %incdec.ptr.i, %while.body.i ], [ %str, %entry ]
+  %dec.i = add i32 %n.05.i, -1
+  %mul.i = mul i32 %r.06.i, 67
+  %incdec.ptr.i = getelementptr inbounds i8* %str.addr.04.i, i64 1
+  %0 = load i8* %str.addr.04.i, align 1, !tbaa !11
+  %conv.i = zext i8 %0 to i32
+  %sub.i = add i32 %mul.i, -113
+  %add.i = add i32 %sub.i, %conv.i
+  %tobool.i = icmp eq i32 %dec.i, 0
+  br i1 %tobool.i, label %calc_hash.exit, label %while.body.i
+
+calc_hash.exit:                                   ; preds = %while.body.i, %entry
+  %r.0.lcssa.i = phi i32 [ 0, %entry ], [ %add.i, %while.body.i ]
+  %add1.i = add i32 %r.0.lcssa.i, %len
+  %nslots = getelementptr inbounds %struct.ht* %table, i64 0, i32 3
+  %1 = load i32* %nslots, align 4, !tbaa !10
+  %sub = add i32 %1, -1
+  %mul = mul i32 %add1.i, 17
+  %and4170 = and i32 %mul, %sub
+  %or = or i32 %and4170, 1
+  %searches = getelementptr inbounds %struct.ht* %table, i64 0, i32 6
+  %2 = load i32* %searches, align 4, !tbaa !12
+  %inc = add i32 %2, 1
+  store i32 %inc, i32* %searches, align 4, !tbaa !12
+  %index.0181 = and i32 %add1.i, %sub
+  %idxprom182 = zext i32 %index.0181 to i64
+  %entries = getelementptr inbounds %struct.ht* %table, i64 0, i32 1
+  %3 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %arrayidx183 = getelementptr inbounds %struct.ht_identifier** %3, i64 %idxprom182
+  %4 = load %struct.ht_identifier** %arrayidx183, align 8, !tbaa !13
+  %cmp184 = icmp eq %struct.ht_identifier* %4, null
+  br i1 %cmp184, label %for.end, label %if.end.lr.ph
+
+if.end.lr.ph:                                     ; preds = %calc_hash.exit
+  %conv11 = zext i32 %len to i64
+  %collisions = getelementptr inbounds %struct.ht* %table, i64 0, i32 7
+  br label %if.end
+
+if.end:                                           ; preds = %if.end.lr.ph, %if.end25
+  %5 = phi %struct.ht_identifier* [ %4, %if.end.lr.ph ], [ %12, %if.end25 ]
+  %index.0185 = phi i32 [ %index.0181, %if.end.lr.ph ], [ %index.0, %if.end25 ]
+  %len7 = getelementptr inbounds %struct.ht_identifier* %5, i64 0, i32 0
+  %6 = load i32* %len7, align 4, !tbaa !14
+  %cmp8 = icmp eq i32 %6, %len
+  br i1 %cmp8, label %land.lhs.true, label %if.end25
+
+land.lhs.true:                                    ; preds = %if.end
+  %str10 = getelementptr inbounds %struct.ht_identifier* %5, i64 0, i32 1
+  %7 = load i8** %str10, align 8, !tbaa !16
+  %call12 = tail call i32 @memcmp(i8* %7, i8* %str, i64 %conv11) #3
+  %tobool = icmp eq i32 %call12, 0
+  br i1 %tobool, label %if.then13, label %if.end25
+
+if.then13:                                        ; preds = %land.lhs.true
+  %cmp14 = icmp eq i32 %insert, 2
+  br i1 %cmp14, label %if.then16, label %return
+
+if.then16:                                        ; preds = %if.then13
+  %stack = getelementptr inbounds %struct.ht* %table, i64 0, i32 0
+  %chunk = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 1
+  %8 = load %struct._obstack_chunk** %chunk, align 8, !tbaa !17
+  %9 = bitcast %struct._obstack_chunk* %8 to i8*
+  %cmp17 = icmp ult i8* %9, %str
+  br i1 %cmp17, label %land.lhs.true19, label %if.else
+
+land.lhs.true19:                                  ; preds = %if.then16
+  %chunk_limit = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 4
+  %10 = load i8** %chunk_limit, align 8, !tbaa !18
+  %cmp20 = icmp ugt i8* %10, %str
+  br i1 %cmp20, label %if.then22, label %if.else
+
+if.then22:                                        ; preds = %land.lhs.true19
+  %object_base = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 2
+  store i8* %str, i8** %object_base, align 8, !tbaa !19
+  %next_free = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 3
+  store i8* %str, i8** %next_free, align 8, !tbaa !20
+  br label %return
+
+if.else:                                          ; preds = %land.lhs.true19, %if.then16
+  tail call void @obstack_free(%struct.obstack* %stack, i8* %str) #3
+  br label %return
+
+if.end25:                                         ; preds = %land.lhs.true, %if.end
+  %add = add i32 %index.0185, %or
+  %11 = load i32* %collisions, align 4, !tbaa !21
+  %inc29 = add i32 %11, 1
+  store i32 %inc29, i32* %collisions, align 4, !tbaa !21
+  %index.0 = and i32 %add, %sub
+  %idxprom = zext i32 %index.0 to i64
+  %arrayidx = getelementptr inbounds %struct.ht_identifier** %3, i64 %idxprom
+  %12 = load %struct.ht_identifier** %arrayidx, align 8, !tbaa !13
+  %cmp = icmp eq %struct.ht_identifier* %12, null
+  br i1 %cmp, label %for.end, label %if.end
+
+for.end:                                          ; preds = %if.end25, %calc_hash.exit
+  %idxprom.lcssa = phi i64 [ %idxprom182, %calc_hash.exit ], [ %idxprom, %if.end25 ]
+  %cmp30 = icmp eq i32 %insert, 0
+  br i1 %cmp30, label %return, label %if.end33
+
+if.end33:                                         ; preds = %for.end
+  %alloc_node = getelementptr inbounds %struct.ht* %table, i64 0, i32 2
+  %13 = load %struct.ht_identifier* (%struct.ht*)** %alloc_node, align 8, !tbaa !22
+  %call34 = tail call %struct.ht_identifier* %13(%struct.ht* %table) #3
+  %14 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %arrayidx37 = getelementptr inbounds %struct.ht_identifier** %14, i64 %idxprom.lcssa
+  store %struct.ht_identifier* %call34, %struct.ht_identifier** %arrayidx37, align 8, !tbaa !13
+  %len38 = getelementptr inbounds %struct.ht_identifier* %call34, i64 0, i32 0
+  store i32 %len, i32* %len38, align 4, !tbaa !14
+  %cmp39 = icmp eq i32 %insert, 1
+  br i1 %cmp39, label %if.then41, label %if.else93
+
+if.then41:                                        ; preds = %if.end33
+  %next_free44 = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 3
+  %15 = load i8** %next_free44, align 8, !tbaa !20
+  %idx.ext = sext i32 %len to i64
+  %add.ptr.sum = add i64 %idx.ext, 1
+  %add.ptr45 = getelementptr inbounds i8* %15, i64 %add.ptr.sum
+  %chunk_limit46 = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 4
+  %16 = load i8** %chunk_limit46, align 8, !tbaa !18
+  %cmp47 = icmp ugt i8* %add.ptr45, %16
+  br i1 %cmp47, label %if.then49, label %if.end51
+
+if.then49:                                        ; preds = %if.then41
+  %stack42 = getelementptr inbounds %struct.ht* %table, i64 0, i32 0
+  %add50 = add nsw i32 %len, 1
+  tail call void @_obstack_newchunk(%struct.obstack* %stack42, i32 %add50) #3
+  %.pre = load i8** %next_free44, align 8, !tbaa !20
+  br label %if.end51
+
+if.end51:                                         ; preds = %if.then49, %if.then41
+  %17 = phi i8* [ %.pre, %if.then49 ], [ %15, %if.then41 ]
+  tail call void @llvm.memcpy.p0i8.p0i8.i64(i8* %17, i8* %str, i64 %idx.ext, i32 1, i1 false)
+  %18 = load i8** %next_free44, align 8, !tbaa !20
+  %add.ptr56 = getelementptr inbounds i8* %18, i64 %idx.ext
+  %incdec.ptr = getelementptr inbounds i8* %18, i64 %add.ptr.sum
+  store i8* %incdec.ptr, i8** %next_free44, align 8, !tbaa !20
+  store i8 0, i8* %add.ptr56, align 1, !tbaa !11
+  %object_base60 = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 2
+  %19 = load i8** %object_base60, align 8, !tbaa !19
+  %20 = load i8** %next_free44, align 8, !tbaa !20
+  %cmp62 = icmp eq i8* %20, %19
+  br i1 %cmp62, label %if.then64, label %if.end65
+
+if.then64:                                        ; preds = %if.end51
+  %maybe_empty_object = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 10
+  %bf.load = load i8* %maybe_empty_object, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %maybe_empty_object, align 8
+  br label %if.end65
+
+if.end65:                                         ; preds = %if.then64, %if.end51
+  %sub.ptr.lhs.cast = ptrtoint i8* %20 to i64
+  %alignment_mask = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 6
+  %21 = load i32* %alignment_mask, align 4, !tbaa !1
+  %conv67 = sext i32 %21 to i64
+  %add68 = add nsw i64 %conv67, %sub.ptr.lhs.cast
+  %neg = xor i32 %21, -1
+  %conv70 = sext i32 %neg to i64
+  %and71 = and i64 %add68, %conv70
+  %add.ptr72 = getelementptr inbounds i8* null, i64 %and71
+  store i8* %add.ptr72, i8** %next_free44, align 8, !tbaa !20
+  %chunk75 = getelementptr inbounds %struct.ht* %table, i64 0, i32 0, i32 1
+  %22 = load %struct._obstack_chunk** %chunk75, align 8, !tbaa !17
+  %sub.ptr.lhs.cast76 = ptrtoint i8* %add.ptr72 to i64
+  %sub.ptr.rhs.cast = ptrtoint %struct._obstack_chunk* %22 to i64
+  %sub.ptr.sub77 = sub i64 %sub.ptr.lhs.cast76, %sub.ptr.rhs.cast
+  %23 = load i8** %chunk_limit46, align 8, !tbaa !18
+  %sub.ptr.lhs.cast80 = ptrtoint i8* %23 to i64
+  %sub.ptr.sub82 = sub i64 %sub.ptr.lhs.cast80, %sub.ptr.rhs.cast
+  %cmp83 = icmp sgt i64 %sub.ptr.sub77, %sub.ptr.sub82
+  br i1 %cmp83, label %if.then85, label %if.end88
+
+if.then85:                                        ; preds = %if.end65
+  store i8* %23, i8** %next_free44, align 8, !tbaa !20
+  br label %if.end88
+
+if.end88:                                         ; preds = %if.then85, %if.end65
+  %24 = phi i8* [ %23, %if.then85 ], [ %add.ptr72, %if.end65 ]
+  store i8* %24, i8** %object_base60, align 8, !tbaa !19
+  %str92 = getelementptr inbounds %struct.ht_identifier* %call34, i64 0, i32 1
+  store i8* %19, i8** %str92, align 8, !tbaa !16
+  br label %if.end95
+
+if.else93:                                        ; preds = %if.end33
+  %str94 = getelementptr inbounds %struct.ht_identifier* %call34, i64 0, i32 1
+  store i8* %str, i8** %str94, align 8, !tbaa !16
+  br label %if.end95
+
+if.end95:                                         ; preds = %if.else93, %if.end88
+  %nelements = getelementptr inbounds %struct.ht* %table, i64 0, i32 4
+  %25 = load i32* %nelements, align 4, !tbaa !23
+  %inc96 = add i32 %25, 1
+  store i32 %inc96, i32* %nelements, align 4, !tbaa !23
+  %mul97 = shl i32 %inc96, 2
+  %26 = load i32* %nslots, align 4, !tbaa !10
+  %mul99 = mul i32 %26, 3
+  %cmp100 = icmp ult i32 %mul97, %mul99
+  br i1 %cmp100, label %return, label %if.then102
+
+if.then102:                                       ; preds = %if.end95
+  %mul.i172 = shl i32 %26, 1
+  %conv.i173 = zext i32 %mul.i172 to i64
+  %call.i = tail call noalias i8* @xcalloc(i64 %conv.i173, i64 8) #3
+  %27 = bitcast i8* %call.i to %struct.ht_identifier**
+  %sub.i174 = add i32 %mul.i172, -1
+  %28 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %29 = load i32* %nslots, align 4, !tbaa !10
+  %idx.ext.i = zext i32 %29 to i64
+  %add.ptr.i = getelementptr inbounds %struct.ht_identifier** %28, i64 %idx.ext.i
+  br label %do.body.i
+
+do.body.i:                                        ; preds = %do.cond.i, %if.then102
+  %p.0.i = phi %struct.ht_identifier** [ %28, %if.then102 ], [ %incdec.ptr.i177, %do.cond.i ]
+  %30 = load %struct.ht_identifier** %p.0.i, align 8, !tbaa !13
+  %tobool.i175 = icmp eq %struct.ht_identifier* %30, null
+  br i1 %tobool.i175, label %do.cond.i, label %if.then.i
+
+if.then.i:                                        ; preds = %do.body.i
+  %len.i = getelementptr inbounds %struct.ht_identifier* %30, i64 0, i32 0
+  %31 = load i32* %len.i, align 4, !tbaa !14
+  %tobool3.i.i = icmp eq i32 %31, 0
+  br i1 %tobool3.i.i, label %calc_hash.exit.i, label %while.body.i.preheader.i
+
+while.body.i.preheader.i:                         ; preds = %if.then.i
+  %str.i = getelementptr inbounds %struct.ht_identifier* %30, i64 0, i32 1
+  %32 = load i8** %str.i, align 8, !tbaa !16
+  br label %while.body.i.i
+
+while.body.i.i:                                   ; preds = %while.body.i.i, %while.body.i.preheader.i
+  %r.06.i.i = phi i32 [ %add.i.i, %while.body.i.i ], [ 0, %while.body.i.preheader.i ]
+  %n.05.i.i = phi i32 [ %dec.i.i, %while.body.i.i ], [ %31, %while.body.i.preheader.i ]
+  %str.addr.04.i.i = phi i8* [ %incdec.ptr.i.i, %while.body.i.i ], [ %32, %while.body.i.preheader.i ]
+  %dec.i.i = add i32 %n.05.i.i, -1
+  %mul.i.i = mul i32 %r.06.i.i, 67
+  %incdec.ptr.i.i = getelementptr inbounds i8* %str.addr.04.i.i, i64 1
+  %33 = load i8* %str.addr.04.i.i, align 1, !tbaa !11
+  %conv.i.i = zext i8 %33 to i32
+  %sub.i.i = add i32 %mul.i.i, -113
+  %add.i.i = add i32 %sub.i.i, %conv.i.i
+  %tobool.i.i = icmp eq i32 %dec.i.i, 0
+  br i1 %tobool.i.i, label %calc_hash.exit.i, label %while.body.i.i
+
+calc_hash.exit.i:                                 ; preds = %while.body.i.i, %if.then.i
+  %r.0.lcssa.i.i = phi i32 [ 0, %if.then.i ], [ %add.i.i, %while.body.i.i ]
+  %add1.i.i = add i32 %r.0.lcssa.i.i, %31
+  %mul3.i = mul i32 %add1.i.i, 17
+  %and.i = and i32 %mul3.i, %sub.i174
+  %or.i = or i32 %and.i, 1
+  br label %for.cond.i
+
+for.cond.i:                                       ; preds = %for.cond.i, %calc_hash.exit.i
+  %call2.pn.i = phi i32 [ %add1.i.i, %calc_hash.exit.i ], [ %add.i176, %for.cond.i ]
+  %index.0.i = and i32 %call2.pn.i, %sub.i174
+  %idxprom.i = zext i32 %index.0.i to i64
+  %arrayidx.i = getelementptr inbounds %struct.ht_identifier** %27, i64 %idxprom.i
+  %34 = load %struct.ht_identifier** %arrayidx.i, align 8, !tbaa !13
+  %tobool5.i = icmp eq %struct.ht_identifier* %34, null
+  %add.i176 = add i32 %index.0.i, %or.i
+  br i1 %tobool5.i, label %if.then6.i, label %for.cond.i
+
+if.then6.i:                                       ; preds = %for.cond.i
+  store %struct.ht_identifier* %30, %struct.ht_identifier** %arrayidx.i, align 8, !tbaa !13
+  br label %do.cond.i
+
+do.cond.i:                                        ; preds = %if.then6.i, %do.body.i
+  %incdec.ptr.i177 = getelementptr inbounds %struct.ht_identifier** %p.0.i, i64 1
+  %cmp.i = icmp ult %struct.ht_identifier** %incdec.ptr.i177, %add.ptr.i
+  br i1 %cmp.i, label %do.body.i, label %ht_expand.exit
+
+ht_expand.exit:                                   ; preds = %do.cond.i
+  %35 = bitcast %struct.ht_identifier** %28 to i8*
+  tail call void @free(i8* %35) #3
+  store %struct.ht_identifier** %27, %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  store i32 %mul.i172, i32* %nslots, align 4, !tbaa !10
+  br label %return
+
+return:                                           ; preds = %ht_expand.exit, %if.end95, %for.end, %if.then13, %if.else, %if.then22
+  %retval.0 = phi %struct.ht_identifier* [ %5, %if.then22 ], [ %5, %if.else ], [ %5, %if.then13 ], [ null, %for.end ], [ %call34, %if.end95 ], [ %call34, %ht_expand.exit ]
+  ret %struct.ht_identifier* %retval.0
+}
+
+; Function Attrs: nounwind readonly
+declare i32 @memcmp(i8* nocapture, i8* nocapture, i64) #4
+
+declare void @_obstack_newchunk(%struct.obstack*, i32) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture, i8* nocapture readonly, i64, i32, i1) #3
+
+; Function Attrs: nounwind uwtable
+define void @ht_forall(%struct.ht* nocapture readonly %table, i32 (%struct.cpp_reader*, %struct.ht_identifier*, i8*)* nocapture %cb, i8* %v) #0 {
+entry:
+  %entries = getelementptr inbounds %struct.ht* %table, i64 0, i32 1
+  %0 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %nslots = getelementptr inbounds %struct.ht* %table, i64 0, i32 3
+  %1 = load i32* %nslots, align 4, !tbaa !10
+  %idx.ext = zext i32 %1 to i64
+  %add.ptr = getelementptr inbounds %struct.ht_identifier** %0, i64 %idx.ext
+  %pfile = getelementptr inbounds %struct.ht* %table, i64 0, i32 5
+  br label %do.body
+
+do.body:                                          ; preds = %do.cond, %entry
+  %p.0 = phi %struct.ht_identifier** [ %0, %entry ], [ %incdec.ptr, %do.cond ]
+  %2 = load %struct.ht_identifier** %p.0, align 8, !tbaa !13
+  %tobool = icmp eq %struct.ht_identifier* %2, null
+  br i1 %tobool, label %do.cond, label %if.then
+
+if.then:                                          ; preds = %do.body
+  %3 = load %struct.cpp_reader** %pfile, align 8, !tbaa !24
+  %call = tail call i32 %cb(%struct.cpp_reader* %3, %struct.ht_identifier* %2, i8* %v) #3
+  %cmp = icmp eq i32 %call, 0
+  br i1 %cmp, label %do.end, label %do.cond
+
+do.cond:                                          ; preds = %do.body, %if.then
+  %incdec.ptr = getelementptr inbounds %struct.ht_identifier** %p.0, i64 1
+  %cmp3 = icmp ult %struct.ht_identifier** %incdec.ptr, %add.ptr
+  br i1 %cmp3, label %do.body, label %do.end
+
+do.end:                                           ; preds = %if.then, %do.cond
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @ht_dump_statistics(%struct.ht* %table) #0 {
+entry:
+  %entries = getelementptr inbounds %struct.ht* %table, i64 0, i32 1
+  %0 = load %struct.ht_identifier*** %entries, align 8, !tbaa !8
+  %nslots = getelementptr inbounds %struct.ht* %table, i64 0, i32 3
+  %1 = load i32* %nslots, align 4, !tbaa !10
+  %idx.ext = zext i32 %1 to i64
+  %add.ptr = getelementptr inbounds %struct.ht_identifier** %0, i64 %idx.ext
+  br label %do.body
+
+do.body:                                          ; preds = %do.cond, %entry
+  %sum_of_squares.0 = phi i64 [ 0, %entry ], [ %sum_of_squares.1, %do.cond ]
+  %longest.0 = phi i64 [ 0, %entry ], [ %longest.2, %do.cond ]
+  %p.0 = phi %struct.ht_identifier** [ %0, %entry ], [ %incdec.ptr, %do.cond ]
+  %total_bytes.0 = phi i64 [ 0, %entry ], [ %total_bytes.1, %do.cond ]
+  %nids.0 = phi i64 [ 0, %entry ], [ %nids.1, %do.cond ]
+  %2 = load %struct.ht_identifier** %p.0, align 8, !tbaa !13
+  %tobool = icmp eq %struct.ht_identifier* %2, null
+  br i1 %tobool, label %do.cond, label %if.then
+
+if.then:                                          ; preds = %do.body
+  %len = getelementptr inbounds %struct.ht_identifier* %2, i64 0, i32 0
+  %3 = load i32* %len, align 4, !tbaa !14
+  %conv = zext i32 %3 to i64
+  %add = add i64 %conv, %total_bytes.0
+  %mul = mul i64 %conv, %conv
+  %add1 = add i64 %mul, %sum_of_squares.0
+  %cmp = icmp ugt i64 %conv, %longest.0
+  %conv.longest.0 = select i1 %cmp, i64 %conv, i64 %longest.0
+  %inc = add i64 %nids.0, 1
+  br label %do.cond
+
+do.cond:                                          ; preds = %do.body, %if.then
+  %sum_of_squares.1 = phi i64 [ %add1, %if.then ], [ %sum_of_squares.0, %do.body ]
+  %longest.2 = phi i64 [ %conv.longest.0, %if.then ], [ %longest.0, %do.body ]
+  %total_bytes.1 = phi i64 [ %add, %if.then ], [ %total_bytes.0, %do.body ]
+  %nids.1 = phi i64 [ %inc, %if.then ], [ %nids.0, %do.body ]
+  %incdec.ptr = getelementptr inbounds %struct.ht_identifier** %p.0, i64 1
+  %cmp5 = icmp ult %struct.ht_identifier** %incdec.ptr, %add.ptr
+  br i1 %cmp5, label %do.body, label %do.end
+
+do.end:                                           ; preds = %do.cond
+  %nelements = getelementptr inbounds %struct.ht* %table, i64 0, i32 4
+  %4 = load i32* %nelements, align 4, !tbaa !23
+  %conv7 = zext i32 %4 to i64
+  %stack = getelementptr inbounds %struct.ht* %table, i64 0, i32 0
+  %call = tail call i32 @_obstack_memory_used(%struct.obstack* %stack) #3
+  %conv8 = sext i32 %call to i64
+  %sub = sub i64 %conv8, %total_bytes.1
+  %5 = load i32* %nslots, align 4, !tbaa !10
+  %conv10 = zext i32 %5 to i64
+  %mul11 = shl nuw nsw i64 %conv10, 3
+  %6 = load %struct._IO_FILE** @stderr, align 8, !tbaa !13
+  %call12 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([27 x i8]* @.str, i64 0, i64 0), i64 %conv7) #6
+  %conv13 = uitofp i64 %nids.1 to double
+  %mul14 = fmul double %conv13, 1.000000e+02
+  %conv15 = uitofp i32 %4 to double
+  %div = fdiv double %mul14, %conv15
+  %call16 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([26 x i8]* @.str1, i64 0, i64 0), i64 %nids.1, double %div) #6
+  %7 = load i32* %nslots, align 4, !tbaa !10
+  %conv18 = zext i32 %7 to i64
+  %call19 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([12 x i8]* @.str2, i64 0, i64 0), i64 %conv18) #6
+  %cmp20 = icmp ult i64 %total_bytes.1, 10240
+  br i1 %cmp20, label %cond.end37, label %cond.false
+
+cond.false:                                       ; preds = %do.end
+  %cmp22 = icmp ult i64 %total_bytes.1, 10485760
+  %cond29149.v = select i1 %cmp22, i64 10, i64 20
+  %cond29149 = lshr i64 %total_bytes.1, %cond29149.v
+  %cond36 = select i1 %cmp22, i32 107, i32 77
+  br label %cond.end37
+
+cond.end37:                                       ; preds = %do.end, %cond.false
+  %cond29147 = phi i64 [ %cond29149, %cond.false ], [ %total_bytes.1, %do.end ]
+  %cond38 = phi i32 [ %cond36, %cond.false ], [ 32, %do.end ]
+  %cmp39 = icmp ult i64 %sub, 10240
+  br i1 %cmp39, label %cond.end60, label %cond.false42
+
+cond.false42:                                     ; preds = %cond.end37
+  %cmp43 = icmp ult i64 %sub, 10485760
+  %cond52152.v = select i1 %cmp43, i64 10, i64 20
+  %cond52152 = lshr i64 %sub, %cond52152.v
+  %cond59 = select i1 %cmp43, i32 107, i32 77
+  br label %cond.end60
+
+cond.end60:                                       ; preds = %cond.end37, %cond.false42
+  %cond52150 = phi i64 [ %cond52152, %cond.false42 ], [ %sub, %cond.end37 ]
+  %cond61 = phi i32 [ %cond59, %cond.false42 ], [ 32, %cond.end37 ]
+  %call62 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([31 x i8]* @.str3, i64 0, i64 0), i64 %cond29147, i32 %cond38, i64 %cond52150, i32 %cond61) #6
+  %cmp63 = icmp ult i64 %mul11, 10240
+  br i1 %cmp63, label %cond.end84, label %cond.false66
+
+cond.false66:                                     ; preds = %cond.end60
+  %cmp67 = icmp ult i64 %mul11, 10485760
+  %cond76155.v = select i1 %cmp67, i64 7, i64 17
+  %cond76155 = lshr i64 %conv10, %cond76155.v
+  %cond83 = select i1 %cmp67, i32 107, i32 77
+  br label %cond.end84
+
+cond.end84:                                       ; preds = %cond.end60, %cond.false66
+  %cond76153 = phi i64 [ %cond76155, %cond.false66 ], [ %mul11, %cond.end60 ]
+  %cond85 = phi i32 [ %cond83, %cond.false66 ], [ 32, %cond.end60 ]
+  %call86 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([18 x i8]* @.str4, i64 0, i64 0), i64 %cond76153, i32 %cond85) #6
+  %conv87 = uitofp i64 %total_bytes.1 to double
+  %div89 = fdiv double %conv87, %conv15
+  %mul90 = fmul double %div89, %div89
+  %conv91 = uitofp i64 %sum_of_squares.1 to double
+  %div93 = fdiv double %conv91, %conv15
+  %collisions = getelementptr inbounds %struct.ht* %table, i64 0, i32 7
+  %8 = load i32* %collisions, align 4, !tbaa !21
+  %conv94 = uitofp i32 %8 to double
+  %searches = getelementptr inbounds %struct.ht* %table, i64 0, i32 6
+  %9 = load i32* %searches, align 4, !tbaa !12
+  %conv95 = uitofp i32 %9 to double
+  %div96 = fdiv double %conv94, %conv95
+  %call97 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([18 x i8]* @.str5, i64 0, i64 0), double %div96) #6
+  %10 = load i32* %searches, align 4, !tbaa !12
+  %conv100 = uitofp i32 %10 to double
+  %div101 = fdiv double %conv15, %conv100
+  %call102 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([17 x i8]* @.str6, i64 0, i64 0), double %div101) #6
+  %sub103 = fsub double %div93, %mul90
+  %cmp.i = fcmp olt double %sub103, 0.000000e+00
+  br i1 %cmp.i, label %if.then.i, label %if.end.i
+
+if.then.i:                                        ; preds = %cond.end84
+  tail call void @abort() #7
+  unreachable
+
+if.end.i:                                         ; preds = %cond.end84
+  %cmp1.i = fcmp oeq double %sub103, 0.000000e+00
+  br i1 %cmp1.i, label %approx_sqrt.exit, label %do.body.i
+
+do.body.i:                                        ; preds = %if.end.i, %do.body.i
+  %s.0.i = phi double [ %sub5.i, %do.body.i ], [ %sub103, %if.end.i ]
+  %mul.i = fmul double %s.0.i, %s.0.i
+  %sub.i = fsub double %mul.i, %sub103
+  %mul4.i = fmul double %s.0.i, 2.000000e+00
+  %div.i = fdiv double %sub.i, %mul4.i
+  %sub5.i = fsub double %s.0.i, %div.i
+  %cmp6.i = fcmp ogt double %div.i, 1.000000e-04
+  br i1 %cmp6.i, label %do.body.i, label %approx_sqrt.exit
+
+approx_sqrt.exit:                                 ; preds = %do.body.i, %if.end.i
+  %retval.0.i = phi double [ 0.000000e+00, %if.end.i ], [ %sub5.i, %do.body.i ]
+  %call105 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([34 x i8]* @.str7, i64 0, i64 0), double %div89, double %retval.0.i) #6
+  %call106 = tail call i32 (%struct._IO_FILE*, i8*, ...)* @fprintf(%struct._IO_FILE* %6, i8* getelementptr inbounds ([19 x i8]* @.str8, i64 0, i64 0), i64 %longest.2) #6
+  ret void
+}
+
+declare i32 @_obstack_memory_used(%struct.obstack*) #1
+
+; Function Attrs: nounwind
+declare i32 @fprintf(%struct._IO_FILE* nocapture, i8* nocapture readonly, ...) #2
+
+; Function Attrs: nounwind uwtable
+define double @approx_sqrt(double %x) #0 {
+entry:
+  %cmp = fcmp olt double %x, 0.000000e+00
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  tail call void @abort() #7
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %cmp1 = fcmp oeq double %x, 0.000000e+00
+  br i1 %cmp1, label %return, label %do.body
+
+do.body:                                          ; preds = %if.end, %do.body
+  %s.0 = phi double [ %sub5, %do.body ], [ %x, %if.end ]
+  %mul = fmul double %s.0, %s.0
+  %sub = fsub double %mul, %x
+  %mul4 = fmul double %s.0, 2.000000e+00
+  %div = fdiv double %sub, %mul4
+  %sub5 = fsub double %s.0, %div
+  %cmp6 = fcmp ogt double %div, 1.000000e-04
+  br i1 %cmp6, label %do.body, label %return
+
+return:                                           ; preds = %do.body, %if.end
+  %retval.0 = phi double [ 0.000000e+00, %if.end ], [ %sub5, %do.body ]
+  ret double %retval.0
+}
+
+; Function Attrs: noreturn
+declare void @abort() #5
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
+attributes #4 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #6 = { cold nounwind }
+attributes #7 = { noreturn nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !7, i64 48}
+!2 = metadata !{metadata !"obstack", metadata !3, i64 0, metadata !6, i64 8, metadata !6, i64 16, metadata !6, i64 24, metadata !6, i64 32, metadata !3, i64 40, metadata !7, i64 48, metadata !6, i64 56, metadata !6, i64 64, metadata !6, i64 72, metadata !7, i64 80, metadata !7, i64 80, metadata !7, i64 80}
+!3 = metadata !{metadata !"long", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!7 = metadata !{metadata !"int", metadata !4, i64 0}
+!8 = metadata !{metadata !9, metadata !6, i64 88}
+!9 = metadata !{metadata !"ht", metadata !2, i64 0, metadata !6, i64 88, metadata !6, i64 96, metadata !7, i64 104, metadata !7, i64 108, metadata !6, i64 112, metadata !7, i64 120, metadata !7, i64 124}
+!10 = metadata !{metadata !9, metadata !7, i64 104}
+!11 = metadata !{metadata !4, metadata !4, i64 0}
+!12 = metadata !{metadata !9, metadata !7, i64 120}
+!13 = metadata !{metadata !6, metadata !6, i64 0}
+!14 = metadata !{metadata !15, metadata !7, i64 0}
+!15 = metadata !{metadata !"ht_identifier", metadata !7, i64 0, metadata !6, i64 8}
+!16 = metadata !{metadata !15, metadata !6, i64 8}
+!17 = metadata !{metadata !2, metadata !6, i64 8}
+!18 = metadata !{metadata !2, metadata !6, i64 32}
+!19 = metadata !{metadata !2, metadata !6, i64 16}
+!20 = metadata !{metadata !2, metadata !6, i64 24}
+!21 = metadata !{metadata !9, metadata !7, i64 124}
+!22 = metadata !{metadata !9, metadata !6, i64 96}
+!23 = metadata !{metadata !9, metadata !7, i64 108}
+!24 = metadata !{metadata !9, metadata !6, i64 112}

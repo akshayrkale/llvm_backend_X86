@@ -1,0 +1,112 @@
+; ModuleID = 'locale.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@.str2 = private unnamed_addr constant [13 x i8] c"PERL_UNICODE\00", align 1
+@PL_unicode = external global i64
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_set_numeric_radix() #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_new_numeric(i8* nocapture %newnum) #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_set_numeric_standard() #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_set_numeric_local() #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_new_ctype(i8* nocapture %newctype) #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind readnone uwtable
+define void @Perl_new_collate(i8* nocapture %newcoll) #0 {
+entry:
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define i32 @Perl_init_i18nl10n(i32 %printwarn) #1 {
+entry:
+  %p = alloca i8*, align 8
+  %call6 = call i8* @getenv(i8* getelementptr inbounds ([13 x i8]* @.str2, i64 0, i64 0)) #4
+  store i8* %call6, i8** %p, align 8, !tbaa !1
+  %tobool7 = icmp eq i8* %call6, null
+  br i1 %tobool7, label %cond.end, label %cond.true
+
+cond.true:                                        ; preds = %entry
+  %call8 = call i32 (i8**, ...)* bitcast (i32 (...)* @parse_unicode_opts to i32 (i8**, ...)*)(i8** %p) #4
+  %phitmp = sext i32 %call8 to i64
+  br label %cond.end
+
+cond.end:                                         ; preds = %entry, %cond.true
+  %cond = phi i64 [ %phitmp, %cond.true ], [ 0, %entry ]
+  store i64 %cond, i64* @PL_unicode, align 8, !tbaa !5
+  ret i32 1
+}
+
+; Function Attrs: nounwind readonly
+declare i8* @getenv(i8* nocapture) #2
+
+declare i32 @parse_unicode_opts(...) #3
+
+; Function Attrs: nounwind uwtable
+define i32 @Perl_init_i18nl14n(i32 %printwarn) #1 {
+entry:
+  %p.i = alloca i8*, align 8
+  %0 = bitcast i8** %p.i to i8*
+  call void @llvm.lifetime.start(i64 8, i8* %0) #4
+  %call6.i = call i8* @getenv(i8* getelementptr inbounds ([13 x i8]* @.str2, i64 0, i64 0)) #4
+  store i8* %call6.i, i8** %p.i, align 8, !tbaa !1
+  %tobool7.i = icmp eq i8* %call6.i, null
+  br i1 %tobool7.i, label %Perl_init_i18nl10n.exit, label %cond.true.i
+
+cond.true.i:                                      ; preds = %entry
+  %call8.i = call i32 (i8**, ...)* bitcast (i32 (...)* @parse_unicode_opts to i32 (i8**, ...)*)(i8** %p.i) #4
+  %phitmp.i = sext i32 %call8.i to i64
+  br label %Perl_init_i18nl10n.exit
+
+Perl_init_i18nl10n.exit:                          ; preds = %entry, %cond.true.i
+  %cond.i = phi i64 [ %phitmp.i, %cond.true.i ], [ 0, %entry ]
+  store i64 %cond.i, i64* @PL_unicode, align 8, !tbaa !5
+  call void @llvm.lifetime.end(i64 8, i8* %0) #4
+  ret i32 1
+}
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #4
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.end(i64, i8* nocapture) #4
+
+attributes #0 = { nounwind readnone uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !2, i64 0}
+!2 = metadata !{metadata !"any pointer", metadata !3, i64 0}
+!3 = metadata !{metadata !"omnipotent char", metadata !4, i64 0}
+!4 = metadata !{metadata !"Simple C/C++ TBAA"}
+!5 = metadata !{metadata !6, metadata !6, i64 0}
+!6 = metadata !{metadata !"long", metadata !3, i64 0}

@@ -1,0 +1,27 @@
+1. Clone the entire source code into your local directory:
+    git clone https://github.com/akshayrkale/llvm_backend_X86
+
+2. Create a built folder inside the llvm_backend folder:
+    cd llvm_backend_X86
+    mkdir build
+    cd build
+
+3. Configure the build for our Cse523 backend:
+    ../configure --enable-targets=cse523
+
+4. Build backend
+    make
+
+   Binaries will be generated in directory: 
+    llvm_backend_X86/built/Debug+Asserts/bin
+
+
+5. Compiling files using new clang and llc:
+    cd llvm_backend_X86/mytest/spec2006/benchspec/CPU2006/
+    cd any_test/src
+    sh build.sh
+
+6. Generating instruction count logs:
+    cd llvm_backend_X86/mytest/spec2006/benchspec/CPU2006/
+    sh InsnLog.sh     //will read all .S files in directories/sub directories to count instructions emmited.
+    

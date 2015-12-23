@@ -1,0 +1,624 @@
+; ModuleID = 'hash.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.hash_table = type { %struct.hash_entry**, i32, %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)*, i64 (i8*)*, i1 (i8*, i8*)*, %struct.obstack }
+%struct.hash_entry = type { %struct.hash_entry*, i8*, i64 }
+%struct.obstack = type { i64, %struct._obstack_chunk*, i8*, i8*, i8*, i64, i32, %struct._obstack_chunk* (i8*, i64)*, void (i8*, %struct._obstack_chunk*)*, i8*, i8 }
+%struct._obstack_chunk = type { i8*, %struct._obstack_chunk*, [4 x i8] }
+
+; Function Attrs: nounwind uwtable
+define void @hash_table_init_n(%struct.hash_table* %table, %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)* %newfunc, i64 (i8*)* %hash, i1 (i8*, i8*)* %comp, i32 %size) #0 {
+entry:
+  %mul = shl i32 %size, 3
+  %memory = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  %call = tail call i32 @_obstack_begin(%struct.obstack* %memory, i32 %mul, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #3
+  %chunk_limit = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 4
+  %0 = load i8** %chunk_limit, align 8, !tbaa !1
+  %next_free = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 3
+  %1 = load i8** %next_free, align 8, !tbaa !8
+  %sub.ptr.lhs.cast = ptrtoint i8* %0 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %1 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %conv3 = sext i32 %mul to i64
+  %cmp = icmp slt i64 %sub.ptr.sub, %conv3
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  tail call void @_obstack_newchunk(%struct.obstack* %memory, i32 %mul) #3
+  %.pre = load i8** %next_free, align 8, !tbaa !8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %2 = phi i8* [ %.pre, %if.then ], [ %1, %entry ]
+  %add.ptr = getelementptr inbounds i8* %2, i64 %conv3
+  store i8* %add.ptr, i8** %next_free, align 8, !tbaa !8
+  %object_base = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 2
+  %3 = load i8** %object_base, align 8, !tbaa !9
+  %cmp9 = icmp eq i8* %add.ptr, %3
+  br i1 %cmp9, label %if.then11, label %if.end12
+
+if.then11:                                        ; preds = %if.end
+  %maybe_empty_object = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 10
+  %bf.load = load i8* %maybe_empty_object, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %maybe_empty_object, align 8
+  br label %if.end12
+
+if.end12:                                         ; preds = %if.then11, %if.end
+  %sub.ptr.lhs.cast14 = ptrtoint i8* %add.ptr to i64
+  %alignment_mask = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 6
+  %4 = load i32* %alignment_mask, align 4, !tbaa !10
+  %conv16 = sext i32 %4 to i64
+  %add = add nsw i64 %conv16, %sub.ptr.lhs.cast14
+  %neg = xor i32 %4, -1
+  %conv18 = sext i32 %neg to i64
+  %and = and i64 %add, %conv18
+  %add.ptr19 = getelementptr inbounds i8* null, i64 %and
+  store i8* %add.ptr19, i8** %next_free, align 8, !tbaa !8
+  %chunk = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 1
+  %5 = load %struct._obstack_chunk** %chunk, align 8, !tbaa !11
+  %sub.ptr.lhs.cast22 = ptrtoint i8* %add.ptr19 to i64
+  %sub.ptr.rhs.cast23 = ptrtoint %struct._obstack_chunk* %5 to i64
+  %sub.ptr.sub24 = sub i64 %sub.ptr.lhs.cast22, %sub.ptr.rhs.cast23
+  %6 = load i8** %chunk_limit, align 8, !tbaa !1
+  %sub.ptr.lhs.cast27 = ptrtoint i8* %6 to i64
+  %sub.ptr.sub29 = sub i64 %sub.ptr.lhs.cast27, %sub.ptr.rhs.cast23
+  %cmp30 = icmp sgt i64 %sub.ptr.sub24, %sub.ptr.sub29
+  br i1 %cmp30, label %if.then32, label %if.end35
+
+if.then32:                                        ; preds = %if.end12
+  store i8* %6, i8** %next_free, align 8, !tbaa !8
+  br label %if.end35
+
+if.end35:                                         ; preds = %if.then32, %if.end12
+  %7 = phi i8* [ %6, %if.then32 ], [ %add.ptr19, %if.end12 ]
+  store i8* %7, i8** %object_base, align 8, !tbaa !9
+  %8 = bitcast i8* %3 to %struct.hash_entry**
+  %table39 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 0
+  store %struct.hash_entry** %8, %struct.hash_entry*** %table39, align 8, !tbaa !12
+  %conv41 = zext i32 %mul to i64
+  tail call void @llvm.memset.p0i8.i64(i8* %3, i8 0, i64 %conv41, i32 1, i1 false)
+  %size42 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 1
+  store i32 %size, i32* %size42, align 4, !tbaa !14
+  %newfunc43 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 2
+  store %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)* %newfunc, %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)** %newfunc43, align 8, !tbaa !15
+  %hash44 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 3
+  store i64 (i8*)* %hash, i64 (i8*)** %hash44, align 8, !tbaa !16
+  %comp45 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 4
+  store i1 (i8*, i8*)* %comp, i1 (i8*, i8*)** %comp45, align 8, !tbaa !17
+  ret void
+}
+
+declare i32 @_obstack_begin(%struct.obstack*, i32, i32, i8* (i64)*, void (i8*)*) #1
+
+declare noalias i8* @xmalloc(i64) #1
+
+; Function Attrs: nounwind
+declare void @free(i8* nocapture) #2
+
+declare void @_obstack_newchunk(%struct.obstack*, i32) #1
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #3
+
+; Function Attrs: nounwind uwtable
+define void @hash_table_init(%struct.hash_table* %table, %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)* %newfunc, i64 (i8*)* %hash, i1 (i8*, i8*)* %comp) #0 {
+entry:
+  %memory.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  %call.i = tail call i32 @_obstack_begin(%struct.obstack* %memory.i, i32 8072, i32 0, i8* (i64)* @xmalloc, void (i8*)* @free) #3
+  %chunk_limit.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 4
+  %0 = load i8** %chunk_limit.i, align 8, !tbaa !1
+  %next_free.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 3
+  %1 = load i8** %next_free.i, align 8, !tbaa !8
+  %sub.ptr.lhs.cast.i = ptrtoint i8* %0 to i64
+  %sub.ptr.rhs.cast.i = ptrtoint i8* %1 to i64
+  %sub.ptr.sub.i = sub i64 %sub.ptr.lhs.cast.i, %sub.ptr.rhs.cast.i
+  %cmp.i = icmp slt i64 %sub.ptr.sub.i, 8072
+  br i1 %cmp.i, label %if.then.i, label %if.end.i
+
+if.then.i:                                        ; preds = %entry
+  tail call void @_obstack_newchunk(%struct.obstack* %memory.i, i32 8072) #3
+  %.pre.i = load i8** %next_free.i, align 8, !tbaa !8
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.then.i, %entry
+  %2 = phi i8* [ %.pre.i, %if.then.i ], [ %1, %entry ]
+  %add.ptr.i = getelementptr inbounds i8* %2, i64 8072
+  store i8* %add.ptr.i, i8** %next_free.i, align 8, !tbaa !8
+  %object_base.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 2
+  %3 = load i8** %object_base.i, align 8, !tbaa !9
+  %cmp9.i = icmp eq i8* %add.ptr.i, %3
+  br i1 %cmp9.i, label %if.then11.i, label %if.end12.i
+
+if.then11.i:                                      ; preds = %if.end.i
+  %maybe_empty_object.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 10
+  %bf.load.i = load i8* %maybe_empty_object.i, align 8
+  %bf.set.i = or i8 %bf.load.i, 2
+  store i8 %bf.set.i, i8* %maybe_empty_object.i, align 8
+  br label %if.end12.i
+
+if.end12.i:                                       ; preds = %if.then11.i, %if.end.i
+  %sub.ptr.lhs.cast14.i = ptrtoint i8* %add.ptr.i to i64
+  %alignment_mask.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 6
+  %4 = load i32* %alignment_mask.i, align 4, !tbaa !10
+  %conv16.i = sext i32 %4 to i64
+  %add.i = add nsw i64 %conv16.i, %sub.ptr.lhs.cast14.i
+  %neg.i = xor i32 %4, -1
+  %conv18.i = sext i32 %neg.i to i64
+  %and.i = and i64 %add.i, %conv18.i
+  %add.ptr19.i = getelementptr inbounds i8* null, i64 %and.i
+  store i8* %add.ptr19.i, i8** %next_free.i, align 8, !tbaa !8
+  %chunk.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 1
+  %5 = load %struct._obstack_chunk** %chunk.i, align 8, !tbaa !11
+  %sub.ptr.lhs.cast22.i = ptrtoint i8* %add.ptr19.i to i64
+  %sub.ptr.rhs.cast23.i = ptrtoint %struct._obstack_chunk* %5 to i64
+  %sub.ptr.sub24.i = sub i64 %sub.ptr.lhs.cast22.i, %sub.ptr.rhs.cast23.i
+  %6 = load i8** %chunk_limit.i, align 8, !tbaa !1
+  %sub.ptr.lhs.cast27.i = ptrtoint i8* %6 to i64
+  %sub.ptr.sub29.i = sub i64 %sub.ptr.lhs.cast27.i, %sub.ptr.rhs.cast23.i
+  %cmp30.i = icmp sgt i64 %sub.ptr.sub24.i, %sub.ptr.sub29.i
+  br i1 %cmp30.i, label %if.then32.i, label %hash_table_init_n.exit
+
+if.then32.i:                                      ; preds = %if.end12.i
+  store i8* %6, i8** %next_free.i, align 8, !tbaa !8
+  br label %hash_table_init_n.exit
+
+hash_table_init_n.exit:                           ; preds = %if.end12.i, %if.then32.i
+  %7 = phi i8* [ %6, %if.then32.i ], [ %add.ptr19.i, %if.end12.i ]
+  store i8* %7, i8** %object_base.i, align 8, !tbaa !9
+  %8 = bitcast i8* %3 to %struct.hash_entry**
+  %table39.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 0
+  store %struct.hash_entry** %8, %struct.hash_entry*** %table39.i, align 8, !tbaa !12
+  tail call void @llvm.memset.p0i8.i64(i8* %3, i8 0, i64 8072, i32 1, i1 false) #3
+  %size42.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 1
+  store i32 1009, i32* %size42.i, align 4, !tbaa !14
+  %newfunc43.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 2
+  store %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)* %newfunc, %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)** %newfunc43.i, align 8, !tbaa !15
+  %hash44.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 3
+  store i64 (i8*)* %hash, i64 (i8*)** %hash44.i, align 8, !tbaa !16
+  %comp45.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 4
+  store i1 (i8*, i8*)* %comp, i1 (i8*, i8*)** %comp45.i, align 8, !tbaa !17
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define void @hash_table_free(%struct.hash_table* %table) #0 {
+entry:
+  %memory = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  tail call void @obstack_free(%struct.obstack* %memory, i8* null) #3
+  ret void
+}
+
+declare void @obstack_free(%struct.obstack*, i8*) #1
+
+; Function Attrs: nounwind uwtable
+define %struct.hash_entry* @hash_lookup(%struct.hash_table* %table, i8* %key, i32 %create, i8* (%struct.obstack*, i8*)* %copy) #0 {
+entry:
+  %hash1 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 3
+  %0 = load i64 (i8*)** %hash1, align 8, !tbaa !16
+  %call = tail call i64 %0(i8* %key) #3
+  %size = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 1
+  %1 = load i32* %size, align 4, !tbaa !14
+  %conv = zext i32 %1 to i64
+  %rem = urem i64 %call, %conv
+  %table3 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 0
+  %2 = load %struct.hash_entry*** %table3, align 8, !tbaa !12
+  %arrayidx = getelementptr inbounds %struct.hash_entry** %2, i64 %rem
+  %hashp.059 = load %struct.hash_entry** %arrayidx, align 8
+  %cmp60 = icmp eq %struct.hash_entry* %hashp.059, null
+  br i1 %cmp60, label %for.end, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %entry
+  %comp = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 4
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.inc
+  %hashp.061 = phi %struct.hash_entry* [ %hashp.059, %for.body.lr.ph ], [ %hashp.0, %for.inc ]
+  %hash5 = getelementptr inbounds %struct.hash_entry* %hashp.061, i64 0, i32 2
+  %3 = load i64* %hash5, align 8, !tbaa !18
+  %cmp6 = icmp eq i64 %3, %call
+  br i1 %cmp6, label %land.lhs.true, label %for.inc
+
+land.lhs.true:                                    ; preds = %for.body
+  %4 = load i1 (i8*, i8*)** %comp, align 8, !tbaa !17
+  %key8 = getelementptr inbounds %struct.hash_entry* %hashp.061, i64 0, i32 1
+  %5 = load i8** %key8, align 8, !tbaa !20
+  %call9 = tail call zeroext i1 %4(i8* %5, i8* %key) #3
+  br i1 %call9, label %return, label %for.inc
+
+for.inc:                                          ; preds = %for.body, %land.lhs.true
+  %next = getelementptr inbounds %struct.hash_entry* %hashp.061, i64 0, i32 0
+  %hashp.0 = load %struct.hash_entry** %next, align 8
+  %cmp = icmp eq %struct.hash_entry* %hashp.0, null
+  br i1 %cmp, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.inc, %entry
+  %tobool = icmp eq i32 %create, 0
+  br i1 %tobool, label %return, label %if.end12
+
+if.end12:                                         ; preds = %for.end
+  %newfunc = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 2
+  %6 = load %struct.hash_entry* (%struct.hash_entry*, %struct.hash_table*, i8*)** %newfunc, align 8, !tbaa !15
+  %call13 = tail call %struct.hash_entry* %6(%struct.hash_entry* null, %struct.hash_table* %table, i8* %key) #3
+  %cmp14 = icmp eq %struct.hash_entry* %call13, null
+  br i1 %cmp14, label %return, label %if.end17
+
+if.end17:                                         ; preds = %if.end12
+  %tobool18 = icmp eq i8* (%struct.obstack*, i8*)* %copy, null
+  br i1 %tobool18, label %if.end21, label %if.then19
+
+if.then19:                                        ; preds = %if.end17
+  %memory = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  %call20 = tail call i8* %copy(%struct.obstack* %memory, i8* %key) #3
+  br label %if.end21
+
+if.end21:                                         ; preds = %if.end17, %if.then19
+  %key.addr.0 = phi i8* [ %call20, %if.then19 ], [ %key, %if.end17 ]
+  %key22 = getelementptr inbounds %struct.hash_entry* %call13, i64 0, i32 1
+  store i8* %key.addr.0, i8** %key22, align 8, !tbaa !20
+  %hash23 = getelementptr inbounds %struct.hash_entry* %call13, i64 0, i32 2
+  store i64 %call, i64* %hash23, align 8, !tbaa !18
+  %7 = load %struct.hash_entry*** %table3, align 8, !tbaa !12
+  %arrayidx26 = getelementptr inbounds %struct.hash_entry** %7, i64 %rem
+  %8 = load %struct.hash_entry** %arrayidx26, align 8, !tbaa !21
+  %next27 = getelementptr inbounds %struct.hash_entry* %call13, i64 0, i32 0
+  store %struct.hash_entry* %8, %struct.hash_entry** %next27, align 8, !tbaa !22
+  store %struct.hash_entry* %call13, %struct.hash_entry** %arrayidx26, align 8, !tbaa !21
+  br label %return
+
+return:                                           ; preds = %land.lhs.true, %if.end12, %for.end, %if.end21
+  %retval.0 = phi %struct.hash_entry* [ %call13, %if.end21 ], [ null, %for.end ], [ null, %if.end12 ], [ %hashp.061, %land.lhs.true ]
+  ret %struct.hash_entry* %retval.0
+}
+
+; Function Attrs: nounwind uwtable
+define %struct.hash_entry* @hash_newfunc(%struct.hash_entry* readnone %entry1, %struct.hash_table* %table, i8* nocapture readnone %p) #0 {
+entry:
+  %cmp = icmp eq %struct.hash_entry* %entry1, null
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %chunk_limit.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 4
+  %0 = load i8** %chunk_limit.i, align 8, !tbaa !1
+  %next_free.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 3
+  %1 = load i8** %next_free.i, align 8, !tbaa !8
+  %sub.ptr.lhs.cast.i = ptrtoint i8* %0 to i64
+  %sub.ptr.rhs.cast.i = ptrtoint i8* %1 to i64
+  %sub.ptr.sub.i = sub i64 %sub.ptr.lhs.cast.i, %sub.ptr.rhs.cast.i
+  %cmp.i = icmp slt i64 %sub.ptr.sub.i, 24
+  br i1 %cmp.i, label %if.then.i, label %if.end.i
+
+if.then.i:                                        ; preds = %if.then
+  %memory.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  tail call void @_obstack_newchunk(%struct.obstack* %memory.i, i32 24) #3
+  %.pre.i = load i8** %next_free.i, align 8, !tbaa !8
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.then.i, %if.then
+  %2 = phi i8* [ %.pre.i, %if.then.i ], [ %1, %if.then ]
+  %add.ptr.i = getelementptr inbounds i8* %2, i64 24
+  store i8* %add.ptr.i, i8** %next_free.i, align 8, !tbaa !8
+  %object_base.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 2
+  %3 = load i8** %object_base.i, align 8, !tbaa !9
+  %cmp6.i = icmp eq i8* %add.ptr.i, %3
+  br i1 %cmp6.i, label %if.then8.i, label %if.end9.i
+
+if.then8.i:                                       ; preds = %if.end.i
+  %maybe_empty_object.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 10
+  %bf.load.i = load i8* %maybe_empty_object.i, align 8
+  %bf.set.i = or i8 %bf.load.i, 2
+  store i8 %bf.set.i, i8* %maybe_empty_object.i, align 8
+  br label %if.end9.i
+
+if.end9.i:                                        ; preds = %if.then8.i, %if.end.i
+  %sub.ptr.lhs.cast11.i = ptrtoint i8* %add.ptr.i to i64
+  %alignment_mask.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 6
+  %4 = load i32* %alignment_mask.i, align 4, !tbaa !10
+  %conv13.i = sext i32 %4 to i64
+  %add.i = add nsw i64 %conv13.i, %sub.ptr.lhs.cast11.i
+  %neg.i = xor i32 %4, -1
+  %conv15.i = sext i32 %neg.i to i64
+  %and.i = and i64 %add.i, %conv15.i
+  %add.ptr16.i = getelementptr inbounds i8* null, i64 %and.i
+  store i8* %add.ptr16.i, i8** %next_free.i, align 8, !tbaa !8
+  %chunk.i = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 1
+  %5 = load %struct._obstack_chunk** %chunk.i, align 8, !tbaa !11
+  %sub.ptr.lhs.cast19.i = ptrtoint i8* %add.ptr16.i to i64
+  %sub.ptr.rhs.cast20.i = ptrtoint %struct._obstack_chunk* %5 to i64
+  %sub.ptr.sub21.i = sub i64 %sub.ptr.lhs.cast19.i, %sub.ptr.rhs.cast20.i
+  %6 = load i8** %chunk_limit.i, align 8, !tbaa !1
+  %sub.ptr.lhs.cast24.i = ptrtoint i8* %6 to i64
+  %sub.ptr.sub26.i = sub i64 %sub.ptr.lhs.cast24.i, %sub.ptr.rhs.cast20.i
+  %cmp27.i = icmp sgt i64 %sub.ptr.sub21.i, %sub.ptr.sub26.i
+  br i1 %cmp27.i, label %if.then29.i, label %hash_allocate.exit
+
+if.then29.i:                                      ; preds = %if.end9.i
+  store i8* %6, i8** %next_free.i, align 8, !tbaa !8
+  br label %hash_allocate.exit
+
+hash_allocate.exit:                               ; preds = %if.end9.i, %if.then29.i
+  %7 = phi i8* [ %6, %if.then29.i ], [ %add.ptr16.i, %if.end9.i ]
+  store i8* %7, i8** %object_base.i, align 8, !tbaa !9
+  %8 = bitcast i8* %3 to %struct.hash_entry*
+  br label %if.end
+
+if.end:                                           ; preds = %hash_allocate.exit, %entry
+  %entry.addr.0 = phi %struct.hash_entry* [ %8, %hash_allocate.exit ], [ %entry1, %entry ]
+  ret %struct.hash_entry* %entry.addr.0
+}
+
+; Function Attrs: nounwind uwtable
+define i8* @hash_allocate(%struct.hash_table* %table, i32 %size) #0 {
+entry:
+  %chunk_limit = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 4
+  %0 = load i8** %chunk_limit, align 8, !tbaa !1
+  %next_free = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 3
+  %1 = load i8** %next_free, align 8, !tbaa !8
+  %sub.ptr.lhs.cast = ptrtoint i8* %0 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %1 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %conv = sext i32 %size to i64
+  %cmp = icmp slt i64 %sub.ptr.sub, %conv
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %memory = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5
+  tail call void @_obstack_newchunk(%struct.obstack* %memory, i32 %size) #3
+  %.pre = load i8** %next_free, align 8, !tbaa !8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %2 = phi i8* [ %.pre, %if.then ], [ %1, %entry ]
+  %add.ptr = getelementptr inbounds i8* %2, i64 %conv
+  store i8* %add.ptr, i8** %next_free, align 8, !tbaa !8
+  %object_base = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 2
+  %3 = load i8** %object_base, align 8, !tbaa !9
+  %cmp6 = icmp eq i8* %add.ptr, %3
+  br i1 %cmp6, label %if.then8, label %if.end9
+
+if.then8:                                         ; preds = %if.end
+  %maybe_empty_object = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 10
+  %bf.load = load i8* %maybe_empty_object, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %maybe_empty_object, align 8
+  br label %if.end9
+
+if.end9:                                          ; preds = %if.then8, %if.end
+  %sub.ptr.lhs.cast11 = ptrtoint i8* %add.ptr to i64
+  %alignment_mask = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 6
+  %4 = load i32* %alignment_mask, align 4, !tbaa !10
+  %conv13 = sext i32 %4 to i64
+  %add = add nsw i64 %conv13, %sub.ptr.lhs.cast11
+  %neg = xor i32 %4, -1
+  %conv15 = sext i32 %neg to i64
+  %and = and i64 %add, %conv15
+  %add.ptr16 = getelementptr inbounds i8* null, i64 %and
+  store i8* %add.ptr16, i8** %next_free, align 8, !tbaa !8
+  %chunk = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 5, i32 1
+  %5 = load %struct._obstack_chunk** %chunk, align 8, !tbaa !11
+  %sub.ptr.lhs.cast19 = ptrtoint i8* %add.ptr16 to i64
+  %sub.ptr.rhs.cast20 = ptrtoint %struct._obstack_chunk* %5 to i64
+  %sub.ptr.sub21 = sub i64 %sub.ptr.lhs.cast19, %sub.ptr.rhs.cast20
+  %6 = load i8** %chunk_limit, align 8, !tbaa !1
+  %sub.ptr.lhs.cast24 = ptrtoint i8* %6 to i64
+  %sub.ptr.sub26 = sub i64 %sub.ptr.lhs.cast24, %sub.ptr.rhs.cast20
+  %cmp27 = icmp sgt i64 %sub.ptr.sub21, %sub.ptr.sub26
+  br i1 %cmp27, label %if.then29, label %if.end32
+
+if.then29:                                        ; preds = %if.end9
+  store i8* %6, i8** %next_free, align 8, !tbaa !8
+  br label %if.end32
+
+if.end32:                                         ; preds = %if.then29, %if.end9
+  %7 = phi i8* [ %6, %if.then29 ], [ %add.ptr16, %if.end9 ]
+  store i8* %7, i8** %object_base, align 8, !tbaa !9
+  ret i8* %3
+}
+
+; Function Attrs: nounwind uwtable
+define void @hash_traverse(%struct.hash_table* nocapture readonly %table, i1 (%struct.hash_entry*, i8*)* nocapture %func, i8* %info) #0 {
+entry:
+  %size = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 1
+  %0 = load i32* %size, align 4, !tbaa !14
+  %cmp16 = icmp eq i32 %0, 0
+  br i1 %cmp16, label %for.end6, label %for.body.lr.ph
+
+for.body.lr.ph:                                   ; preds = %entry
+  %table1 = getelementptr inbounds %struct.hash_table* %table, i64 0, i32 0
+  br label %for.body
+
+for.body:                                         ; preds = %for.body.lr.ph, %for.inc5
+  %1 = phi i32 [ %0, %for.body.lr.ph ], [ %3, %for.inc5 ]
+  %i.017 = phi i32 [ 0, %for.body.lr.ph ], [ %inc, %for.inc5 ]
+  %idxprom = zext i32 %i.017 to i64
+  %2 = load %struct.hash_entry*** %table1, align 8, !tbaa !12
+  %arrayidx = getelementptr inbounds %struct.hash_entry** %2, i64 %idxprom
+  %p.013 = load %struct.hash_entry** %arrayidx, align 8
+  %cmp314 = icmp eq %struct.hash_entry* %p.013, null
+  br i1 %cmp314, label %for.inc5, label %for.body4
+
+for.cond2:                                        ; preds = %for.body4
+  %next = getelementptr inbounds %struct.hash_entry* %p.015, i64 0, i32 0
+  %p.0 = load %struct.hash_entry** %next, align 8
+  %cmp3 = icmp eq %struct.hash_entry* %p.0, null
+  br i1 %cmp3, label %for.cond2.for.inc5_crit_edge, label %for.body4
+
+for.body4:                                        ; preds = %for.body, %for.cond2
+  %p.015 = phi %struct.hash_entry* [ %p.0, %for.cond2 ], [ %p.013, %for.body ]
+  %call = tail call zeroext i1 %func(%struct.hash_entry* %p.015, i8* %info) #3
+  br i1 %call, label %for.cond2, label %for.end6
+
+for.cond2.for.inc5_crit_edge:                     ; preds = %for.cond2
+  %.pre = load i32* %size, align 4, !tbaa !14
+  br label %for.inc5
+
+for.inc5:                                         ; preds = %for.cond2.for.inc5_crit_edge, %for.body
+  %3 = phi i32 [ %.pre, %for.cond2.for.inc5_crit_edge ], [ %1, %for.body ]
+  %inc = add i32 %i.017, 1
+  %cmp = icmp ult i32 %inc, %3
+  br i1 %cmp, label %for.body, label %for.end6
+
+for.end6:                                         ; preds = %for.inc5, %for.body4, %entry
+  ret void
+}
+
+; Function Attrs: nounwind readonly uwtable
+define i64 @string_hash(i8* nocapture readonly %k) #4 {
+entry:
+  %0 = load i8* %k, align 1, !tbaa !23
+  %cmp22 = icmp eq i8 %0, 0
+  br i1 %cmp22, label %while.end, label %while.body
+
+while.body:                                       ; preds = %entry, %while.body
+  %1 = phi i8 [ %2, %while.body ], [ %0, %entry ]
+  %len.025 = phi i32 [ %inc, %while.body ], [ 0, %entry ]
+  %s.024 = phi i8* [ %incdec.ptr, %while.body ], [ %k, %entry ]
+  %hash.023 = phi i64 [ %xor, %while.body ], [ 0, %entry ]
+  %conv = zext i8 %1 to i64
+  %incdec.ptr = getelementptr inbounds i8* %s.024, i64 1
+  %add = mul i64 %conv, 131073
+  %add5 = add i64 %add, %hash.023
+  %shr = lshr i64 %add5, 2
+  %xor = xor i64 %shr, %add5
+  %inc = add i32 %len.025, 1
+  %2 = load i8* %incdec.ptr, align 1, !tbaa !23
+  %cmp = icmp eq i8 %2, 0
+  br i1 %cmp, label %while.cond.while.end_crit_edge, label %while.body
+
+while.cond.while.end_crit_edge:                   ; preds = %while.body
+  %phitmp = mul i32 %inc, 131073
+  %phitmp27 = zext i32 %phitmp to i64
+  br label %while.end
+
+while.end:                                        ; preds = %while.cond.while.end_crit_edge, %entry
+  %len.0.lcssa = phi i64 [ %phitmp27, %while.cond.while.end_crit_edge ], [ 0, %entry ]
+  %hash.0.lcssa = phi i64 [ %xor, %while.cond.while.end_crit_edge ], [ 0, %entry ]
+  %add9 = add i64 %len.0.lcssa, %hash.0.lcssa
+  %shr10 = lshr i64 %add9, 2
+  %xor11 = xor i64 %shr10, %add9
+  ret i64 %xor11
+}
+
+; Function Attrs: nounwind readonly uwtable
+define zeroext i1 @string_compare(i8* nocapture readonly %k1, i8* nocapture readonly %k2) #4 {
+entry:
+  %call = tail call i32 @strcmp(i8* %k1, i8* %k2) #3
+  %cmp = icmp eq i32 %call, 0
+  ret i1 %cmp
+}
+
+; Function Attrs: nounwind readonly
+declare i32 @strcmp(i8* nocapture, i8* nocapture) #5
+
+; Function Attrs: nounwind uwtable
+define i8* @string_copy(%struct.obstack* %memory, i8* nocapture readonly %k) #0 {
+entry:
+  %call = tail call i64 @strlen(i8* %k) #3
+  %add = add i64 %call, 1
+  %chunk_limit = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 4
+  %0 = load i8** %chunk_limit, align 8, !tbaa !1
+  %next_free = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 3
+  %1 = load i8** %next_free, align 8, !tbaa !8
+  %sub.ptr.lhs.cast = ptrtoint i8* %0 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %1 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %sext = shl i64 %add, 32
+  %conv1 = ashr exact i64 %sext, 32
+  %cmp = icmp slt i64 %sub.ptr.sub, %conv1
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %conv = trunc i64 %add to i32
+  tail call void @_obstack_newchunk(%struct.obstack* %memory, i32 %conv) #3
+  %.pre = load i8** %next_free, align 8, !tbaa !8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %2 = phi i8* [ %.pre, %if.then ], [ %1, %entry ]
+  %add.ptr = getelementptr inbounds i8* %2, i64 %conv1
+  store i8* %add.ptr, i8** %next_free, align 8, !tbaa !8
+  %object_base = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 2
+  %3 = load i8** %object_base, align 8, !tbaa !9
+  %cmp7 = icmp eq i8* %add.ptr, %3
+  br i1 %cmp7, label %if.then9, label %if.end10
+
+if.then9:                                         ; preds = %if.end
+  %maybe_empty_object = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 10
+  %bf.load = load i8* %maybe_empty_object, align 8
+  %bf.set = or i8 %bf.load, 2
+  store i8 %bf.set, i8* %maybe_empty_object, align 8
+  br label %if.end10
+
+if.end10:                                         ; preds = %if.then9, %if.end
+  %sub.ptr.lhs.cast12 = ptrtoint i8* %add.ptr to i64
+  %alignment_mask = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 6
+  %4 = load i32* %alignment_mask, align 4, !tbaa !10
+  %conv14 = sext i32 %4 to i64
+  %add15 = add nsw i64 %conv14, %sub.ptr.lhs.cast12
+  %neg = xor i32 %4, -1
+  %conv17 = sext i32 %neg to i64
+  %and = and i64 %add15, %conv17
+  %add.ptr18 = getelementptr inbounds i8* null, i64 %and
+  store i8* %add.ptr18, i8** %next_free, align 8, !tbaa !8
+  %chunk = getelementptr inbounds %struct.obstack* %memory, i64 0, i32 1
+  %5 = load %struct._obstack_chunk** %chunk, align 8, !tbaa !11
+  %sub.ptr.lhs.cast21 = ptrtoint i8* %add.ptr18 to i64
+  %sub.ptr.rhs.cast22 = ptrtoint %struct._obstack_chunk* %5 to i64
+  %sub.ptr.sub23 = sub i64 %sub.ptr.lhs.cast21, %sub.ptr.rhs.cast22
+  %6 = load i8** %chunk_limit, align 8, !tbaa !1
+  %sub.ptr.lhs.cast26 = ptrtoint i8* %6 to i64
+  %sub.ptr.sub28 = sub i64 %sub.ptr.lhs.cast26, %sub.ptr.rhs.cast22
+  %cmp29 = icmp sgt i64 %sub.ptr.sub23, %sub.ptr.sub28
+  br i1 %cmp29, label %if.then31, label %if.end34
+
+if.then31:                                        ; preds = %if.end10
+  store i8* %6, i8** %next_free, align 8, !tbaa !8
+  br label %if.end34
+
+if.end34:                                         ; preds = %if.then31, %if.end10
+  %7 = phi i8* [ %6, %if.then31 ], [ %add.ptr18, %if.end10 ]
+  store i8* %7, i8** %object_base, align 8, !tbaa !9
+  %call38 = tail call i8* @strcpy(i8* %3, i8* %k) #3
+  ret i8* %3
+}
+
+; Function Attrs: nounwind readonly
+declare i64 @strlen(i8* nocapture) #5
+
+; Function Attrs: nounwind
+declare i8* @strcpy(i8*, i8* nocapture readonly) #2
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
+attributes #4 = { nounwind readonly uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !6, i64 32}
+!2 = metadata !{metadata !"obstack", metadata !3, i64 0, metadata !6, i64 8, metadata !6, i64 16, metadata !6, i64 24, metadata !6, i64 32, metadata !3, i64 40, metadata !7, i64 48, metadata !6, i64 56, metadata !6, i64 64, metadata !6, i64 72, metadata !7, i64 80, metadata !7, i64 80, metadata !7, i64 80}
+!3 = metadata !{metadata !"long", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!7 = metadata !{metadata !"int", metadata !4, i64 0}
+!8 = metadata !{metadata !2, metadata !6, i64 24}
+!9 = metadata !{metadata !2, metadata !6, i64 16}
+!10 = metadata !{metadata !2, metadata !7, i64 48}
+!11 = metadata !{metadata !2, metadata !6, i64 8}
+!12 = metadata !{metadata !13, metadata !6, i64 0}
+!13 = metadata !{metadata !"hash_table", metadata !6, i64 0, metadata !7, i64 8, metadata !6, i64 16, metadata !6, i64 24, metadata !6, i64 32, metadata !2, i64 40}
+!14 = metadata !{metadata !13, metadata !7, i64 8}
+!15 = metadata !{metadata !13, metadata !6, i64 16}
+!16 = metadata !{metadata !13, metadata !6, i64 24}
+!17 = metadata !{metadata !13, metadata !6, i64 32}
+!18 = metadata !{metadata !19, metadata !3, i64 16}
+!19 = metadata !{metadata !"hash_entry", metadata !6, i64 0, metadata !6, i64 8, metadata !3, i64 16}
+!20 = metadata !{metadata !19, metadata !6, i64 8}
+!21 = metadata !{metadata !6, metadata !6, i64 0}
+!22 = metadata !{metadata !19, metadata !6, i64 0}
+!23 = metadata !{metadata !4, metadata !4, i64 0}

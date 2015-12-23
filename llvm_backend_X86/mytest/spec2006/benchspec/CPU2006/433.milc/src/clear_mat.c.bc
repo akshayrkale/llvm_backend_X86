@@ -1,0 +1,24 @@
+; ModuleID = 'clear_mat.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su3_matrix = type { [3 x [3 x %struct.complex]] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @clear_su3mat(%struct.su3_matrix* nocapture %dest) #0 {
+entry:
+  %0 = bitcast %struct.su3_matrix* %dest to i8*
+  call void @llvm.memset.p0i8.i64(i8* %0, i8 0, i64 144, i32 8, i1 false)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}

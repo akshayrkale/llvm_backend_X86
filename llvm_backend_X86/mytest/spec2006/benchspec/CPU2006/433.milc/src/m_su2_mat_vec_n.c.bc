@@ -1,0 +1,80 @@
+; ModuleID = 'm_su2_mat_vec_n.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%struct.su2_matrix = type { [2 x [2 x %struct.complex]] }
+%struct.complex = type { double, double }
+
+; Function Attrs: nounwind uwtable
+define void @mult_su2_mat_vec_elem_n(%struct.su2_matrix* nocapture readonly %u, %struct.complex* nocapture %x0, %struct.complex* nocapture %x1) #0 {
+entry:
+  %t0.sroa.0.0..sroa_idx = getelementptr inbounds %struct.complex* %x0, i64 0, i32 0
+  %t0.sroa.0.0.copyload = load double* %t0.sroa.0.0..sroa_idx, align 8
+  %t0.sroa.5.0..sroa_idx132 = getelementptr inbounds %struct.complex* %x0, i64 0, i32 1
+  %t0.sroa.5.0.copyload = load double* %t0.sroa.5.0..sroa_idx132, align 8
+  %t1.sroa.0.0..sroa_idx = getelementptr inbounds %struct.complex* %x1, i64 0, i32 0
+  %t1.sroa.0.0.copyload = load double* %t1.sroa.0.0..sroa_idx, align 8
+  %t1.sroa.5.0..sroa_idx125 = getelementptr inbounds %struct.complex* %x1, i64 0, i32 1
+  %t1.sroa.5.0.copyload = load double* %t1.sroa.5.0..sroa_idx125, align 8
+  %real = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 0, i64 0, i32 0
+  %0 = load double* %real, align 8, !tbaa !1
+  %mul = fmul double %t0.sroa.0.0.copyload, %0
+  %imag = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 0, i64 0, i32 1
+  %1 = load double* %imag, align 8, !tbaa !6
+  %mul7 = fmul double %t0.sroa.5.0.copyload, %1
+  %sub = fsub double %mul, %mul7
+  %mul14 = fmul double %t0.sroa.5.0.copyload, %0
+  %mul20 = fmul double %t0.sroa.0.0.copyload, %1
+  %add = fadd double %mul14, %mul20
+  %real25 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 0, i64 1, i32 0
+  %2 = load double* %real25, align 8, !tbaa !1
+  %mul27 = fmul double %t1.sroa.0.0.copyload, %2
+  %imag31 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 0, i64 1, i32 1
+  %3 = load double* %imag31, align 8, !tbaa !6
+  %mul33 = fmul double %t1.sroa.5.0.copyload, %3
+  %sub34 = fsub double %mul27, %mul33
+  %mul41 = fmul double %t1.sroa.5.0.copyload, %2
+  %mul47 = fmul double %t1.sroa.0.0.copyload, %3
+  %add48 = fadd double %mul41, %mul47
+  %add52 = fadd double %sub, %sub34
+  store double %add52, double* %t0.sroa.0.0..sroa_idx, align 8, !tbaa !1
+  %add56 = fadd double %add, %add48
+  store double %add56, double* %t0.sroa.5.0..sroa_idx132, align 8, !tbaa !6
+  %real61 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 1, i64 0, i32 0
+  %4 = load double* %real61, align 8, !tbaa !1
+  %mul63 = fmul double %t0.sroa.0.0.copyload, %4
+  %imag67 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 1, i64 0, i32 1
+  %5 = load double* %imag67, align 8, !tbaa !6
+  %mul69 = fmul double %t0.sroa.5.0.copyload, %5
+  %sub70 = fsub double %mul63, %mul69
+  %mul77 = fmul double %t0.sroa.5.0.copyload, %4
+  %mul83 = fmul double %t0.sroa.0.0.copyload, %5
+  %add84 = fadd double %mul77, %mul83
+  %real89 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 1, i64 1, i32 0
+  %6 = load double* %real89, align 8, !tbaa !1
+  %mul91 = fmul double %t1.sroa.0.0.copyload, %6
+  %imag95 = getelementptr inbounds %struct.su2_matrix* %u, i64 0, i32 0, i64 1, i64 1, i32 1
+  %7 = load double* %imag95, align 8, !tbaa !6
+  %mul97 = fmul double %t1.sroa.5.0.copyload, %7
+  %sub98 = fsub double %mul91, %mul97
+  %mul105 = fmul double %t1.sroa.5.0.copyload, %6
+  %mul111 = fmul double %t1.sroa.0.0.copyload, %7
+  %add112 = fadd double %mul105, %mul111
+  %add116 = fadd double %sub70, %sub98
+  store double %add116, double* %t1.sroa.0.0..sroa_idx, align 8, !tbaa !1
+  %add120 = fadd double %add84, %add112
+  store double %add120, double* %t1.sroa.5.0..sroa_idx125, align 8, !tbaa !6
+  ret void
+}
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 0}
+!2 = metadata !{metadata !"", metadata !3, i64 0, metadata !3, i64 8}
+!3 = metadata !{metadata !"double", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !2, metadata !3, i64 8}

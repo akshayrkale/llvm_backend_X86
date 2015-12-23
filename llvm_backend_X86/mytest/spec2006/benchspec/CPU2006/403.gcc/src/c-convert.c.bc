@@ -1,0 +1,181 @@
+; ModuleID = 'c-convert.c'
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+%union.tree_node = type { %struct.tree_decl }
+%struct.tree_decl = type { %struct.tree_common, i8*, i32, i32, %union.tree_node*, i48, %union.anon, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %union.tree_node*, %struct.rtx_def*, %struct.rtx_def*, %union.anon.1, %union.tree_node*, %union.tree_node*, %union.tree_node*, i64, %struct.lang_decl* }
+%struct.tree_common = type { %union.tree_node*, %union.tree_node*, i32 }
+%union.anon = type { i64 }
+%struct.rtx_def = type opaque
+%union.anon.1 = type { %struct.function* }
+%struct.function = type opaque
+%struct.lang_decl = type opaque
+
+@global_trees = external global [51 x %union.tree_node*]
+@.str = private unnamed_addr constant [41 x i8] c"void value not ignored as it ought to be\00", align 1
+@.str1 = private unnamed_addr constant [40 x i8] c"conversion to non-scalar type requested\00", align 1
+
+; Function Attrs: nounwind uwtable
+define %union.tree_node* @convert(%union.tree_node* %type, %union.tree_node* %expr) #0 {
+entry:
+  %code1 = getelementptr inbounds %union.tree_node* %type, i64 0, i32 0, i32 0, i32 2
+  %bf.load = load i32* %code1, align 8
+  %bf.clear = and i32 %bf.load, 255
+  %type3 = getelementptr inbounds %union.tree_node* %expr, i64 0, i32 0, i32 0, i32 1
+  %0 = load %union.tree_node** %type3, align 8, !tbaa !1
+  %cmp = icmp eq %union.tree_node* %0, %type
+  br i1 %cmp, label %return, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %entry
+  %code5 = getelementptr inbounds %union.tree_node* %expr, i64 0, i32 0, i32 0, i32 2
+  %bf.load6 = load i32* %code5, align 8
+  %bf.clear7 = and i32 %bf.load6, 255
+  %cmp8 = icmp eq i32 %bf.clear7, 0
+  %cmp10 = icmp eq i32 %bf.clear, 0
+  %or.cond = or i1 %cmp8, %cmp10
+  br i1 %or.cond, label %return, label %lor.lhs.false11
+
+lor.lhs.false11:                                  ; preds = %lor.lhs.false
+  %code15 = getelementptr inbounds %union.tree_node* %0, i64 0, i32 0, i32 0, i32 2
+  %bf.load16 = load i32* %code15, align 8
+  %bf.clear17 = and i32 %bf.load16, 255
+  %cmp18 = icmp eq i32 %bf.clear17, 0
+  br i1 %cmp18, label %return, label %if.end
+
+if.end:                                           ; preds = %lor.lhs.false11
+  %1 = getelementptr inbounds %union.tree_node* %type, i64 0, i32 0, i32 15
+  %2 = load %union.tree_node** %1, align 8, !tbaa !7
+  %3 = getelementptr inbounds %union.tree_node* %0, i64 0, i32 0, i32 15
+  %4 = load %union.tree_node** %3, align 8, !tbaa !7
+  %cmp24 = icmp eq %union.tree_node* %2, %4
+  br i1 %cmp24, label %if.then25, label %if.end36
+
+if.then25:                                        ; preds = %if.end
+  %call = tail call %union.tree_node* @build1(i32 115, %union.tree_node* %type, %union.tree_node* %expr) #2
+  %call26 = tail call %union.tree_node* @fold(%union.tree_node* %call) #2
+  br label %return
+
+if.end36:                                         ; preds = %if.end
+  %cmp43 = icmp eq i32 %bf.clear17, 5
+  br i1 %cmp43, label %if.then44, label %if.end45
+
+if.then44:                                        ; preds = %if.end36
+  tail call void (i8*, ...)* @error(i8* getelementptr inbounds ([41 x i8]* @.str, i64 0, i64 0)) #2
+  %5 = load %union.tree_node** getelementptr inbounds ([51 x %union.tree_node*]* @global_trees, i64 0, i64 0), align 8, !tbaa !10
+  br label %return
+
+if.end45:                                         ; preds = %if.end36
+  switch i32 %bf.clear, label %if.end70 [
+    i32 5, label %if.then47
+    i32 10, label %if.then53
+    i32 6, label %if.then53
+    i32 11, label %if.then58
+  ]
+
+if.then47:                                        ; preds = %if.end45
+  %call48 = tail call %union.tree_node* @build1(i32 114, %union.tree_node* %type, %union.tree_node* %expr) #2
+  br label %return
+
+if.then53:                                        ; preds = %if.end45, %if.end45
+  %call54 = tail call %union.tree_node* @convert_to_integer(%union.tree_node* %type, %union.tree_node* %expr) #2
+  %call55 = tail call %union.tree_node* @fold(%union.tree_node* %call54) #2
+  br label %return
+
+if.then58:                                        ; preds = %if.end45
+  %call59 = tail call %union.tree_node* @truthvalue_conversion(%union.tree_node* %expr) #2
+  %code61 = getelementptr inbounds %union.tree_node* %call59, i64 0, i32 0, i32 0, i32 2
+  %bf.load62 = load i32* %code61, align 8
+  %bf.clear63 = and i32 %bf.load62, 255
+  %cmp64 = icmp eq i32 %bf.clear63, 115
+  br i1 %cmp64, label %if.then65, label %if.else
+
+if.then65:                                        ; preds = %if.then58
+  %operands = getelementptr inbounds %union.tree_node* %call59, i64 0, i32 0, i32 2
+  %arrayidx = bitcast i32* %operands to %union.tree_node**
+  %6 = load %union.tree_node** %arrayidx, align 8, !tbaa !10
+  %call66 = tail call %union.tree_node* @build1(i32 115, %union.tree_node* %type, %union.tree_node* %6) #2
+  %call67 = tail call %union.tree_node* @fold(%union.tree_node* %call66) #2
+  br label %return
+
+if.else:                                          ; preds = %if.then58
+  %call68 = tail call %union.tree_node* @build1(i32 115, %union.tree_node* %type, %union.tree_node* %call59) #2
+  %call69 = tail call %union.tree_node* @fold(%union.tree_node* %call68) #2
+  br label %return
+
+if.end70:                                         ; preds = %if.end45
+  %7 = and i32 %bf.load, 253
+  %8 = icmp eq i32 %7, 13
+  br i1 %8, label %if.then74, label %if.end77
+
+if.then74:                                        ; preds = %if.end70
+  %call75 = tail call %union.tree_node* @convert_to_pointer(%union.tree_node* %type, %union.tree_node* %expr) #2
+  %call76 = tail call %union.tree_node* @fold(%union.tree_node* %call75) #2
+  br label %return
+
+if.end77:                                         ; preds = %if.end70
+  switch i32 %bf.clear, label %if.end92 [
+    i32 7, label %if.then79
+    i32 8, label %if.then84
+    i32 9, label %if.then89
+  ]
+
+if.then79:                                        ; preds = %if.end77
+  %call80 = tail call %union.tree_node* @convert_to_real(%union.tree_node* %type, %union.tree_node* %expr) #2
+  %call81 = tail call %union.tree_node* @fold(%union.tree_node* %call80) #2
+  br label %return
+
+if.then84:                                        ; preds = %if.end77
+  %call85 = tail call %union.tree_node* @convert_to_complex(%union.tree_node* %type, %union.tree_node* %expr) #2
+  %call86 = tail call %union.tree_node* @fold(%union.tree_node* %call85) #2
+  br label %return
+
+if.then89:                                        ; preds = %if.end77
+  %call90 = tail call %union.tree_node* @convert_to_vector(%union.tree_node* %type, %union.tree_node* %expr) #2
+  %call91 = tail call %union.tree_node* @fold(%union.tree_node* %call90) #2
+  br label %return
+
+if.end92:                                         ; preds = %if.end77
+  tail call void (i8*, ...)* @error(i8* getelementptr inbounds ([40 x i8]* @.str1, i64 0, i64 0)) #2
+  %9 = load %union.tree_node** getelementptr inbounds ([51 x %union.tree_node*]* @global_trees, i64 0, i64 0), align 8, !tbaa !10
+  br label %return
+
+return:                                           ; preds = %entry, %lor.lhs.false, %lor.lhs.false11, %if.end92, %if.then89, %if.then84, %if.then79, %if.then74, %if.else, %if.then65, %if.then53, %if.then47, %if.then44, %if.then25
+  %retval.0 = phi %union.tree_node* [ %call26, %if.then25 ], [ %5, %if.then44 ], [ %call48, %if.then47 ], [ %call55, %if.then53 ], [ %call67, %if.then65 ], [ %call69, %if.else ], [ %call76, %if.then74 ], [ %call81, %if.then79 ], [ %call86, %if.then84 ], [ %call91, %if.then89 ], [ %9, %if.end92 ], [ %expr, %lor.lhs.false11 ], [ %expr, %lor.lhs.false ], [ %expr, %entry ]
+  ret %union.tree_node* %retval.0
+}
+
+declare %union.tree_node* @fold(%union.tree_node*) #1
+
+declare %union.tree_node* @build1(i32, %union.tree_node*, %union.tree_node*) #1
+
+declare void @error(i8*, ...) #1
+
+declare %union.tree_node* @convert_to_integer(%union.tree_node*, %union.tree_node*) #1
+
+declare %union.tree_node* @truthvalue_conversion(%union.tree_node*) #1
+
+declare %union.tree_node* @convert_to_pointer(%union.tree_node*, %union.tree_node*) #1
+
+declare %union.tree_node* @convert_to_real(%union.tree_node*, %union.tree_node*) #1
+
+declare %union.tree_node* @convert_to_complex(%union.tree_node*, %union.tree_node*) #1
+
+declare %union.tree_node* @convert_to_vector(%union.tree_node*, %union.tree_node*) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+
+!0 = metadata !{metadata !"clang version 3.5 (trunk)"}
+!1 = metadata !{metadata !2, metadata !3, i64 8}
+!2 = metadata !{metadata !"tree_common", metadata !3, i64 0, metadata !3, i64 8, metadata !4, i64 16, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 17, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 18, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19, metadata !6, i64 19}
+!3 = metadata !{metadata !"any pointer", metadata !4, i64 0}
+!4 = metadata !{metadata !"omnipotent char", metadata !5, i64 0}
+!5 = metadata !{metadata !"Simple C/C++ TBAA"}
+!6 = metadata !{metadata !"int", metadata !4, i64 0}
+!7 = metadata !{metadata !8, metadata !3, i64 128}
+!8 = metadata !{metadata !"tree_type", metadata !2, i64 0, metadata !3, i64 24, metadata !3, i64 32, metadata !3, i64 40, metadata !3, i64 48, metadata !6, i64 56, metadata !6, i64 60, metadata !4, i64 61, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 62, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 63, metadata !6, i64 64, metadata !3, i64 72, metadata !3, i64 80, metadata !4, i64 88, metadata !3, i64 96, metadata !3, i64 104, metadata !3, i64 112, metadata !3, i64 120, metadata !3, i64 128, metadata !3, i64 136, metadata !3, i64 144, metadata !9, i64 152, metadata !3, i64 160}
+!9 = metadata !{metadata !"long long", metadata !4, i64 0}
+!10 = metadata !{metadata !3, metadata !3, i64 0}
