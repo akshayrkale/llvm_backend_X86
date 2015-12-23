@@ -422,7 +422,7 @@ unsigned DataLayout::getAlignmentInfo(AlignTypeEnum AlignType,
     if (Alignments[i].AlignType == (unsigned)AlignType &&
         Alignments[i].TypeBitWidth == BitWidth)
       return ABIInfo ? Alignments[i].ABIAlign : Alignments[i].PrefAlign;
-    if ( AlignType == 102 && BitWidth == 80) 	
+    if ( AlignType == 102 && BitWidth == 80 ) 	
       return ABIInfo ? Alignments[6].ABIAlign : Alignments[6].PrefAlign;
 
     // The best match so far depends on what we're looking for.
